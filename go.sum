@@ -1,0 +1,8 @@
+github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
+github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/joho/godotenv v1.4.0 h1:3l4+N6zfMWnkbPEXKng2o2/MR5mSwTrBih4ZEkkz1lg=
+github.com/joho/godotenv v1.4.0/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
+github.com/kurrik/oauth1a v0.1.1 h1:3myAVza5bCMnyW/0gcVtQUeYaqcMKmniNxOIm0ESjek=
+github.com/kurrik/oauth1a v0.1.1/go.mod h1:2lmEMbW1BVM6RfQ6aN+b7kQSegGdXU4XeVfHKm4qxM0=
+github.com/mehanizm/airtable v0.2.5 h1:DfAUx0+TOYRvqcaW0y0s6JdgIqs1IaiNvzsWxsR/8pQ=
+github.com/mehanizm/airtable v0.2.5/go.mod h1:VcLiruKmStKYMtX9o77Dq+GHpVuJzMa9wjJcHKdgQNs=
