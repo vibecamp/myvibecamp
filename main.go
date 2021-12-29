@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"embed"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -23,12 +24,6 @@ var static embed.FS
 
 var tmpl *template.Template
 
-type Settings struct {
-	ApiKey    string
-	ApiSecret string
-	Port      int
-}
-
 type Session struct {
 	key         string
 	secret      string
@@ -38,7 +33,6 @@ type Session struct {
 }
 
 var (
-	settings *Settings
 	service  *oauth1a.Service
 	sessions map[string]*Session
 )
@@ -232,21 +226,27 @@ func InfoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	err := godotenv.Load("env")
-	if err != nil {
-		log.Fatalf("Some error occured. Err: %s", err)
+	// load env file if exists
+	_, err := os.Open("env")
+	if !errors.Is(err, os.ErrNotExist) {
+		err := godotenv.Load("env")
+		if err != nil {
+			log.Fatalf("Some error occured. Err: %s", err)
+		}
 	}
 
 	tmpl = template.Must(template.ParseFS(mustSub(static, "static"), "*.tmpl"))
 
 	sessions = map[string]*Session{}
-	settings = &Settings{
-		Port:      8080,
-		ApiKey:    os.Getenv("TWITTER_API_KEY"),
-		ApiSecret: os.Getenv("TWITTER_API_SECRET"),
-	}
 
-	if settings.ApiKey == "" || settings.ApiSecret == "" {
+	var (
+		externalURL = os.Getenv("EXTERNAL_URL")
+		port        = os.Getenv("PORT")
+		apiKey      = os.Getenv("TWITTER_API_KEY")
+		apiSecret   = os.Getenv("TWITTER_API_SECRET")
+	)
+
+	if apiKey == "" || apiSecret == "" {
 		fmt.Fprintf(os.Stderr, "You must specify a consumer key and secret.\n")
 		os.Exit(1)
 	}
@@ -256,9 +256,9 @@ func main() {
 		AuthorizeURL: "https://api.twitter.com/oauth/authorize",
 		AccessURL:    "https://api.twitter.com/oauth/access_token",
 		ClientConfig: &oauth1a.ClientConfig{
-			ConsumerKey:    settings.ApiKey,
-			ConsumerSecret: settings.ApiSecret,
-			CallbackURL:    fmt.Sprintf("http://127.0.0.1.nip.io:%d/callback", settings.Port),
+			ConsumerKey:    apiKey,
+			ConsumerSecret: apiSecret,
+			CallbackURL:    fmt.Sprintf("%s/callback", externalURL),
 		},
 		Signer: new(oauth1a.HmacSha1Signer),
 	}
@@ -268,8 +268,8 @@ func main() {
 	http.HandleFunc("/info", InfoHandler)
 	http.Handle("/", http.FileServer(http.FS(mustSub(static, "static"))))
 
-	log.Printf("Visit http://127.0.0.1.nip.io:%d in your browser\n", settings.Port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", settings.Port), nil))
+	log.Printf("Visit %s in your browser\n", externalURL)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
 
 func mustSub(f embed.FS, path string) fs.FS {
