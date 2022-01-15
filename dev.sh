@@ -1,3 +1,3 @@
 #!/bin/bash
 
-reflex --decoration=none --start-service=true go run .
+DEV=true reflex --decoration=none --start-service=true go run .
