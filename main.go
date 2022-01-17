@@ -1,16 +1,21 @@
 package main
 
 import (
+	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/cockroachdb/errors/oserror"
 	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -49,10 +54,17 @@ func main() {
 	if localDevMode {
 		log.SetLevel(log.DebugLevel) // we have TraceLevel messages as well
 		log.Println("dev mode enabled")
+	} else {
+		gin.SetMode(gin.ReleaseMode)
 	}
 
 	if apiKey == "" || apiSecret == "" {
 		log.Errorf("You must specify a consumer key and secret.\n")
+		os.Exit(1)
+	}
+
+	if os.Getenv("AIRTABLE_API_KEY") == "" {
+		log.Errorf("no airtable api key")
 		os.Exit(1)
 	}
 
@@ -69,8 +81,15 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.Use(errPrinter)
 
-	store := memstore.NewStore([]byte("whatever")) // TODO: add keys?
+	var store sessions.Store
+	if localDevMode {
+		store = cookie.NewStore([]byte("whatever")) // just for dev
+	} else {
+		// TODO: make this redis
+		store = memstore.NewStore([]byte("whatever")) // TODO: add keys?
+	}
 	store.Options(sessions.Options{Path: "/", MaxAge: 3600, Secure: !localDevMode, HttpOnly: true})
 	r.Use(sessions.Sessions("session_id", store))
 
@@ -85,7 +104,31 @@ func main() {
 
 	log.Printf("Visit %s in your browser\n", externalURL)
 	//log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
-	log.Fatal(r.Run(fmt.Sprintf(":%s", port)))
+	//log.Fatal(r.Run(fmt.Sprintf(":%s", port)))
+
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", port),
+		Handler: r,
+	}
+	// Initializing the server in a goroutine so that
+	// it won't block the graceful shutdown handling below
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+			log.Errorf("listen: %s\n", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 5 seconds.
+	quit := make(chan os.Signal)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutting down server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %+v", err)
+	}
+	log.Println("Server exiting")
 }
 
 func mustSub(f embed.FS, path string) fs.FS {
@@ -94,4 +137,20 @@ func mustSub(f embed.FS, path string) fs.FS {
 		panic(err)
 	}
 	return fsys
+}
+
+func errPrinter(c *gin.Context) {
+	c.Next()
+
+	if len(c.Errors) > 0 {
+		errorStrings := make([]string, len(c.Errors))
+		for i, err := range c.Errors {
+			if localDevMode {
+				errorStrings[i] = fmt.Sprintf("%+v", err.Unwrap())
+			} else {
+				errorStrings[i] = fmt.Sprintf("%v", err.Unwrap())
+			}
+		}
+		c.HTML(400, "errorList.html.tmpl", errorStrings)
+	}
 }
