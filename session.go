@@ -1,52 +1,121 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/base64"
-	"io"
+	"context"
+	"encoding/gob"
 	"net/http"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 	"github.com/kurrik/oauth1a"
+	log "github.com/sirupsen/logrus"
 )
 
 type Session struct {
-	key         string
-	secret      string
-	twitterName string
-	twitterID   string
-	oauth       *oauth1a.UserConfig
+	Key         string
+	Secret      string
+	TwitterName string
+	TwitterID   string
+	Oauth       *oauth1a.UserConfig
 }
 
-//var sessions map[string]*Session
-//func init() {
-//	sessions = make(map[string]*Session)
-//}
-
-func NewSessionID() string {
-	c := 128
-	b := make([]byte, c)
-	n, err := io.ReadFull(rand.Reader, b)
-	if n != len(b) || err != nil {
-		panic("Could not generate random number")
-	}
-	return base64.URLEncoding.EncodeToString(b)
+func init() {
+	gob.Register(Session{})
 }
 
-func GetSessionID(r *http.Request) (id string, err error) {
-	var c *http.Cookie
-	if c, err = r.Cookie("session_id"); err == nil {
-		id = c.Value
+const sessionKey = "s"
+
+func GetSession(c *gin.Context) *Session {
+	defaultSession := sessions.Default(c)
+	s := defaultSession.Get(sessionKey)
+	if s == nil {
+		return new(Session)
 	}
-	return
+
+	ss := s.(Session)
+	return &ss
 }
 
-func SessionEndCookie() *http.Cookie {
-	return &http.Cookie{
-		Name:     "session_id",
-		Value:    "",
-		MaxAge:   0,
-		Secure:   !localDevMode,
-		Path:     "/",
-		HttpOnly: true,
+func SaveSession(c *gin.Context, s *Session) {
+	defaultSession := sessions.Default(c)
+	defaultSession.Set(sessionKey, &s)
+	defaultSession.Save()
+}
+
+func ClearSession(c *gin.Context) {
+	session := sessions.Default(c)
+	session.Clear()
+	session.Save()
+}
+
+func (s *Session) SignedIn() bool {
+	return s != nil && s.Key != ""
+}
+
+func SignInHandler(c *gin.Context) {
+	session := GetSession(c)
+
+	session.Oauth = &oauth1a.UserConfig{}
+	err := session.Oauth.GetRequestToken(context.Background(), service, http.DefaultClient)
+	if err != nil {
+		log.Debugf("Could not get request token: %v", err)
+		c.String(http.StatusInternalServerError, "Problem getting the request token")
+		c.Abort()
+		return
 	}
+
+	url, err := session.Oauth.GetAuthorizeURL(service)
+	if err != nil {
+		log.Debugf("Could not get authorization URL: %v", err)
+		c.String(http.StatusInternalServerError, "Problem getting the authorization URL")
+		c.Abort()
+		return
+	}
+
+	SaveSession(c, session)
+
+	log.Debugf("Redirecting user to %v\n", url)
+	c.Redirect(http.StatusFound, url)
+}
+
+func SignOutHandler(c *gin.Context) {
+	ClearSession(c)
+	c.Redirect(http.StatusFound, "/")
+}
+
+func CallbackHandler(c *gin.Context) {
+	log.Tracef("Callback hit") //. %v current sessions.\n", len(sessions))
+
+	session := GetSession(c)
+	if session.Oauth == nil || session.Oauth.RequestTokenKey == "" {
+		log.Tracef("No user config in session")
+		c.String(http.StatusBadRequest, "error: no session found")
+		c.Abort()
+		return
+	}
+
+	token, verifier, err := session.Oauth.ParseAuthorize(c.Request, service)
+	if err != nil {
+		log.Tracef("Could not parse authorization: %v", err)
+		c.String(http.StatusInternalServerError, "error: could not parse authorization")
+		c.Abort()
+		return
+	}
+
+	err = session.Oauth.GetAccessToken(context.Background(), token, verifier, service, http.DefaultClient)
+	if err != nil {
+		log.Tracef("Error getting access token: %v", err)
+		c.String(http.StatusInternalServerError, "error: could not get access token")
+		c.Abort()
+		return
+	}
+
+	session.Key = session.Oauth.AccessTokenKey
+	session.Secret = session.Oauth.AccessTokenSecret
+	session.TwitterName = session.Oauth.AccessValues.Get("screen_name")
+	session.TwitterID = session.Oauth.AccessValues.Get("user_id")
+	session.Oauth = nil
+
+	SaveSession(c, session)
+	c.Redirect(http.StatusFound, "/")
 }

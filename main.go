@@ -78,11 +78,9 @@ func main() {
 	r.SetHTMLTemplate(tmpl)
 
 	r.GET("/signin", SignInHandler)
+	r.GET("/signout", SignOutHandler)
 	r.GET("/callback", CallbackHandler)
-	r.GET("/info", InfoHandler)
-	r.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html.tmpl", nil)
-	})
+	r.GET("/", InfoHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))
 
 	log.Printf("Visit %s in your browser\n", externalURL)

@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/cockroachdb/errors v1.8.6
+	github.com/davecgh/go-spew v1.1.1
 	github.com/gin-contrib/sessions v0.0.4
 	github.com/gin-gonic/gin v1.7.4
 	github.com/joho/godotenv v1.4.0
