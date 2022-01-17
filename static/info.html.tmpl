@@ -11,8 +11,9 @@
     March.
   </p>
   <p>
-    <a href="#">Click here for ticket QR code (not working yet)</a>.
+    <a data-toggle="collapse" href="#qrcode" role="button" aria-expanded="false" aria-controls="qrcode">Show ticket QR code</a>
   </p>
+  <img id="qrcode" src="data:image/png;base64,{{.QR}}" class="collapse mx-auto d-block" />
 
   <h3>Cabin</h3>
   <p>

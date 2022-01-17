@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"github.com/cockroachdb/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/mehanizm/airtable"
+	"github.com/skip2/go-qrcode"
 )
 
 func InfoHandler(c *gin.Context) {
@@ -26,7 +28,7 @@ func InfoHandler(c *gin.Context) {
 		//WithFilterFormula("AND({Field1}='value_1',NOT({Field2}='value_2'))").
 		WithFilterFormula(fmt.Sprintf("{twitter clean}='%s'", strings.ToLower(session.TwitterName))).
 		//WithSort(sortQuery1, sortQuery2).
-		ReturnFields("Ticket ID", "Twitter Name", "Cabin").
+		ReturnFields("Ticket ID", "Twitter Name", "Cabin", "Barcode").
 		InStringFormat("US/Eastern", "en").
 		Do()
 	if err != nil {
@@ -55,7 +57,6 @@ func InfoHandler(c *gin.Context) {
 			Do()
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "getting cabin records"))
-			c.Abort()
 			return
 		}
 		for _, c := range cRecs.Records {
@@ -63,13 +64,21 @@ func InfoHandler(c *gin.Context) {
 		}
 	}
 
+	qr, err := qrcode.Encode(rec.Fields["Barcode"].(string), qrcode.Medium, 256)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "generating qr code"))
+		return
+	}
+
 	c.HTML(http.StatusOK, "info.html.tmpl", struct {
 		Name       string
 		Cabin      string
 		Cabinmates []string
+		QR         string
 	}{
 		Name:       session.TwitterName,
 		Cabin:      fmt.Sprintf("%s", rec.Fields["Cabin"]),
 		Cabinmates: cabinMates,
+		QR:         base64.StdEncoding.EncodeToString(qr),
 	})
 }
