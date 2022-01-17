@@ -3,6 +3,7 @@ RUN apk add --update --no-cache ca-certificates
 RUN mkdir /build
 ADD . /build/
 WORKDIR /build
+RUN go get
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o app .
 
 FROM scratch
