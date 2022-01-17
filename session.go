@@ -17,11 +17,10 @@ type Session struct {
 	oauth       *oauth1a.UserConfig
 }
 
-var sessions map[string]*Session
-
-func init() {
-	sessions = make(map[string]*Session)
-}
+//var sessions map[string]*Session
+//func init() {
+//	sessions = make(map[string]*Session)
+//}
 
 func NewSessionID() string {
 	c := 128
@@ -39,17 +38,6 @@ func GetSessionID(r *http.Request) (id string, err error) {
 		id = c.Value
 	}
 	return
-}
-
-func SessionStartCookie(id string) *http.Cookie {
-	return &http.Cookie{
-		Name:     "session_id",
-		Value:    id,
-		MaxAge:   60,
-		Secure:   !localDevMode,
-		Path:     "/",
-		HttpOnly: true,
-	}
 }
 
 func SessionEndCookie() *http.Cookie {

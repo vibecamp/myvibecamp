@@ -1,109 +1,120 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"fmt"
 	"net/http"
 	"os"
 
+	"github.com/cockroachdb/errors"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 	"github.com/kurrik/oauth1a"
 	"github.com/mehanizm/airtable"
 	log "github.com/sirupsen/logrus"
 )
 
-func SignInHandler(w http.ResponseWriter, r *http.Request) {
-	var (
-		url       string
-		err       error
-		sessionID string
-	)
+func SignInHandler(c *gin.Context) {
 	userConfig := &oauth1a.UserConfig{}
-
-	if err = userConfig.GetRequestToken(context.Background(), service, http.DefaultClient); err != nil {
+	err := userConfig.GetRequestToken(context.Background(), service, http.DefaultClient)
+	if err != nil {
 		log.Debugf("Could not get request token: %v", err)
-		http.Error(w, "Problem getting the request token", 500)
+		c.String(http.StatusInternalServerError, "Problem getting the request token")
+		c.Abort()
 		return
 	}
-	if url, err = userConfig.GetAuthorizeURL(service); err != nil {
+
+	url, err := userConfig.GetAuthorizeURL(service)
+	if err != nil {
 		log.Debugf("Could not get authorization URL: %v", err)
-		http.Error(w, "Problem getting the authorization URL", 500)
+		c.String(http.StatusInternalServerError, "Problem getting the authorization URL")
+		c.Abort()
 		return
 	}
-	log.Debugf("Redirecting user to %v\n", url)
-	sessionID = NewSessionID()
+
+	sessionID := NewSessionID()
 	log.Debugf("Starting session %v\n", sessionID)
-	sessions[sessionID] = &Session{oauth: userConfig}
-	http.SetCookie(w, SessionStartCookie(sessionID))
-	http.Redirect(w, r, url, 302)
+
+	var conf bytes.Buffer
+	enc := gob.NewEncoder(&conf)
+	err = enc.Encode(userConfig)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "encoding oauth config"))
+		return
+	}
+
+	session := sessions.Default(c)
+	session.Set("oauth_config", conf.Bytes())
+	session.Save()
+
+	log.Debugf("Redirecting user to %v\n", url)
+	c.Redirect(http.StatusFound, url)
 }
 
-func CallbackHandler(w http.ResponseWriter, r *http.Request) {
-	var (
-		err       error
-		token     string
-		verifier  string
-		sessionID string
-		session   *Session
-		ok        bool
-	)
+func CallbackHandler(c *gin.Context) {
+	log.Tracef("Callback hit") //. %v current sessions.\n", len(sessions))
 
-	log.Tracef("Callback hit. %v current sessions.\n", len(sessions))
-	if sessionID, err = GetSessionID(r); err != nil {
-		log.Tracef("Got a callback with no session id: %v\n", err)
-		http.Error(w, "No session found", 400)
+	session := sessions.Default(c)
+	userConfigInt := session.Get("oauth_config")
+	if userConfigInt == nil {
+		log.Tracef("No user config in session")
+		c.String(http.StatusBadRequest, "error: no session found")
+		c.Abort()
 		return
 	}
-	if session, ok = sessions[sessionID]; !ok {
-		log.Tracef("Could not find user config in sesions storage.")
-		http.Error(w, "Invalid session", 400)
+
+	var userConfig *oauth1a.UserConfig
+	enc := gob.NewDecoder(bytes.NewBuffer(userConfigInt.([]byte)))
+	err := enc.Decode(&userConfig)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "decoding oauth config from session"))
 		return
 	}
-	if token, verifier, err = session.oauth.ParseAuthorize(r, service); err != nil {
+
+	token, verifier, err := userConfig.ParseAuthorize(c.Request, service)
+	if err != nil {
 		log.Tracef("Could not parse authorization: %v", err)
-		http.Error(w, "Problem parsing authorization", 500)
+		c.String(http.StatusInternalServerError, "error: could not parse authorization")
+		c.Abort()
 		return
 	}
-	if err = session.oauth.GetAccessToken(context.Background(), token, verifier, service, http.DefaultClient); err != nil {
+
+	err = userConfig.GetAccessToken(context.Background(), token, verifier, service, http.DefaultClient)
+	if err != nil {
 		log.Tracef("Error getting access token: %v", err)
-		http.Error(w, "Problem getting an access token", 500)
+		c.String(http.StatusInternalServerError, "error: could not get access token")
+		c.Abort()
 		return
 	}
 
-	//log.Printf("Ending session %v.\n", sessionID)
-	//delete(sessions, sessionID)
-	//http.SetCookie(rw, SessionEndCookie())
+	session.Set("twitterName", userConfig.AccessValues.Get("screen_name"))
+	session.Set("twitterID", userConfig.AccessValues.Get("user_id"))
+	session.Save()
 
-	session.key = session.oauth.AccessTokenKey
-	session.secret = session.oauth.AccessTokenSecret
-	session.twitterName = session.oauth.AccessValues.Get("screen_name")
-	session.twitterID = session.oauth.AccessValues.Get("user_id")
-	http.Redirect(w, r, "/info", 302)
+	//session.key = userConfig.AccessTokenKey
+	//session.secret = userConfig.AccessTokenSecret
+	//session.twitterName = userConfig.AccessValues.Get("screen_name")
+	//session.twitterID = userConfig.AccessValues.Get("user_id")
+	c.Redirect(http.StatusFound, "/info")
 }
 
-func InfoHandler(w http.ResponseWriter, r *http.Request) {
-	var (
-		err       error
-		sessionID string
-		session   *Session
-		ok        bool
-	)
-
-	if sessionID, err = GetSessionID(r); err != nil {
-		http.Redirect(w, r, "/?error=No+session+found", 302)
-		return
-	}
-	if session, ok = sessions[sessionID]; !ok {
-		http.Redirect(w, r, "/?error=Invalid+session", 302)
-		return
-	}
-	if session.twitterName == "" {
-		delete(sessions, sessionID)
-		http.SetCookie(w, SessionEndCookie())
-		http.Redirect(w, r, "/?error=Invalid+session", 302)
+func InfoHandler(c *gin.Context) {
+	session := sessions.Default(c)
+	twitterNameInt := session.Get("twitterName")
+	if twitterNameInt == nil {
+		c.Redirect(http.StatusFound, "/")
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/html;charset=utf-8")
+	twitterName := twitterNameInt.(string)
+
+	if twitterName == "" {
+		session.Clear()
+		c.Redirect(http.StatusFound, "/?error=Invalid+session")
+		return
+	}
 
 	airtableApiKey := os.Getenv("AIRTABLE_API_KEY")
 	if airtableApiKey == "" {
@@ -116,7 +127,7 @@ func InfoHandler(w http.ResponseWriter, r *http.Request) {
 	records, err := table.GetRecords().
 		//FromView("view_1").
 		//WithFilterFormula("AND({Field1}='value_1',NOT({Field2}='value_2'))").
-		WithFilterFormula(fmt.Sprintf("OR({Twitter Name}='%s',{Twitter Name}='@%s')", session.twitterName, session.twitterName)).
+		WithFilterFormula(fmt.Sprintf("OR({Twitter Name}='%s',{Twitter Name}='@%s')", twitterName, twitterName)).
 		//WithSort(sortQuery1, sortQuery2).
 		ReturnFields("Ticket ID", "Twitter Name", "Cabin").
 		InStringFormat("US/Eastern", "en").
@@ -126,10 +137,12 @@ func InfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if records == nil {
-		fmt.Fprintf(w, "ERROR: records is nil")
+		c.String(http.StatusBadRequest, "you're not on the list")
+		c.Abort()
 		return
 	} else if len(records.Records) != 1 {
-		fmt.Fprintf(w, "ERROR: expected one record, found %d", len(records.Records))
+		c.String(http.StatusBadRequest, "you're on the list more than once")
+		c.Abort()
 		return
 	}
 
@@ -143,19 +156,21 @@ func InfoHandler(w http.ResponseWriter, r *http.Request) {
 			InStringFormat("US/Eastern", "en").
 			Do()
 		if err != nil {
-			panic(err)
+			c.String(http.StatusInternalServerError, "error getting cabin records")
+			c.Abort()
+			return
 		}
 		for _, c := range cRecs.Records {
 			cabinMates = append(cabinMates, fmt.Sprintf("%s", c.Fields["Twitter Name"]))
 		}
 	}
 
-	tmpl.ExecuteTemplate(w, "info.html.tmpl", struct {
+	c.HTML(http.StatusOK, "info.html.tmpl", struct {
 		Name       string
 		Cabin      string
 		Cabinmates []string
 	}{
-		Name:       session.twitterName,
+		Name:       twitterName,
 		Cabin:      fmt.Sprintf("%s", rec.Fields["Cabin"]),
 		Cabinmates: cabinMates,
 	})

@@ -10,6 +10,9 @@ import (
 	"time"
 
 	"github.com/cockroachdb/errors/oserror"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/memstore"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/kurrik/oauth1a"
 	log "github.com/sirupsen/logrus"
@@ -20,7 +23,6 @@ var static embed.FS
 
 var (
 	localDevMode bool
-	tmpl         *template.Template
 	service      *oauth1a.Service
 )
 
@@ -35,8 +37,6 @@ func main() {
 			log.Fatalf("loading env: %s", err)
 		}
 	}
-
-	tmpl = template.Must(template.ParseFS(mustSub(static, "static"), "*.tmpl"))
 
 	var (
 		externalURL = os.Getenv("EXTERNAL_URL")
@@ -68,13 +68,26 @@ func main() {
 		Signer: new(oauth1a.HmacSha1Signer),
 	}
 
-	http.HandleFunc("/signin/", SignInHandler)
-	http.HandleFunc("/callback/", CallbackHandler)
-	http.HandleFunc("/info", InfoHandler)
-	http.Handle("/", http.FileServer(http.FS(mustSub(static, "static"))))
+	r := gin.Default()
+
+	store := memstore.NewStore([]byte("whatever")) // TODO: add keys?
+	store.Options(sessions.Options{Path: "/", MaxAge: 3600, Secure: !localDevMode, HttpOnly: true})
+	r.Use(sessions.Sessions("session_id", store))
+
+	tmpl := template.Must(template.ParseFS(mustSub(static, "static"), "*.tmpl"))
+	r.SetHTMLTemplate(tmpl)
+
+	r.GET("/signin", SignInHandler)
+	r.GET("/callback", CallbackHandler)
+	r.GET("/info", InfoHandler)
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html.tmpl", nil)
+	})
+	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))
 
 	log.Printf("Visit %s in your browser\n", externalURL)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	//log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	log.Fatal(r.Run(fmt.Sprintf(":%s", port)))
 }
 
 func mustSub(f embed.FS, path string) fs.FS {
