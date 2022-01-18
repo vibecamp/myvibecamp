@@ -21,12 +21,14 @@ func InfoHandler(c *gin.Context) {
 		return
 	}
 
+	cleanTwitterName := strings.ToLower(session.TwitterName)
+
 	client := airtable.NewClient(os.Getenv("AIRTABLE_API_KEY"))
 	table := client.GetTable(os.Getenv("AIRTABLE_DB"), "Attendees")
 	records, err := table.GetRecords().
 		//FromView("view_1").
 		//WithFilterFormula("AND({Field1}='value_1',NOT({Field2}='value_2'))").
-		WithFilterFormula(fmt.Sprintf("{twitter clean}='%s'", strings.ToLower(session.TwitterName))).
+		WithFilterFormula(fmt.Sprintf("{twitter clean}='%s'", cleanTwitterName)).
 		//WithSort(sortQuery1, sortQuery2).
 		ReturnFields("Ticket ID", "Twitter Name", "Cabin", "Barcode").
 		InStringFormat("US/Eastern", "en").
@@ -52,7 +54,7 @@ func InfoHandler(c *gin.Context) {
 	if rec.Fields["Cabin"] != "" {
 		cRecs, err := table.GetRecords().
 			WithFilterFormula(fmt.Sprintf("{Cabin}='%s'", rec.Fields["Cabin"])).
-			ReturnFields("Twitter Name").
+			ReturnFields("Twitter Name", "twitter clean").
 			InStringFormat("US/Eastern", "en").
 			Do()
 		if err != nil {
@@ -60,7 +62,9 @@ func InfoHandler(c *gin.Context) {
 			return
 		}
 		for _, c := range cRecs.Records {
-			cabinMates = append(cabinMates, fmt.Sprintf("%s", c.Fields["Twitter Name"]))
+			if c.Fields["twitter clean"] != cleanTwitterName {
+				cabinMates = append(cabinMates, fmt.Sprintf("%s", c.Fields["Twitter Name"]))
+			}
 		}
 	}
 

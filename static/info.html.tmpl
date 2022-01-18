@@ -11,22 +11,26 @@
     March.
   </p>
   <p>
-    <a data-toggle="collapse" href="#qrcode" role="button" aria-expanded="false" aria-controls="qrcode">Show ticket QR code</a>
+    <a data-toggle="collapse" href="#qrcode" role="button" aria-expanded="false"
+       aria-controls="qrcode">Show ticket QR code</a>
   </p>
   <img id="qrcode" src="data:image/png;base64,{{.QR}}" class="collapse mx-auto d-block" />
 
   <h3>Cabin</h3>
   <p>
-      {{ if eq .Cabin "" }}
-    You're not in a cabin yet. Pop over to the #cabins channel in the discord and say hi. Or if
-    you want to take it easy, we'll find one for you. No worries!
-      {{ else }}
-    You're in <strong>Cabin {{ .Cabin }}</strong> with these lovely people
-  <ul>
-      {{ range $val := .Cabinmates }}
-        <li>{{ $val }}</li>
-      {{ end }}
-  </ul>
+    {{ if eq .Cabin "" }}
+      You're not in a cabin yet. Pop over to the #cabins channel in
+      <a href="https://discord.com/invite/PEvx7dbJCp">the discord</a>
+      and say hi. Or if you want to take it easy, we'll find one for you.
+      No worries!
+    {{ else }}
+      You're in <strong>Cabin {{ .Cabin }}</strong> with these lovely people:
+      <ul>
+          {{ range $val := .Cabinmates }}
+            <li><a href="https://twitter.com/{{ $val }}">@{{ $val }}</a></li>
+          {{ end }}
+      </ul>
+      Why not start a group chat and introduce yourselves?
     {{ end }}
   </p>
 </div>
