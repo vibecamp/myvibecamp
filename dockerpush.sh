@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t lyoshenka/vibeinfo:latest . && docker push lyoshenka/vibeinfo
+docker build -t lyoshenka/myvibecamp:latest . && docker push lyoshenka/myvibecamp

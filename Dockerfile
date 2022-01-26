@@ -7,7 +7,7 @@ RUN go get
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o app .
 
 FROM scratch
-COPY --from=builder /build/app /vibeinfo/
+COPY --from=builder /build/app /myvibecamp/
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-WORKDIR /vibeinfo
+WORKDIR /myvibecamp
 CMD ["./app"]
