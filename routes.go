@@ -68,7 +68,12 @@ func InfoHandler(c *gin.Context) {
 		}
 	}
 
-	qr, err := qrcode.Encode(rec.Fields["Barcode"].(string), qrcode.Medium, 256)
+	barcodeStr, ok := rec.Fields["Barcode"].(string)
+	if !ok {
+		c.AbortWithError(http.StatusInternalServerError, errors.New("invalid barcode"))
+		return
+	}
+	qr, err := qrcode.Encode(barcodeStr, qrcode.Medium, 256)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "generating qr code"))
 		return
