@@ -24,7 +24,7 @@
       and say hi. Or if you want to take it easy, we'll find one for you.
       No worries!
     {{ else }}
-      You're in <strong>Cabin {{ .Cabin }}</strong> with these lovely people:
+      Your cabin is <strong>{{ .Cabin }}</strong> and you're sharing it with these lovely people:
       <ul>
           {{ range $val := .Cabinmates }}
             <li><a href="https://twitter.com/{{ $val }}">@{{ $val }}</a></li>

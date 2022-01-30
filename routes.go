@@ -74,6 +74,11 @@ func InfoHandler(c *gin.Context) {
 		return
 	}
 
+	var cabin string
+	if rec.Fields["Cabin"] != nil {
+		cabin = strings.TrimSpace(fmt.Sprintf("%s", rec.Fields["Cabin"]))
+	}
+
 	c.HTML(http.StatusOK, "info.html.tmpl", struct {
 		Name       string
 		Cabin      string
@@ -81,7 +86,7 @@ func InfoHandler(c *gin.Context) {
 		QR         string
 	}{
 		Name:       session.TwitterName,
-		Cabin:      fmt.Sprintf("%s", rec.Fields["Cabin"]),
+		Cabin:      cabin,
 		Cabinmates: cabinMates,
 		QR:         base64.StdEncoding.EncodeToString(qr),
 	})
