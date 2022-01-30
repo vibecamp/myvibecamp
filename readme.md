@@ -30,6 +30,15 @@ cp env.example env
 - https://airtable.com/api
 - https://support.airtable.com/hc/en-us/articles/4405741487383-Understanding-Airtable-IDs
 
+### Airtable Table Setup
+
+- Create a new table by importing [empty-table.csv](empty-table.csv)
+- Use the first part of the URL (starts with `app`) as your `AIRTABLE_BASE_ID`
+- Use the second part of the URL (starts with `tbl`) as your `AIRTABLE_TABLE_NAME`
+- For each user you want to test with, you need to add a new row. It must at least have:
+  - Their twitter handle (without the `@`) in the `twitter clean` column
+  - Some text in the `Barcode` column
+
 ## Deploy
 
 ```
