@@ -10,11 +10,14 @@
     You're in! This is confirmation that you have a ticket. We look forward to seeing you at in
     March.
   </p>
-  <p>
-    <a data-toggle="collapse" href="#qrcode" role="button" aria-expanded="false"
-       aria-controls="qrcode">Show ticket QR code</a>
-  </p>
-  <img id="qrcode" src="data:image/png;base64,{{.QR}}" class="collapse mx-auto d-block" />
+
+  {{ if ne .QR "" }}
+    <p>
+      <a data-toggle="collapse" href="#qrcode" role="button" aria-expanded="false"
+         aria-controls="qrcode">Show ticket QR code</a>
+    </p>
+    <img id="qrcode" src="data:image/png;base64,{{.QR}}" class="collapse mx-auto d-block" />
+  {{ end }}
 
   <h3>Cabin</h3>
   <p>

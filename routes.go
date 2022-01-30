@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"net/http"
 	"os"
@@ -10,7 +9,6 @@ import (
 	"github.com/cockroachdb/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/mehanizm/airtable"
-	"github.com/skip2/go-qrcode"
 )
 
 func InfoHandler(c *gin.Context) {
@@ -68,11 +66,11 @@ func InfoHandler(c *gin.Context) {
 		}
 	}
 
-	qr, err := qrcode.Encode(rec.Fields["Barcode"].(string), qrcode.Medium, 256)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "generating qr code"))
-		return
-	}
+	//qr, err := qrcode.Encode(rec.Fields["Barcode"].(string), qrcode.Medium, 256)
+	//if err != nil {
+	//	c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "generating qr code"))
+	//	return
+	//}
 
 	var cabin string
 	if rec.Fields["Cabin"] != nil {
@@ -88,6 +86,6 @@ func InfoHandler(c *gin.Context) {
 		Name:       session.TwitterName,
 		Cabin:      cabin,
 		Cabinmates: cabinMates,
-		QR:         base64.StdEncoding.EncodeToString(qr),
+		//QR:         base64.StdEncoding.EncodeToString(qr),
 	})
 }
