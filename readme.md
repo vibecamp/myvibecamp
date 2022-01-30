@@ -14,6 +14,15 @@ cp env.example env
 ./dev.sh
 ```
 
+### Twitter API Access
+
+
+
+### Airtable API Access
+
+- https://airtable.com/api
+- https://support.airtable.com/hc/en-us/articles/4405741487383-Understanding-Airtable-IDs
+
 ## Deploy
 
 ```

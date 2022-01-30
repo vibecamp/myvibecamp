@@ -24,7 +24,7 @@ func InfoHandler(c *gin.Context) {
 	cleanTwitterName := strings.ToLower(session.TwitterName)
 
 	client := airtable.NewClient(os.Getenv("AIRTABLE_API_KEY"))
-	table := client.GetTable(os.Getenv("AIRTABLE_DB"), "Attendees")
+	table := client.GetTable(os.Getenv("AIRTABLE_BASE_ID"), os.Getenv("AIRTABLE_TABLE_NAME"))
 	records, err := table.GetRecords().
 		//FromView("view_1").
 		//WithFilterFormula("AND({Field1}='value_1',NOT({Field2}='value_2'))").
