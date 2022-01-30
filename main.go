@@ -68,6 +68,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	callbackUrl := fmt.Sprintf("%s/callback", externalURL)
+	log.Println("Twitter callback URL: ", callbackUrl);
 	service = &oauth1a.Service{
 		RequestURL:   "https://api.twitter.com/oauth/request_token",
 		AuthorizeURL: "https://api.twitter.com/oauth/authorize",
@@ -75,7 +77,7 @@ func main() {
 		ClientConfig: &oauth1a.ClientConfig{
 			ConsumerKey:    apiKey,
 			ConsumerSecret: apiSecret,
-			CallbackURL:    fmt.Sprintf("%s/callback", externalURL),
+			CallbackURL:    callbackUrl,
 		},
 		Signer: new(oauth1a.HmacSha1Signer),
 	}
