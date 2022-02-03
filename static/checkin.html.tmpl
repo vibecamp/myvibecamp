@@ -1,0 +1,36 @@
+{{ template "header" }}
+
+{{ template "nav" }}
+
+<div>
+  <h2>Checkin</h2>
+
+  <h3>Group</h3>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Checked In</th>
+        </tr>
+      </thead>
+      <tbody>
+          {{ range .TicketGroup }}
+            <tr>
+              <td>{{ .TwitterName }}</td>
+              <td>{{ if .CheckedIn }}yes{{else}}no{{end}}</td>
+            </tr>
+          {{ end }}
+      </tbody>
+    </table>
+  </div>
+
+  notes for user
+
+  SUBMIT
+
+  confirmation checkmark
+
+</div>
+
+{{ template "footer" }}

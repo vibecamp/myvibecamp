@@ -1,0 +1,33 @@
+{{ template "header" }}
+
+{{ template "nav" "ticket" }}
+
+<div>
+  <h2>Your Ticket</h2>
+
+  <div class="text-center">
+    <img id="qrcode" src="data:image/png;base64,{{.QR}}" class="mx-auto d-block" />
+  </div>
+
+  <h3>Your Group</h3>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Checked In</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ range .TicketGroup }}
+          <tr>
+            <td>{{ .TwitterName }}</td>
+            <td>{{ if .CheckedIn }}✅{{else}}no{{end}}</td>
+          </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{{ template "footer" }}

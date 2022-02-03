@@ -13,6 +13,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/lyoshenka/vibedata/db"
+
 	"github.com/cockroachdb/errors/oserror"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -63,13 +65,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	if os.Getenv("AIRTABLE_API_KEY") == "" {
-		log.Errorf("no airtable api key")
+	if os.Getenv("AIRTABLE_API_KEY") == "" || os.Getenv("AIRTABLE_BASE_ID") == "" ||
+		os.Getenv("AIRTABLE_TABLE_NAME") == "" {
+		log.Errorf("need all three AIRTABLE_ env vars set")
 		os.Exit(1)
 	}
+	db.Init(os.Getenv("AIRTABLE_API_KEY"), os.Getenv("AIRTABLE_BASE_ID"), os.Getenv("AIRTABLE_TABLE_NAME"))
 
 	callbackUrl := fmt.Sprintf("%s/callback", externalURL)
-	log.Println("Twitter callback URL: ", callbackUrl);
+	log.Println("Twitter callback URL: ", callbackUrl)
 	service = &oauth1a.Service{
 		RequestURL:   "https://api.twitter.com/oauth/request_token",
 		AuthorizeURL: "https://api.twitter.com/oauth/authorize",
@@ -101,6 +105,10 @@ func main() {
 	r.GET("/signin", SignInHandler)
 	r.GET("/signout", SignOutHandler)
 	r.GET("/callback", CallbackHandler)
+
+	r.GET("/ticket", TicketHandler)
+	r.GET("/checkin/:barcode", CheckinHandler)
+
 	r.GET("/", InfoHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))
 

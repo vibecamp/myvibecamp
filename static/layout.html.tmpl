@@ -29,8 +29,8 @@
   <div class="header clearfix">
     <nav>
       <ul class="nav nav-pills pull-right">
-        <li role="presentation" class="active"><a href="/">Home</a></li>
-        <li role="presentation"><a href="/help">Help</a></li>
+        <li role="presentation" {{if eq . "home" }}class="active"{{end}}><a href="/">Home</a></li>
+        <li role="presentation" {{if eq . "ticket" }}class="active"{{end}}><a href="/ticket">Ticket</a></li>
         <li role="presentation"><a href="/signout">Sign Out</a></li>
       </ul>
     </nav>

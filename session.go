@@ -52,6 +52,20 @@ func (s *Session) SignedIn() bool {
 	return s != nil && s.Key != ""
 }
 
+func (s *Session) HasCheckinPermission() bool {
+	if !s.SignedIn() {
+		return false
+	}
+
+	doingCheckin := map[string]struct{}{
+		"grin_io":   {},
+		"gptbrooke": {},
+	}
+
+	_, ok := doingCheckin[s.TwitterName]
+	return ok
+}
+
 func SignInHandler(c *gin.Context) {
 	session := GetSession(c)
 
