@@ -8,4 +8,5 @@ const (
 	CheckedIn        = "Checked In"
 	Barcode          = "Barcode"
 	AdmissionLevel   = "Admission Level"
+	Badge            = "Badge"
 )

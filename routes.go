@@ -1,9 +1,13 @@
 package main
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"net/http"
+	"net/url"
+	"os"
 	"strings"
 
 	"github.com/lyoshenka/vibedata/db"
@@ -39,15 +43,11 @@ func InfoHandler(c *gin.Context) {
 	//}
 
 	c.HTML(http.StatusOK, "info.html.tmpl", struct {
-		Name       string
-		Cabin      string
+		User       *db.User
 		Cabinmates []string
-		QR         string
 	}{
-		Name:       session.TwitterName,
-		Cabin:      strings.TrimSpace(user.Cabin),
+		User:       user,
 		Cabinmates: cabinMates,
-		//QR:         base64.StdEncoding.EncodeToString(qr),
 	})
 }
 
@@ -120,4 +120,46 @@ func CheckinHandler(c *gin.Context) {
 	}{
 		TicketGroup: ticketGroup,
 	})
+}
+
+func BadgeHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	user, err := db.GetUser(session.TwitterName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	badgeChoice := c.Param("choice")
+
+	if badgeChoice != user.Badge {
+		err = user.SetBadge(badgeChoice)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+	}
+
+	if user.Badge == "no" {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	params := url.Values{}
+	params.Set("cabin", user.Cabin)
+	params.Set("handle", user.TwitterName)
+
+	hmacSecret := os.Getenv("HMAC_SECRET")
+	if hmacSecret != "" {
+		h := hmac.New(sha256.New, []byte(hmacSecret))
+		h.Write([]byte(fmt.Sprintf("%s|%s", user.Cabin, user.TwitterName)))
+		params.Set("hmac", strings.TrimRight(base64.URLEncoding.EncodeToString(h.Sum(nil)), "="))
+	}
+
+	c.Redirect(http.StatusFound, "https://that-part-of-twitter.herokuapp.com?"+params.Encode())
 }

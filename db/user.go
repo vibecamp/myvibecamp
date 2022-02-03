@@ -24,6 +24,9 @@ type User struct {
 	TicketGroup      string
 	CheckedIn        bool
 	Barcode          string
+	Badge            string
+
+	airtableID string
 }
 
 func GetUserFromBarcode(barcode string) (*User, error) {
@@ -49,18 +52,21 @@ func getUserByField(field, value string) (*User, error) {
 		fields.TwitterName, fields.TwitterNameClean,
 		fields.Cabin,
 		fields.TicketGroup, fields.CheckedIn, fields.Barcode,
+		fields.Badge,
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	return &User{
+		airtableID:       rec.ID,
 		TwitterName:      toStr(rec.Fields[fields.TwitterName]),
 		TwitterNameClean: toStr(rec.Fields[fields.TwitterNameClean]),
 		Cabin:            toStr(rec.Fields[fields.Cabin]),
 		TicketGroup:      toStr(rec.Fields[fields.TicketGroup]),
 		CheckedIn:        rec.Fields[fields.CheckedIn] == "checked",
 		Barcode:          toStr(rec.Fields[fields.Barcode]),
+		Badge:            toStr(rec.Fields[fields.Badge]),
 	}, nil
 }
 
@@ -84,6 +90,26 @@ func query(field, value string, returnFields ...string) (*airtable.Record, error
 	}
 
 	return records.Records[0], nil
+}
+
+func (u *User) SetBadge(badgeChoice string) error {
+	if badgeChoice != "yes" && badgeChoice != "no" {
+		return errors.Newf("invalid badge choice: '%s'", badgeChoice)
+	}
+
+	u.Badge = badgeChoice
+
+	r := &airtable.Records{
+		Records: []*airtable.Record{{
+			ID: u.airtableID,
+			Fields: map[string]interface{}{
+				fields.Badge: u.Badge,
+			},
+		}},
+	}
+
+	_, err := defaultTable.UpdateRecordsPartial(r)
+	return errors.Wrap(err, "setting badge")
 }
 
 func (u *User) GetCabinMates() ([]string, error) {

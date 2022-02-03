@@ -3,31 +3,74 @@
 {{ template "nav" "home" }}
 
 <div>
-  <h2>Hey @{{ .Name }} 🥰</h2>
+  <div class="container mb-3">
+    <h2>Hey @{{ .User.TwitterName }} 🥰</h2>
+  </div>
 
-  <h3>Status</h3>
-  <p>
-    You're in! This is confirmation that you have a ticket. We look forward to seeing you at in
-    March.
-  </p>
+  <div class="container mb-3">
+    <h4>Status</h4>
 
-  <h3>Cabin</h3>
-  <p>
-    {{ if eq .Cabin "" }}
-      You're not in a cabin yet. Pop over to the #cabins channel in
-      <a href="https://discord.com/invite/PEvx7dbJCp">the discord</a>
-      and say hi. Or if you want to take it easy, we'll find one for you.
-      No worries!
+    <p>
+      You're in! This is confirmation that you have a ticket. We look forward to seeing you at in
+      March.
+    </p>
+  </div>
+
+  <div class="container mb-3">
+    <h4>Badge</h4>
+
+    {{ if eq .User.Badge "" }}
+      <div class="alert alert-secondary">
+        <p><strong>
+          Would you like a free, custom Vibecamp badge with your Twitter handle and profile picture?
+        </strong></p>
+        <a role="button" class="btn btn-primary" href="/badge/yes">Yes, set up my badge</a>
+        <a role="button" class="btn btn-secondary" href="/badge/no">No thanks</a>
+        <div class="mt-2"><small>
+          If you click Yes, your Twitter handle and cabin will be shared with the badgemakers.<br>See the #badges
+          channel in Discord for more info.
+        </small></div>
+      </div>
+    {{ else if eq .User.Badge "yes" }}
+      <p>
+        Your custom badge will be available for pickup at checkin.
+      </p>
+      <a role="button" class="btn btn-outline-primary" href="/badge/yes">Edit badge</a>
+      <a role="button" class="btn btn-link" href="/badge/no">Opt out</a>
+    {{ else if eq .User.Badge "no" }}
+      <p>
+        You've opted out of the free, custom Vibecamp badge.
+        <a href="/badge/yes">Opt in and set up badge</a>.
+      </p>
     {{ else }}
-      Your cabin is <strong>{{ .Cabin }}</strong> and you're sharing it with these lovely people:
-      <ul>
-          {{ range $val := .Cabinmates }}
-            <li><a href="https://twitter.com/{{ $val }}">@{{ $val }}</a></li>
-          {{ end }}
-      </ul>
-      Why not start a group chat and introduce yourselves?
+      <p>
+        somethings wrong, ping @grin_io on twitter
+      </p>
     {{ end }}
-  </p>
+  </div>
+
+
+  <div class="container mb-3">
+    <h4>Cabin</h4>
+
+    <p>
+      {{ if eq .User.Cabin "" }}
+        You're not in a cabin yet. Pop over to the #cabins channel in
+        <a href="https://discord.com/invite/PEvx7dbJCp">the discord</a>
+        and say hi. Or if you want to take it easy, we'll find one for you.
+        No worries!
+      {{ else }}
+        Your cabin is <strong>{{ .User.Cabin }}</strong> and you're sharing it with these lovely people:
+        <ul>
+            {{ range $val := .Cabinmates }}
+              <li><a href="https://twitter.com/{{ $val }}">@{{ $val }}</a></li>
+            {{ end }}
+        </ul>
+        Why not start a group chat and introduce yourselves?
+      {{ end }}
+    </p>
+  </div>
+
 </div>
 
 {{ template "footer" }}
