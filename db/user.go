@@ -38,7 +38,7 @@ func GetUser(twitterName string) (*User, error) {
 
 	if err != nil {
 		if errors.Is(err, ErrNoRecords) {
-			err = errors.New("You're not on the guest list!")
+			err = errors.New("You're not on the guest list! Most likely we spelled your Twitter handle wrong.")
 		} else if errors.Is(err, ErrManyRecords) {
 			err = errors.New("You're on the list multiple times. We probably screwed something up 😰")
 		}
