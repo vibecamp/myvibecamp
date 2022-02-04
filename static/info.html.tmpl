@@ -11,14 +11,14 @@
     <h4>Status</h4>
 
     <p>
-      You're in! This is confirmation that you have a ticket. We look forward to seeing you at in
-      March.
+      You're in! Check the <a href="/ticket">ticket page</a> to make sure everything looks right.
+      We look forward to seeing you at in March.
     </p>
   </div>
 
+
   <div class="container mb-3">
     <h4>Badge</h4>
-
     {{ if eq .User.Badge "" }}
       <div class="alert alert-secondary">
         <p><strong>
@@ -44,7 +44,7 @@
       </p>
     {{ else }}
       <p>
-        somethings wrong, ping @grin_io on twitter
+        Something's wrong, ping grin in the <a href="https://discord.com/invite/PEvx7dbJCp">Discord</a>.
       </p>
     {{ end }}
   </div>
@@ -52,7 +52,6 @@
 
   <div class="container mb-3">
     <h4>Cabin</h4>
-
     <p>
       {{ if eq .User.Cabin "" }}
         You're not in a cabin yet. Pop over to the #cabins channel in

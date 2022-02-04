@@ -14,6 +14,7 @@ import (
 
 	"github.com/cockroachdb/errors"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"github.com/skip2/go-qrcode"
 )
 
@@ -135,19 +136,18 @@ func BadgeHandler(c *gin.Context) {
 		return
 	}
 
-	badgeChoice := c.Param("choice")
+	switchedFromYesToNo := false
 
+	badgeChoice := c.Param("choice")
 	if badgeChoice != user.Badge {
+		if user.Badge == "yes" && badgeChoice == "no" {
+			switchedFromYesToNo = true
+		}
 		err = user.SetBadge(badgeChoice)
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-	}
-
-	if user.Badge == "no" {
-		c.Redirect(http.StatusFound, "/")
-		return
 	}
 
 	params := url.Values{}
@@ -161,5 +161,21 @@ func BadgeHandler(c *gin.Context) {
 		params.Set("hmac", strings.TrimRight(base64.URLEncoding.EncodeToString(h.Sum(nil)), "="))
 	}
 
-	c.Redirect(http.StatusFound, "https://that-part-of-twitter.herokuapp.com?"+params.Encode())
+	badgeDomain := "https://that-part-of-twitter.herokuapp.com"
+
+	if user.Badge == "no" {
+		if switchedFromYesToNo {
+			go func() {
+				_, err := http.Get(badgeDomain + "/delete?" + params.Encode())
+				if err != nil {
+					log.Errorf("hitting delete api: %+v", err)
+				}
+			}()
+		}
+
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	c.Redirect(http.StatusFound, badgeDomain+"?"+params.Encode())
 }
