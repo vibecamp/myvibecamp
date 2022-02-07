@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/cockroachdb/errors"
 	"github.com/lyoshenka/vibedata/fields"
@@ -34,7 +35,7 @@ func GetUserFromBarcode(barcode string) (*User, error) {
 }
 
 func GetUser(twitterName string) (*User, error) {
-	user, err := getUserByField(fields.TwitterNameClean, twitterName)
+	user, err := getUserByField(fields.TwitterNameClean, strings.ToLower(twitterName))
 
 	if err != nil {
 		if errors.Is(err, ErrNoRecords) {
