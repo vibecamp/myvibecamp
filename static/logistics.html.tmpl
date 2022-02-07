@@ -1,0 +1,151 @@
+{{ template "header" }}
+
+{{ template "nav" "logistics" }}
+
+<div class="container">
+  <h2>Logistics</h2>
+
+  <p class="alert alert-light">
+    If any of this info is wrong, email <a href="mailto:brooke@vibecamp.xyz">Brooke</a> right away.
+  </p>
+
+  <h4>Getting To Camp</h4>
+  <div class="container mb-3">
+    {{ if eq .User.TransportTo "yes" }}
+      <p class="mb-2">
+        You're taking the Vibecamp bus.
+      </p>
+        {{ if eq .User.ArrivalTime "" }}
+          <p class="alert alert-warning">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+              <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+            </svg>
+            You still need to tell Brooke when my flight lands.
+          </p>
+        {{ else }}
+          <p class="mb-2">
+            Your flight lands at {{ .User.ArrivalTime }}.
+          </p>
+        {{ end }}
+      </p>
+      <p>
+        Once we finalize bus rentals, your bus departure time will be here.
+      </p>
+    {{ else }}
+      <p>You're handling it yourself.</p>
+    {{end}}
+  </div>
+
+
+  <h4>Getting To The Airport From Camp</h4>
+  <div class="container mb-3">
+    {{ if eq .User.TransportFrom "yes" }}
+      <p class="mb-2">
+        You're taking the Vibecamp bus.
+      </p>
+      <p>
+        {{ if eq .User.DepartureTime "" }}
+          <p class="alert alert-warning">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+              <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+            </svg>
+            You still need to tell Brooke when my flight leaves.
+          </p>
+        {{ else }}
+          Your flight leaves at {{ .User.DepartureTime }}.
+        {{ end }}
+      </p>
+      <p class="mb-2">
+        Once we finalize bus rentals, your bus departure time will be here.
+      </p>
+    {{ else }}
+      <p>You're handling it yourself.</p>
+    {{end}}
+  </div>
+
+
+  <h4>Sleeping Bag Rental</h4>
+  <div class="container mb-3">
+    <p>
+        {{ if eq .User.BeddingRental "yes" }}
+          You're renting a sleeping bag from us,
+          {{ if .User.BeddingPaid }}
+            and you've already paid for it.
+          {{ else }}
+            but you still need to pay for it.
+          {{ end }}
+        {{ else }}
+          You're handling it yourself.
+        {{ end }}
+    </p>
+  </div>
+
+
+  <script>
+    function showSpinner(el) { el.children[0].style.cssText = ''; }
+  </script>
+
+  <h4>Badge</h4>
+  <div class="container mb-3">
+    <form method="post" action="/badge">
+        {{ if eq .User.Badge "" }}
+          <div class="alert alert-light">
+            <p><strong>
+                Would you like a free, custom Vibecamp badge with your Twitter handle and profile picture?
+              </strong></p>
+            <button class="btn btn-primary" type="submit" name="badge" value="yes" onClick="showSpinner(this)">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display:none"></span>
+              Yes, set up my badge
+            </button>
+            <button class="btn btn-secondary" type="submit" name="badge" value="no">No thanks</button>
+            <div class="mt-2"><small>
+                If you click Yes, your Twitter handle and cabin will be shared with the badgemakers.<br>See the #badges
+                channel in Discord for more info.
+              </small></div>
+          </div>
+        {{ else if eq .User.Badge "yes" }}
+          <p>
+            Your custom badge will be available for pickup at checkin.
+          </p>
+          <button class="btn btn-outline-primary" type="submit" name="badge" value="yes" onClick="showSpinner(this)">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display:none"></span>
+            Edit badge
+          </button>
+          <button class="btn btn-link" type="submit" name="badge" value="no">Opt out</button>
+        {{ else if eq .User.Badge "no" }}
+          <p>
+            You've opted out of the free, custom Vibecamp badge.
+            <button class="btn btn-link" type="submit" name="badge" value="yes">Opt in and set up badge</button>
+          </p>
+        {{ else }}
+          <p>
+            Something's wrong, ping grin in the <a href="https://discord.com/invite/PEvx7dbJCp">Discord</a>.
+          </p>
+        {{ end }}
+    </form>
+  </div>
+
+
+  <h4>Cabin</h4>
+  <div class="container mb-3">
+    <p>
+      {{ if eq .User.Cabin "" }}
+        You're not in a cabin yet. Pop over to the #cabins channel in
+        <a href="https://discord.com/invite/PEvx7dbJCp">the discord</a>
+        and say hi. Or if you want to take it easy, we'll find one for you.
+        No worries!
+      {{ else }}
+        Your cabin is <strong>{{ .User.Cabin }}</strong> and you're sharing it with these lovely people:
+        <ul>
+            {{ range $val := .CabinMates }}
+              <li><a href="https://twitter.com/{{ $val }}">@{{ $val }}</a></li>
+            {{ end }}
+        </ul>
+        Why not start a group chat and introduce yourselves?
+      {{ end }}
+    </p>
+  </div>
+
+</div>
+
+{{ template "footer" }}

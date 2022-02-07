@@ -130,6 +130,8 @@ func CallbackHandler(c *gin.Context) {
 	session.TwitterID = session.Oauth.AccessValues.Get("user_id")
 	session.Oauth = nil
 
+	//session.TwitterName = "GRINTESTING" // login as this user, for dev
+
 	SaveSession(c, session)
 	c.Redirect(http.StatusFound, "/")
 }

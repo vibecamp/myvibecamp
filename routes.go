@@ -18,7 +18,7 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
-func InfoHandler(c *gin.Context) {
+func IndexHandler(c *gin.Context) {
 	session := GetSession(c)
 	if !session.SignedIn() {
 		c.HTML(http.StatusOK, "index.html.tmpl", nil)
@@ -31,25 +31,7 @@ func InfoHandler(c *gin.Context) {
 		return
 	}
 
-	cabinMates, err := user.GetCabinMates()
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	//qr, err := qrcode.Encode(rec.Fields["Barcode"].(string), qrcode.Medium, 256)
-	//if err != nil {
-	//	c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "generating qr code"))
-	//	return
-	//}
-
-	c.HTML(http.StatusOK, "info.html.tmpl", struct {
-		User       *db.User
-		Cabinmates []string
-	}{
-		User:       user,
-		Cabinmates: cabinMates,
-	})
+	c.HTML(http.StatusOK, "index.html.tmpl", user)
 }
 
 func TicketHandler(c *gin.Context) {
@@ -90,6 +72,34 @@ func TicketHandler(c *gin.Context) {
 		Name:        session.TwitterName,
 		QR:          base64.StdEncoding.EncodeToString(qr),
 		TicketGroup: ticketGroup,
+	})
+}
+
+func LogisticsHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	user, err := db.GetUser(session.TwitterName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	cabinMates, err := user.GetCabinMates()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.HTML(http.StatusOK, "logistics.html.tmpl", struct {
+		User       *db.User
+		CabinMates []string
+	}{
+		User:       user,
+		CabinMates: cabinMates,
 	})
 }
 
@@ -138,7 +148,7 @@ func BadgeHandler(c *gin.Context) {
 
 	switchedFromYesToNo := false
 
-	badgeChoice := c.Param("choice")
+	badgeChoice := c.PostForm("badge")
 	if badgeChoice != user.Badge {
 		if user.Badge == "yes" && badgeChoice == "no" {
 			switchedFromYesToNo = true
@@ -173,7 +183,7 @@ func BadgeHandler(c *gin.Context) {
 			}()
 		}
 
-		c.Redirect(http.StatusFound, "/")
+		c.Redirect(http.StatusFound, "/logistics")
 		return
 	}
 

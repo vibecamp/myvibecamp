@@ -1,15 +1,77 @@
 {{ template "header" }}
 
-<div class="jumbotron text-center">
-  <h1>My Vibe Camp</h1>
-  <p class="lead">
-    Tickets, cabin assignments, and other info.
-  </p>
-  <p>
-    <a class="btn btn-lg btn-twitter" href="/signin" role="button">
-      Sign In With Twitter
-    </a>
-  </p>
-</div>
+{{ if eq . nil }}
+  <div class="jumbotron text-center">
+    <h1>My Vibe Camp</h1>
+    <p class="lead">
+      Tickets, cabins, logistics, etc.
+    </p>
+    <p>
+      <a class="btn btn-lg btn-twitter" href="/signin" role="button">
+        Sign In With Twitter
+      </a>
+    </p>
+  </div>
+
+
+{{ else }}
+
+  {{ template "nav" "home" }}
+
+  <div>
+    <h2>Hey @{{ .TwitterName }} 🥰</h2>
+    <div class="container mb-3">
+      <p>
+        Congrats on your wise decision to come to Vibecamp this year. We can't wait to see you in March!
+      </p>
+    </div>
+
+
+    <h4>Next Steps</h4>
+    <div class="container mb-3">
+      <p>
+        Check the <a href="/logistics">logistics page</a> to make sure everything looks right.
+      </p>
+
+      <p>
+        Check the <a href="/ticket">ticket page</a> to make sure everyone in your group is
+        on the ticket.
+      </p>
+
+      {{ if eq .Cabin "" }}
+        <p>
+          The deadline to pick a cabin is February 19th. Consider finding one in the #cabins channel of
+          <a href="https://discord.com/invite/PEvx7dbJCp">our Discord</a>. If you don't pick one
+          in time, we'll pick one for you.
+        </p>
+      {{ end }}
+    </div>
+
+    <h4>Useful Links</h4>
+    <div class="container mb-3">
+      <ul>
+        <li>
+          <a href="https://vibecamp.xyz/schedule/">Activity Schedule</a> (preliminary!)
+        </li>
+        <li>
+          <a href="https://campchampions.com/prospective-families/activities-map">Camp Champions Map</a>
+        </li>
+        <li>
+          <a href="https://vibecamp.xyz/faq/">FAQ</a>
+        </li>
+      </ul>
+    </div>
+
+    <h4>Contact Us</h4>
+    <div class="container mb-3">
+      <p>
+        Send us an <a href="mailto:team@vibecamp.xyz">email</a> or join
+        <a href="https://discord.com/invite/PEvx7dbJCp">our Discord</a> to get in touch.
+      </p>
+    </div>
+
+  </div>
+
+{{ end }}
 
 {{ template "footer" }}

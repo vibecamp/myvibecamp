@@ -107,12 +107,14 @@ func main() {
 	r.GET("/callback", CallbackHandler)
 
 	r.GET("/ticket", TicketHandler)
+	r.GET("/logistics", LogisticsHandler)
+	r.POST("/badge", BadgeHandler)
 	r.GET("/checkin/:barcode", CheckinHandler)
-	r.GET("/badge/:choice", BadgeHandler)
 
-	r.GET("/", InfoHandler)
+	r.GET("/", IndexHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))
 	r.StaticFS("/js", http.FS(mustSub(static, "static/js")))
+	r.StaticFS("/img", http.FS(mustSub(static, "static/img")))
 
 	log.Printf("Visit %s in your browser\n", externalURL)
 	//log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))

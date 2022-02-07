@@ -9,6 +9,8 @@ import (
 	"github.com/mehanizm/airtable"
 )
 
+const checked = "checked"
+
 var defaultTable *airtable.Table
 
 func Init(apiKey, baseID, tableName string) {
@@ -26,6 +28,12 @@ type User struct {
 	CheckedIn        bool
 	Barcode          string
 	Badge            string
+	TransportTo      string
+	TransportFrom    string
+	BeddingRental    string
+	BeddingPaid      bool
+	DepartureTime    string
+	ArrivalTime      string
 
 	airtableID string
 }
@@ -49,12 +57,13 @@ func GetUser(twitterName string) (*User, error) {
 }
 
 func getUserByField(field, value string) (*User, error) {
-	rec, err := query(field, value,
-		fields.TwitterName, fields.TwitterNameClean,
-		fields.Cabin,
-		fields.TicketGroup, fields.CheckedIn, fields.Barcode,
-		fields.Badge,
-	)
+	//rec, err := query(field, value,
+	//	fields.TwitterName, fields.TwitterNameClean,
+	//	fields.Cabin,
+	//	fields.TicketGroup, fields.CheckedIn, fields.Barcode,
+	//	fields.Badge,
+	//)
+	rec, err := query(field, value) // get all fields
 	if err != nil {
 		return nil, err
 	}
@@ -65,9 +74,15 @@ func getUserByField(field, value string) (*User, error) {
 		TwitterNameClean: toStr(rec.Fields[fields.TwitterNameClean]),
 		Cabin:            toStr(rec.Fields[fields.Cabin]),
 		TicketGroup:      toStr(rec.Fields[fields.TicketGroup]),
-		CheckedIn:        rec.Fields[fields.CheckedIn] == "checked",
+		CheckedIn:        rec.Fields[fields.CheckedIn] == checked,
 		Barcode:          toStr(rec.Fields[fields.Barcode]),
 		Badge:            toStr(rec.Fields[fields.Badge]),
+		TransportTo:      toStr(rec.Fields[fields.TransportTo]),
+		TransportFrom:    toStr(rec.Fields[fields.TransportFrom]),
+		BeddingRental:    toStr(rec.Fields[fields.BeddingRental]),
+		BeddingPaid:      rec.Fields[fields.BeddingPaid] == checked,
+		DepartureTime:    toStr(rec.Fields[fields.DepartureTime]),
+		ArrivalTime:      toStr(rec.Fields[fields.ArrivalTime]),
 	}, nil
 }
 
@@ -160,7 +175,7 @@ func (u *User) GetTicketGroup() ([]TicketGroupEntry, error) {
 	for _, c := range response.Records {
 		ticketGroup = append(ticketGroup, TicketGroupEntry{
 			TwitterName: toStr(c.Fields[fields.TwitterName]),
-			CheckedIn:   c.Fields[fields.CheckedIn] == "checked",
+			CheckedIn:   c.Fields[fields.CheckedIn] == checked,
 		})
 	}
 
