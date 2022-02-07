@@ -17,6 +17,10 @@
   </div>
 
 
+  <script>
+    function showSpinner(el) { el.children[0].style.cssText = ''; }
+  </script>
+
   <div class="container mb-3">
     <h4>Badge</h4>
     {{ if eq .User.Badge "" }}
@@ -24,7 +28,10 @@
         <p><strong>
           Would you like a free, custom Vibecamp badge with your Twitter handle and profile picture?
         </strong></p>
-        <a role="button" class="btn btn-primary" href="/badge/yes">Yes, set up my badge</a>
+        <a role="button" class="btn btn-primary" href="/badge/yes" onClick="showSpinner(this)">
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display:none"></span>
+          Yes, set up my badge
+        </a>
         <a role="button" class="btn btn-secondary" href="/badge/no">No thanks</a>
         <div class="mt-2"><small>
           If you click Yes, your Twitter handle and cabin will be shared with the badgemakers.<br>See the #badges
@@ -35,7 +42,10 @@
       <p>
         Your custom badge will be available for pickup at checkin.
       </p>
-      <a role="button" class="btn btn-outline-primary" href="/badge/yes">Edit badge</a>
+      <a role="button" class="btn btn-outline-primary" href="/badge/yes" onClick="showSpinner(this)">
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display:none"></span>
+        Edit badge
+      </a>
       <a role="button" class="btn btn-link" href="/badge/no">Opt out</a>
     {{ else if eq .User.Badge "no" }}
       <p>
