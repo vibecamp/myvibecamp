@@ -1,20 +1,26 @@
 package db
 
 import (
+	"bytes"
+	"encoding/gob"
 	"fmt"
 	"strings"
 
 	"github.com/cockroachdb/errors"
 	"github.com/lyoshenka/vibedata/fields"
 	"github.com/mehanizm/airtable"
+	"github.com/patrickmn/go-cache"
+	log "github.com/sirupsen/logrus"
 )
 
 const checked = "checked"
 
 var defaultTable *airtable.Table
+var defaultCache *cache.Cache
 
-func Init(apiKey, baseID, tableName string) {
+func Init(apiKey, baseID, tableName string, cache *cache.Cache) {
 	defaultTable = airtable.NewClient(apiKey).GetTable(baseID, tableName)
+	defaultCache = cache
 }
 
 var ErrNoRecords = fmt.Errorf("no records found")
@@ -38,19 +44,44 @@ type User struct {
 	airtableID string
 }
 
+func init() {
+	gob.Register(User{})
+}
+
 func GetUserFromBarcode(barcode string) (*User, error) {
 	return getUserByField(fields.Barcode, barcode)
 }
 
 func GetUser(twitterName string) (*User, error) {
-	user, err := getUserByField(fields.TwitterNameClean, strings.ToLower(twitterName))
+	cleanName := strings.ToLower(twitterName)
+	if defaultCache != nil {
+		if u, found := defaultCache.Get(cleanName); found {
+			log.Trace("user cache hit")
+			var user User
+			err := gob.NewDecoder(bytes.NewBuffer(u.([]byte))).Decode(&user)
+			if err != nil {
+				return nil, errors.Wrap(err, "cache hit")
+			}
+			return &user, nil
+		}
+	}
 
+	user, err := getUserByField(fields.TwitterNameClean, cleanName)
 	if err != nil {
 		if errors.Is(err, ErrNoRecords) {
 			err = errors.New("You're not on the guest list! Most likely we spelled your Twitter handle wrong.")
 		} else if errors.Is(err, ErrManyRecords) {
 			err = errors.New("You're on the list multiple times. We probably screwed something up 😰")
 		}
+	}
+
+	if defaultCache != nil {
+		var b bytes.Buffer
+		err := gob.NewEncoder(&b).Encode(*user)
+		if err != nil {
+			return nil, errors.Wrap(err, "cache save")
+		}
+		defaultCache.Set(cleanName, b.Bytes(), 0)
 	}
 
 	return user, err
@@ -63,10 +94,18 @@ func getUserByField(field, value string) (*User, error) {
 	//	fields.TicketGroup, fields.CheckedIn, fields.Barcode,
 	//	fields.Badge,
 	//)
-	rec, err := query(field, value) // get all fields
+	response, err := query(field, value) // get all fields
 	if err != nil {
 		return nil, err
 	}
+
+	if response == nil || len(response.Records) == 0 {
+		return nil, errors.Wrap(ErrNoRecords, "")
+	} else if len(response.Records) != 1 {
+		return nil, errors.Wrap(ErrManyRecords, "")
+	}
+
+	rec := response.Records[0]
 
 	return &User{
 		airtableID:       rec.ID,
@@ -86,26 +125,17 @@ func getUserByField(field, value string) (*User, error) {
 	}, nil
 }
 
-func query(field, value string, returnFields ...string) (*airtable.Record, error) {
+func query(field, value string, returnFields ...string) (*airtable.Records, error) {
+	filterFormula := fmt.Sprintf(`{%s}="%s"`, field, strings.ReplaceAll(value, `"`, `\"`))
+	log.Debugf(`airtable query: %s `, filterFormula)
 	records, err := defaultTable.GetRecords().
 		//FromView("view_1").
-		//WithFilterFormula("AND({Field1}='value_1',NOT({Field2}='value_2'))").
-		WithFilterFormula(eq(field, value)).
+		WithFilterFormula(filterFormula).
 		//WithSort(sortQuery1, sortQuery2).
 		ReturnFields(returnFields...).
 		InStringFormat("US/Eastern", "en").
 		Do()
-	if err != nil {
-		return nil, errors.Wrap(err, "")
-	}
-
-	if records == nil || len(records.Records) == 0 {
-		return nil, errors.Wrap(ErrNoRecords, "")
-	} else if len(records.Records) != 1 {
-		return nil, errors.Wrap(ErrManyRecords, "")
-	}
-
-	return records.Records[0], nil
+	return records, errors.Wrap(err, "")
 }
 
 func (u *User) SetBadge(badgeChoice string) error {
@@ -125,7 +155,15 @@ func (u *User) SetBadge(badgeChoice string) error {
 	}
 
 	_, err := defaultTable.UpdateRecordsPartial(r)
-	return errors.Wrap(err, "setting badge")
+	if err != nil {
+		return errors.Wrap(err, "setting badge")
+	}
+
+	if defaultCache != nil {
+		defaultCache.Delete(u.cacheKey())
+	}
+
+	return nil
 }
 
 func (u *User) GetCabinMates() ([]string, error) {
@@ -134,13 +172,9 @@ func (u *User) GetCabinMates() ([]string, error) {
 	}
 
 	var cabinMates []string
-	response, err := defaultTable.GetRecords().
-		WithFilterFormula(eq(fields.Cabin, u.Cabin)).
-		ReturnFields(fields.TwitterName, fields.TwitterNameClean).
-		InStringFormat("US/Eastern", "en").
-		Do()
+	response, err := query(fields.Cabin, u.Cabin, fields.TwitterName, fields.TwitterNameClean)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting cabin records")
+		return nil, err
 	}
 
 	for _, c := range response.Records {
@@ -163,13 +197,9 @@ func (u *User) GetTicketGroup() ([]TicketGroupEntry, error) {
 	}
 
 	var ticketGroup []TicketGroupEntry
-	response, err := defaultTable.GetRecords().
-		WithFilterFormula(eq(fields.TicketGroup, u.TwitterName)).
-		ReturnFields(fields.TwitterName, fields.CheckedIn).
-		InStringFormat("US/Eastern", "en").
-		Do()
+	response, err := query(fields.TicketGroup, u.TwitterName, fields.TwitterName, fields.CheckedIn)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting cabin records")
+		return nil, err
 	}
 
 	for _, c := range response.Records {
@@ -182,14 +212,11 @@ func (u *User) GetTicketGroup() ([]TicketGroupEntry, error) {
 	return ticketGroup, nil
 }
 
+func (u *User) cacheKey() string { return u.TwitterNameClean }
+
 func toStr(i interface{}) string {
 	if i == nil {
 		return ""
 	}
 	return i.(string)
-}
-
-// eq safely compares a field to a value
-func eq(field, val string) string {
-	return fmt.Sprintf(`{%s}="%s"`, field, strings.ReplaceAll(val, `"`, `\"`))
 }

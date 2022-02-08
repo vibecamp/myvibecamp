@@ -12,8 +12,6 @@ import (
 )
 
 type Session struct {
-	Key         string
-	Secret      string
 	TwitterName string
 	TwitterID   string
 	Oauth       *oauth1a.UserConfig
@@ -49,7 +47,7 @@ func ClearSession(c *gin.Context) {
 }
 
 func (s *Session) SignedIn() bool {
-	return s != nil && s.Key != ""
+	return s != nil && s.TwitterName != ""
 }
 
 func (s *Session) HasCheckinPermission() bool {
@@ -124,8 +122,6 @@ func CallbackHandler(c *gin.Context) {
 		return
 	}
 
-	session.Key = session.Oauth.AccessTokenKey
-	session.Secret = session.Oauth.AccessTokenSecret
 	session.TwitterName = session.Oauth.AccessValues.Get("screen_name")
 	session.TwitterID = session.Oauth.AccessValues.Get("user_id")
 	session.Oauth = nil

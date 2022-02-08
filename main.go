@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
 	"embed"
 	"errors"
 	"fmt"
@@ -18,10 +19,10 @@ import (
 	"github.com/cockroachdb/errors/oserror"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
-	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/kurrik/oauth1a"
+	"github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -70,7 +71,8 @@ func main() {
 		log.Errorf("need all three AIRTABLE_ env vars set")
 		os.Exit(1)
 	}
-	db.Init(os.Getenv("AIRTABLE_API_KEY"), os.Getenv("AIRTABLE_BASE_ID"), os.Getenv("AIRTABLE_TABLE_NAME"))
+	c := cache.New(15*time.Minute, 1*time.Hour)
+	db.Init(os.Getenv("AIRTABLE_API_KEY"), os.Getenv("AIRTABLE_BASE_ID"), os.Getenv("AIRTABLE_TABLE_NAME"), c)
 
 	callbackUrl := fmt.Sprintf("%s/callback", externalURL)
 	log.Println("Twitter callback URL: ", callbackUrl)
@@ -89,14 +91,10 @@ func main() {
 	r := gin.Default()
 	r.Use(errPrinter)
 
-	var store sessions.Store
-	if localDevMode {
-		store = cookie.NewStore([]byte("whatever")) // just for dev
-	} else {
-		// TODO: make this redis
-		store = memstore.NewStore([]byte("whatever")) // TODO: add keys?
-	}
-	store.Options(sessions.Options{Path: "/", MaxAge: 3600, Secure: !localDevMode, HttpOnly: true})
+	cookieAuthKey := sha256.Sum256([]byte(os.Getenv("COOKIE_SECRET") + "authentication key"))
+	cookieEncKey := sha256.Sum256([]byte(os.Getenv("COOKIE_SECRET") + "encryption key"))
+	store := cookie.NewStore(cookieAuthKey[:], cookieEncKey[:])
+	store.Options(sessions.Options{Path: "/", MaxAge: 60 * 60 * 24 * 7, Secure: !localDevMode, HttpOnly: true})
 	r.Use(sessions.Sessions("session_id", store))
 
 	tmpl := template.Must(template.ParseFS(mustSub(static, "static"), "*.tmpl"))
