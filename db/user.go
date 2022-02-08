@@ -90,7 +90,7 @@ func query(field, value string, returnFields ...string) (*airtable.Record, error
 	records, err := defaultTable.GetRecords().
 		//FromView("view_1").
 		//WithFilterFormula("AND({Field1}='value_1',NOT({Field2}='value_2'))").
-		WithFilterFormula(fmt.Sprintf("{%s}='%s'", field, value)).
+		WithFilterFormula(eq(field, value)).
 		//WithSort(sortQuery1, sortQuery2).
 		ReturnFields(returnFields...).
 		InStringFormat("US/Eastern", "en").
@@ -135,7 +135,7 @@ func (u *User) GetCabinMates() ([]string, error) {
 
 	var cabinMates []string
 	response, err := defaultTable.GetRecords().
-		WithFilterFormula(fmt.Sprintf("{%s}='%s'", fields.Cabin, u.Cabin)).
+		WithFilterFormula(eq(fields.Cabin, u.Cabin)).
 		ReturnFields(fields.TwitterName, fields.TwitterNameClean).
 		InStringFormat("US/Eastern", "en").
 		Do()
@@ -164,7 +164,7 @@ func (u *User) GetTicketGroup() ([]TicketGroupEntry, error) {
 
 	var ticketGroup []TicketGroupEntry
 	response, err := defaultTable.GetRecords().
-		WithFilterFormula(fmt.Sprintf("{%s}='%s'", fields.TicketGroup, u.TwitterName)).
+		WithFilterFormula(eq(fields.TicketGroup, u.TwitterName)).
 		ReturnFields(fields.TwitterName, fields.CheckedIn).
 		InStringFormat("US/Eastern", "en").
 		Do()
@@ -187,4 +187,9 @@ func toStr(i interface{}) string {
 		return ""
 	}
 	return i.(string)
+}
+
+// eq safely compares a field to a value
+func eq(field, val string) string {
+	return fmt.Sprintf(`{%s}="%s"`, field, strings.ReplaceAll(val, `"`, `\"`))
 }
