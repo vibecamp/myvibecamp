@@ -5,10 +5,14 @@
 <div class="container">
   <h2>Logistics</h2>
 
-  <p class="alert alert-light">
-    If any of this info is wrong, email <a href="mailto:brooke@vibecamp.xyz">Brooke</a> right away.
+  <p>
+    This page has a bunch of info about your trip to Vibecamp. Look it over now to make sure we got
+    everything right.
+    <strong>If anything looks wrong, email <a href="mailto:brooke@vibecamp.xyz">Brooke</a> right away.</strong>
   </p>
 
+
+  
   <h4>Getting To Camp</h4>
   <div class="container mb-3">
     {{ if eq .User.TransportTo "yes" }}
@@ -20,7 +24,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
               <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
             </svg>
-            You still need to tell Brooke when my flight lands.
+            You still need to tell Brooke when my flight lands in Austin.
           </p>
         {{ else }}
           <p class="mb-2">
@@ -32,9 +36,15 @@
         Once we finalize bus rentals, your bus departure time will be here.
       </p>
     {{ else }}
-      <p>You're handling it yourself.</p>
+      <p>
+        You're <strong>not</strong> riding the Vibecamp bus to camp. You're finding a ride on your own.
+      </p>
+      <p>
+        Consider using <a href="https://discord.com/invite/PEvx7dbJCp">the Discord</a> to coordinate rideshares.
+      </p>
     {{end}}
   </div>
+
 
 
   <h4>Getting To The Airport From Camp</h4>
@@ -49,7 +59,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
               <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
             </svg>
-            You still need to tell Brooke when my flight leaves.
+            You still need to tell Brooke when my flight takes off from Austin.
           </p>
         {{ else }}
           Your flight leaves at {{ .User.DepartureTime }}.
@@ -59,9 +69,15 @@
         Once we finalize bus rentals, your bus departure time will be here.
       </p>
     {{ else }}
-      <p>You're handling it yourself.</p>
+      <p>
+        You're <strong>not</strong> riding the Vibecamp bus back to the airport. You're getting your own ride.
+      </p>
+      <p>
+        Consider using <a href="https://discord.com/invite/PEvx7dbJCp">the Discord</a> to coordinate rideshares.
+      </p>
     {{end}}
   </div>
+
 
 
   <h4>Sleeping Bag Rental</h4>
@@ -75,10 +91,12 @@
             but you still need to pay for it.
           {{ end }}
         {{ else }}
-          You're handling it yourself.
+          You're handling it yourself. Note that the venue has beds with bare mattresses.
+          There are no pillows, sheets, or blankets, so bring what you need.
         {{ end }}
     </p>
   </div>
+
 
 
   <script>
@@ -124,6 +142,7 @@
         {{ end }}
     </form>
   </div>
+
 
 
   <h4>Cabin</h4>

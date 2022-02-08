@@ -71,7 +71,13 @@ func main() {
 		log.Errorf("need all three AIRTABLE_ env vars set")
 		os.Exit(1)
 	}
-	c := cache.New(15*time.Minute, 1*time.Hour)
+
+	cacheTime := 15 * time.Minute
+	if localDevMode {
+		cacheTime = 1 * time.Second
+	}
+	c := cache.New(cacheTime, 1*time.Hour)
+
 	db.Init(os.Getenv("AIRTABLE_API_KEY"), os.Getenv("AIRTABLE_BASE_ID"), os.Getenv("AIRTABLE_TABLE_NAME"), c)
 
 	callbackUrl := fmt.Sprintf("%s/callback", externalURL)
