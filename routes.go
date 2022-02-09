@@ -3,7 +3,9 @@ package main
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -188,4 +190,33 @@ func BadgeHandler(c *gin.Context) {
 	}
 
 	c.Redirect(http.StatusFound, badgeDomain+"?"+params.Encode())
+}
+
+func CabinListHandler(c *gin.Context) {
+	authToken := c.Query("auth_token")
+
+	if authToken == "" {
+		c.AbortWithError(http.StatusUnauthorized, errors.New("auth_token required"))
+		return
+	}
+
+	hmacSecret := os.Getenv("HMAC_SECRET")
+	if hmacSecret == "" {
+		c.AbortWithError(http.StatusForbidden, errors.New("route disabled"))
+		return
+	}
+
+	h := sha256.Sum256([]byte(hmacSecret))
+	if subtle.ConstantTimeCompare([]byte(hex.EncodeToString(h[:])), []byte(authToken)) != 1 {
+		c.AbortWithError(http.StatusForbidden, errors.New("invalid auth_token"))
+		return
+	}
+
+	cabins, err := db.GetCabinsForBadgeGenerator()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, cabins)
 }
