@@ -99,48 +99,11 @@
 
 
 
-  <script>
-    function showSpinner(el) { el.children[0].style.cssText = ''; }
-  </script>
-
   <h4>Badge</h4>
   <div class="container mb-3">
-    <form method="post" action="/badge">
-        {{ if eq .User.Badge "" }}
-          <div class="alert alert-light">
-            <p><strong>
-                Would you like a free, custom Vibecamp badge with your Twitter handle and profile picture?
-              </strong></p>
-            <button class="btn btn-primary" type="submit" name="badge" value="yes" onClick="showSpinner(this)">
-              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display:none"></span>
-              Yes, set up my badge
-            </button>
-            <button class="btn btn-secondary" type="submit" name="badge" value="no">No thanks</button>
-            <div class="mt-2"><small>
-                If you click Yes, your Twitter handle and cabin will be shared with the badgemakers.<br>See the #badges
-                channel in Discord for more info.
-              </small></div>
-          </div>
-        {{ else if eq .User.Badge "yes" }}
-          <p>
-            Your custom badge will be available for pickup at checkin.
-          </p>
-          <button class="btn btn-outline-primary" type="submit" name="badge" value="yes" onClick="showSpinner(this)">
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display:none"></span>
-            Edit badge
-          </button>
-          <button class="btn btn-link" type="submit" name="badge" value="no">Opt out</button>
-        {{ else if eq .User.Badge "no" }}
-          <p>
-            You've opted out of the free, custom Vibecamp badge.
-            <button class="btn btn-link" type="submit" name="badge" value="yes">Opt in and set up badge</button>
-          </p>
-        {{ else }}
-          <p>
-            Something's wrong, ping grin in the <a href="https://discord.com/invite/PEvx7dbJCp">Discord</a>.
-          </p>
-        {{ end }}
-    </form>
+    <p>
+      Set up your badge on the <a href="/badge">badge page</a>.
+    </p>
   </div>
 
 

@@ -148,6 +148,15 @@ func BadgeHandler(c *gin.Context) {
 		return
 	}
 
+	if c.Request.Method == http.MethodGet {
+		c.HTML(http.StatusOK, "badge.html.tmpl", struct {
+			User *db.User
+		}{
+			User: user,
+		})
+		return
+	}
+
 	switchedFromYesToNo := false
 
 	badgeChoice := c.PostForm("badge")
@@ -185,7 +194,7 @@ func BadgeHandler(c *gin.Context) {
 			}()
 		}
 
-		c.Redirect(http.StatusFound, "/logistics")
+		c.Redirect(http.StatusFound, "/badge")
 		return
 	}
 

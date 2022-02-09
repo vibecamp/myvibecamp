@@ -127,7 +127,7 @@ func CallbackHandler(c *gin.Context) {
 	session.Oauth = nil
 
 	if localDevMode {
-		//session.TwitterName = "GRINTESTING" // login as this user, for dev
+		session.TwitterName = "GRINTESTING" // login as this user, for dev
 	}
 
 	SaveSession(c, session)
