@@ -41,7 +41,7 @@ type User struct {
 	DepartureTime    string
 	ArrivalTime      string
 
-	airtableID string
+	AirtableID string
 }
 
 func init() {
@@ -108,7 +108,7 @@ func getUserByField(field, value string) (*User, error) {
 	rec := response.Records[0]
 
 	return &User{
-		airtableID:       rec.ID,
+		AirtableID:       rec.ID,
 		TwitterName:      toStr(rec.Fields[fields.TwitterName]),
 		TwitterNameClean: toStr(rec.Fields[fields.TwitterNameClean]),
 		Cabin:            toStr(rec.Fields[fields.Cabin]),
@@ -147,7 +147,7 @@ func (u *User) SetBadge(badgeChoice string) error {
 
 	r := &airtable.Records{
 		Records: []*airtable.Record{{
-			ID: u.airtableID,
+			ID: u.AirtableID,
 			Fields: map[string]interface{}{
 				fields.Badge: u.Badge,
 			},

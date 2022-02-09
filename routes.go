@@ -176,7 +176,7 @@ func BadgeHandler(c *gin.Context) {
 	badgeDomain := "https://that-part-of-twitter.herokuapp.com"
 
 	if user.Badge == "no" {
-		if switchedFromYesToNo {
+		if switchedFromYesToNo && !localDevMode {
 			go func() {
 				_, err := http.Get(badgeDomain + "/delete?" + params.Encode())
 				if err != nil {
