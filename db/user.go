@@ -197,7 +197,7 @@ func (u *User) GetTicketGroup() ([]TicketGroupEntry, error) {
 	}
 
 	var ticketGroup []TicketGroupEntry
-	response, err := query(fields.TicketGroup, u.TwitterName, fields.TwitterName, fields.CheckedIn)
+	response, err := query(fields.TicketGroup, u.TicketGroup, fields.TwitterName, fields.CheckedIn)
 	if err != nil {
 		return nil, err
 	}
