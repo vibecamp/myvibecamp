@@ -79,6 +79,9 @@ func GetUser(twitterName string) (*User, error) {
 		} else if errors.Is(err, ErrManyRecords) {
 			err = errors.New("You're on the list multiple times. We probably screwed something up 😰")
 		}
+		return nil, err
+	} else if user == nil {
+		return nil, errors.New("no user found, but no error from db 🤔")
 	}
 
 	if defaultCache != nil {
@@ -90,7 +93,7 @@ func GetUser(twitterName string) (*User, error) {
 		defaultCache.Set(cleanName, b.Bytes(), 0)
 	}
 
-	return user, err
+	return user, nil
 }
 
 func getUserByField(field, value string) (*User, error) {
