@@ -46,6 +46,32 @@ func ClearSession(c *gin.Context) {
 	session.Save()
 }
 
+func SuccessFlash(c *gin.Context, value string) {
+	defaultSession := sessions.Default(c)
+	defaultSession.AddFlash(value, "success")
+	defaultSession.Save()
+}
+
+func GetFlashes(c *gin.Context) map[string][]string {
+	defaultSession := sessions.Default(c)
+	f := map[string][]string{
+		"success": flashes(defaultSession.Flashes("success")),
+		"error":   flashes(defaultSession.Flashes("error")),
+		"warning": flashes(defaultSession.Flashes("warning")),
+		"info":    flashes(defaultSession.Flashes("info")),
+	}
+	defaultSession.Save() // saves the fact that we got flashes
+	return f
+}
+
+func flashes(f []interface{}) []string {
+	converted := make([]string, len(f))
+	for i := 0; i < len(f); i++ {
+		converted[i] = f[i].(string)
+	}
+	return converted
+}
+
 func (s *Session) SignedIn() bool {
 	return s != nil && s.TwitterName != ""
 }

@@ -27,21 +27,25 @@ var ErrNoRecords = fmt.Errorf("no records found")
 var ErrManyRecords = fmt.Errorf("multiple records for value")
 
 type User struct {
-	TwitterName      string
-	TwitterNameClean string
-	Cabin            string
-	TicketGroup      string
-	CheckedIn        bool
-	Barcode          string
-	Badge            string
-	TransportTo      string
-	TransportFrom    string
-	BeddingRental    string
-	BeddingPaid      bool
-	DepartureTime    string
-	ArrivalTime      string
-	BusToCamp        string
-	BusToAUS         string
+	TwitterName       string
+	TwitterNameClean  string
+	Cabin             string
+	TicketGroup       string
+	CheckedIn         bool
+	Barcode           string
+	Badge             string
+	TransportTo       string
+	TransportFrom     string
+	BeddingRental     string
+	BeddingPaid       bool
+	DepartureTime     string
+	ArrivalTime       string
+	BusToCamp         string
+	BusToAUS          string
+	Vegetarian        bool
+	GlutenFree        bool
+	LactoseIntolerant bool
+	FoodComments      string
 
 	AirtableID string
 }
@@ -119,22 +123,26 @@ func getUserByField(field, value string) (*User, error) {
 	}
 
 	return &User{
-		AirtableID:       rec.ID,
-		TwitterName:      toStr(rec.Fields[fields.TwitterName]),
-		TwitterNameClean: toStr(rec.Fields[fields.TwitterNameClean]),
-		Cabin:            toStr(rec.Fields[fields.Cabin]),
-		TicketGroup:      toStr(rec.Fields[fields.TicketGroup]),
-		CheckedIn:        rec.Fields[fields.CheckedIn] == checked,
-		Barcode:          toStr(rec.Fields[fields.Barcode]),
-		Badge:            toStr(rec.Fields[fields.Badge]),
-		TransportTo:      toStr(rec.Fields[fields.TransportTo]),
-		TransportFrom:    toStr(rec.Fields[fields.TransportFrom]),
-		BeddingRental:    toStr(rec.Fields[fields.BeddingRental]),
-		BeddingPaid:      rec.Fields[fields.BeddingPaid] == checked,
-		DepartureTime:    toStr(rec.Fields[fields.DepartureTime]),
-		ArrivalTime:      toStr(rec.Fields[fields.ArrivalTime]),
-		BusToCamp:        busToCamp,
-		BusToAUS:         busToAUS,
+		AirtableID:        rec.ID,
+		TwitterName:       toStr(rec.Fields[fields.TwitterName]),
+		TwitterNameClean:  toStr(rec.Fields[fields.TwitterNameClean]),
+		Cabin:             toStr(rec.Fields[fields.Cabin]),
+		TicketGroup:       toStr(rec.Fields[fields.TicketGroup]),
+		CheckedIn:         rec.Fields[fields.CheckedIn] == checked,
+		Barcode:           toStr(rec.Fields[fields.Barcode]),
+		Badge:             toStr(rec.Fields[fields.Badge]),
+		TransportTo:       toStr(rec.Fields[fields.TransportTo]),
+		TransportFrom:     toStr(rec.Fields[fields.TransportFrom]),
+		BeddingRental:     toStr(rec.Fields[fields.BeddingRental]),
+		BeddingPaid:       rec.Fields[fields.BeddingPaid] == checked,
+		DepartureTime:     toStr(rec.Fields[fields.DepartureTime]),
+		ArrivalTime:       toStr(rec.Fields[fields.ArrivalTime]),
+		BusToCamp:         busToCamp,
+		BusToAUS:          busToAUS,
+		Vegetarian:        rec.Fields[fields.Vegetarian] == checked,
+		GlutenFree:        rec.Fields[fields.GlutenFree] == checked,
+		LactoseIntolerant: rec.Fields[fields.LactoseIntolerant] == checked,
+		FoodComments:      toStr(rec.Fields[fields.FoodComments]),
 	}, nil
 }
 
@@ -170,6 +178,36 @@ func (u *User) SetBadge(badgeChoice string) error {
 	_, err := defaultTable.UpdateRecordsPartial(r)
 	if err != nil {
 		return errors.Wrap(err, "setting badge")
+	}
+
+	if defaultCache != nil {
+		defaultCache.Delete(u.cacheKey())
+	}
+
+	return nil
+}
+
+func (u *User) SetFood(veg, gf, lact bool, comments string) error {
+	u.Vegetarian = veg
+	u.GlutenFree = gf
+	u.LactoseIntolerant = lact
+	u.FoodComments = comments
+
+	r := &airtable.Records{
+		Records: []*airtable.Record{{
+			ID: u.AirtableID,
+			Fields: map[string]interface{}{
+				fields.Vegetarian:        u.Vegetarian,
+				fields.GlutenFree:        u.GlutenFree,
+				fields.LactoseIntolerant: u.LactoseIntolerant,
+				fields.FoodComments:      comments,
+			},
+		}},
+	}
+
+	_, err := defaultTable.UpdateRecordsPartial(r)
+	if err != nil {
+		return errors.Wrap(err, "setting food")
 	}
 
 	if defaultCache != nil {

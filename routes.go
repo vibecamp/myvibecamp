@@ -201,6 +201,44 @@ func BadgeHandler(c *gin.Context) {
 	c.Redirect(http.StatusFound, badgeDomain+"?"+params.Encode())
 }
 
+func FoodHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	user, err := db.GetUser(session.TwitterName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if c.Request.Method == http.MethodGet {
+		c.HTML(http.StatusOK, "food.html.tmpl", gin.H{
+			"User":    user,
+			"flashes": GetFlashes(c),
+		})
+		return
+	}
+
+	err = user.SetFood(
+		c.PostForm("vegetarian") == "on",
+		c.PostForm("glutenfree") == "on",
+		c.PostForm("lactose") == "on",
+		c.PostForm("comments"),
+	)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	SuccessFlash(c, "Saved!")
+
+	c.Redirect(http.StatusFound, "/food")
+	return
+}
+
 func CabinListHandler(c *gin.Context) {
 	authToken := c.Query("auth_token")
 

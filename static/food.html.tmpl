@@ -1,0 +1,79 @@
+{{ template "header" }}
+
+{{ template "nav" "logistics" }}
+
+
+<div class="container">
+
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/logistics">Logistics</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Food</li>
+    </ol>
+  </nav>
+
+  {{ template "flashes" .flashes }}
+
+  <h2>Food</h2>
+
+  <p>
+    Food at Vibecamp will be served buffet-style in a cafeteria setting.
+    There will be the hot meal option and sides on the line, and then a breakfast/salad bar with some additional options.
+  </p>
+  <p>
+    Enter your dietary restrictions below so we can make sure we request enough of the right kinds of
+    foods for you. During meals, let the dining hall staff know in line, and they will get you the right meal.
+  </p>
+  <p>
+    We'll do our best to accommodate everyone. But we have a small staff and over 400 people coming
+    to Vibecamp, so we're not making any promises.
+  </p>
+  <p>
+    If you have any strong concerns,
+    <a href="mailto:brooke@vibecamp.xyz?subject=food at vibecamp">let us know</a>
+    and we'll see what we can do for you.
+  </p>
+
+    <form method="post" action="">
+      <fieldset>
+        <legend>Dietary Restrictions</legend>
+        <p>
+          Check all that apply:
+        </p>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="vegetarian" id="veg" {{if .User.Vegetarian}}checked{{end}}>
+          <label class="form-check-label" for="veg">
+            Vegetarian
+          </label>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="glutenfree" id="gf" {{if .User.GlutenFree}}checked{{end}}>
+          <label class="form-check-label" for="gf">
+            Gluten free
+          </label>
+        </div>
+
+        <div class="form-check mb-4">
+          <input class="form-check-input" type="checkbox" name="lactose" id="lactose" {{if .User.LactoseIntolerant}}checked{{end}}>
+          <label class="form-check-label" for="lactose">
+            Lactose intolerant
+          </label>
+        </div>
+
+        <div class="mb-3">
+          <label for="comments" class="form-label">Other considerations (e.g. allergies)</label>
+          <textarea class="form-control" id="comments" name="comments" rows="3">{{ .User.FoodComments }}</textarea>
+        </div>
+
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+
+      </fieldset>
+    </form>
+
+
+</div>
+
+{{ template "footer" }}

@@ -114,6 +114,8 @@ func main() {
 	r.GET("/logistics", LogisticsHandler)
 	r.GET("/badge", BadgeHandler)
 	r.POST("/badge", BadgeHandler)
+	r.GET("/food", FoodHandler)
+	r.POST("/food", FoodHandler)
 	r.GET("/cabinlist", CabinListHandler)
 	r.GET("/checkin/:barcode", CheckinHandler)
 
