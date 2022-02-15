@@ -40,6 +40,8 @@ type User struct {
 	BeddingPaid      bool
 	DepartureTime    string
 	ArrivalTime      string
+	BusToCamp        string
+	BusToAUS         string
 
 	AirtableID string
 }
@@ -107,6 +109,15 @@ func getUserByField(field, value string) (*User, error) {
 
 	rec := response.Records[0]
 
+	busToCamp := toStr(rec.Fields[fields.BusToCamp])
+	if busToCamp != "" {
+		busToCamp = strings.Split(busToCamp, " ")[1]
+	}
+	busToAUS := toStr(rec.Fields[fields.BusToAUS])
+	if busToAUS != "" {
+		busToAUS = strings.Split(busToAUS, " ")[1]
+	}
+
 	return &User{
 		AirtableID:       rec.ID,
 		TwitterName:      toStr(rec.Fields[fields.TwitterName]),
@@ -122,6 +133,8 @@ func getUserByField(field, value string) (*User, error) {
 		BeddingPaid:      rec.Fields[fields.BeddingPaid] == checked,
 		DepartureTime:    toStr(rec.Fields[fields.DepartureTime]),
 		ArrivalTime:      toStr(rec.Fields[fields.ArrivalTime]),
+		BusToCamp:        busToCamp,
+		BusToAUS:         busToAUS,
 	}, nil
 }
 

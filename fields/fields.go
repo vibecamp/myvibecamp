@@ -23,4 +23,6 @@ const (
 	DepartureTime    = "Departure Time"
 	ArrivalTime      = "Arrival Time"
 	Badge            = "Badge"
+	BusToCamp        = "Bus To Camp"
+	BusToAUS         = "Bus To AUS"
 )
