@@ -16,9 +16,11 @@
   <h4>Getting To Camp</h4>
   <div class="container mb-3">
     {{ if eq .User.TransportTo "yes" }}
+
       <p class="mb-2">
         You're taking the Vibecamp bus.
       </p>
+      {{ if eq .User.BusToCamp "" }}
         {{ if eq .User.ArrivalTime "" }}
           <p class="alert alert-warning">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
@@ -31,21 +33,24 @@
             Your flight lands at {{ .User.ArrivalTime }}.
           </p>
         {{ end }}
-      </p>
-      <p>
-        {{ if eq .User.BusToAUS "" }}
+        <p>
           Once we finalize bus rentals, your bus departure time will be here.
-        {{ else }}
+        </p>
+      {{ else }}
+        <p>
           Your bus leaves for camp at <strong>{{ .User.BusToCamp }}</strong>. Don't be late.
-        {{ end }}
-      </p>
+        </p>
+      {{ end }}
+
     {{ else }}
+
       <p>
         You're <strong>not</strong> riding the Vibecamp bus to camp. You're finding a ride on your own.
       </p>
       <p>
         Consider using <a href="https://discord.com/invite/PEvx7dbJCp">the Discord</a> to coordinate rideshares.
       </p>
+
     {{end}}
   </div>
 
@@ -54,10 +59,11 @@
   <h4>Getting To The Airport From Camp</h4>
   <div class="container mb-3">
     {{ if eq .User.TransportFrom "yes" }}
+
       <p class="mb-2">
         You're taking the Vibecamp bus.
       </p>
-      <p class="mb-2">
+      {{ if eq .User.BusToAUS "" }}
         {{ if eq .User.DepartureTime "" }}
           <p class="alert alert-warning">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
@@ -66,23 +72,28 @@
             You still need to tell Brooke when your flight takes off from Austin.
           </p>
         {{ else }}
-          Your flight leaves at {{ .User.DepartureTime }}.
+          <p class="mb-2">
+            Your flight leaves at {{ .User.DepartureTime }}.
+          </p>
         {{ end }}
-      </p>
-      <p>
-        {{ if eq .User.BusToAUS "" }}
+        <p>
           Once we finalize bus rentals, your bus departure time will be here.
-        {{ else }}
+        </p>
+      {{ else }}
+        <p>
           Your bus leaves for the airport at <strong>{{ .User.BusToAUS }}</strong>. You snooze, you lose 😉
-        {{ end }}
-      </p>
+        </p>
+      {{ end }}
+
     {{ else }}
+
       <p>
         You're <strong>not</strong> riding the Vibecamp bus back to the airport. You're getting your own ride.
       </p>
       <p>
         Consider using <a href="https://discord.com/invite/PEvx7dbJCp">the Discord</a> to coordinate rideshares.
       </p>
+
     {{end}}
   </div>
 
