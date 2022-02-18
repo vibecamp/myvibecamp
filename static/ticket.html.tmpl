@@ -21,7 +21,7 @@
       <tbody>
         {{ range .TicketGroup }}
           <tr>
-            <td>{{ .TwitterName }}</td>
+            <td>{{ .Name }} ({{ .TwitterName }})</td>
             <td>{{ if .CheckedIn }}✅{{else}}no{{end}}</td>
           </tr>
         {{ end }}

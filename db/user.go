@@ -29,6 +29,7 @@ var ErrManyRecords = fmt.Errorf("multiple records for value")
 type User struct {
 	TwitterName       string
 	TwitterNameClean  string
+	Name              string
 	Cabin             string
 	TicketGroup       string
 	CheckedIn         bool
@@ -129,6 +130,7 @@ func getUserByField(field, value string) (*User, error) {
 		AirtableID:        rec.ID,
 		TwitterName:       toStr(rec.Fields[fields.TwitterName]),
 		TwitterNameClean:  toStr(rec.Fields[fields.TwitterNameClean]),
+		Name:              toStr(rec.Fields[fields.Name]),
 		Cabin:             toStr(rec.Fields[fields.Cabin]),
 		TicketGroup:       toStr(rec.Fields[fields.TicketGroup]),
 		CheckedIn:         rec.Fields[fields.CheckedIn] == checked,
@@ -242,16 +244,17 @@ func (u *User) GetCabinMates() ([]string, error) {
 
 type TicketGroupEntry struct {
 	TwitterName string
+	Name        string
 	CheckedIn   bool
 }
 
 func (u *User) GetTicketGroup() ([]TicketGroupEntry, error) {
 	if u.TicketGroup == "" {
-		return []TicketGroupEntry{{u.TwitterName, u.CheckedIn}}, nil
+		return []TicketGroupEntry{{u.TwitterName, u.Name, u.CheckedIn}}, nil
 	}
 
 	var ticketGroup []TicketGroupEntry
-	response, err := query(fields.TicketGroup, u.TicketGroup, fields.TwitterName, fields.CheckedIn)
+	response, err := query(fields.TicketGroup, u.TicketGroup, fields.TwitterName, fields.Name, fields.CheckedIn)
 	if err != nil {
 		return nil, err
 	}
@@ -259,6 +262,7 @@ func (u *User) GetTicketGroup() ([]TicketGroupEntry, error) {
 	for _, c := range response.Records {
 		ticketGroup = append(ticketGroup, TicketGroupEntry{
 			TwitterName: toStr(c.Fields[fields.TwitterName]),
+			Name:        toStr(c.Fields[fields.Name]),
 			CheckedIn:   c.Fields[fields.CheckedIn] == checked,
 		})
 	}
