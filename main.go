@@ -32,6 +32,7 @@ var static embed.FS
 var (
 	localDevMode bool
 	service      *oauth1a.Service
+	externalURL  string
 )
 
 func main() {
@@ -46,11 +47,11 @@ func main() {
 		}
 	}
 
+	externalURL = os.Getenv("EXTERNAL_URL")
 	var (
-		externalURL = os.Getenv("EXTERNAL_URL")
-		port        = os.Getenv("PORT")
-		apiKey      = os.Getenv("TWITTER_API_KEY")
-		apiSecret   = os.Getenv("TWITTER_API_SECRET")
+		port      = os.Getenv("PORT")
+		apiKey    = os.Getenv("TWITTER_API_KEY")
+		apiSecret = os.Getenv("TWITTER_API_SECRET")
 	)
 
 	localDevMode = os.Getenv("DEV") == "true"
@@ -118,6 +119,7 @@ func main() {
 	r.POST("/food", FoodHandler)
 	r.GET("/cabinlist", CabinListHandler)
 	r.GET("/checkin/:barcode", CheckinHandler)
+	r.POST("/checkin/:barcode", CheckinHandler)
 
 	r.GET("/", IndexHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))

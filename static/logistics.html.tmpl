@@ -23,7 +23,7 @@
       {{ if eq .User.BusToCamp "" }}
         {{ if eq .User.ArrivalTime "" }}
           <p class="alert alert-warning">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
               <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
             </svg>
             You still need to tell Brooke when your flight lands in Austin.
@@ -105,7 +105,7 @@
         {{ if eq .User.BeddingRental "yes" }}
           You're renting a sleeping bag from us,
           {{ if .User.BeddingPaid }}
-            and you've already paid for it.
+            and you've already paid for it. <strong>Make sure you ask for it during checkin.</strong>
           {{ else }}
             but you still need to <a href="https://buy.stripe.com/00g4jCbEkeULcyQ3cg">pay for it</a>
             and DM <a href="https://twitter.com/gptbrooke">Brooke</a> a screenshot
@@ -140,22 +140,32 @@
 
   <h4>Cabin</h4>
   <div class="container mb-3">
-    <p>
       {{ if eq .User.Cabin "" }}
-        You're not in a cabin yet. Pop over to the #cabins channel in
-        <a href="https://discord.com/invite/PEvx7dbJCp">the discord</a>
-        and say hi. Or if you want to take it easy, we'll find one for you.
-        No worries!
+        <p>
+          You're not in a cabin yet. Pop over to the #cabins channel in
+          <a href="https://discord.com/invite/PEvx7dbJCp">the discord</a>
+          and say hi. Or if you want to take it easy, we'll find one for you.
+          No worries!
+        </p>
       {{ else }}
-        Your cabin is <strong>{{ .User.Cabin }}</strong> and you're sharing it with these lovely people:
-        <ul>
-            {{ range $val := .CabinMates }}
-              <li><a href="https://twitter.com/{{ $val }}">@{{ $val }}</a></li>
-            {{ end }}
-        </ul>
-        Why not start a group chat and introduce yourselves?
+        <p>
+          Your cabin is <strong>{{ .User.Cabin }}</strong>.
+          {{ if ne .User.Cabin .User.CabinNumber }}
+            That's cabin #{{ .User.CabinNumber }} on the <a href="/img/map.png" target="_blank">map</a>.
+          {{ else }}
+            Here's the <a href="/img/map.png" target="_blank">map</a>.
+          {{ end }}
+        </p>
+        <p>
+          You're sharing it with these lovely people:
+          <ul>
+              {{ range $val := .CabinMates }}
+                <li><a href="https://twitter.com/{{ $val }}">@{{ $val }}</a></li>
+              {{ end }}
+          </ul>
+          Why not start a group chat and introduce yourselves?
+        </p>
       {{ end }}
-    </p>
   </div>
 
 </div>

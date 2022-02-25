@@ -30,10 +30,13 @@ type User struct {
 	TwitterName       string
 	TwitterNameClean  string
 	Name              string
+	AdmissionLevel    string
 	Cabin             string
+	CabinNumber       string
 	TicketGroup       string
 	CheckedIn         bool
 	Barcode           string
+	OrderNotes        string
 	Badge             string
 	TransportTo       string
 	TransportFrom     string
@@ -85,25 +88,10 @@ func GetUser(twitterName string) (*User, error) {
 		return nil, errors.New("no user found, but no error from db 🤔")
 	}
 
-	if defaultCache != nil {
-		var b bytes.Buffer
-		err := gob.NewEncoder(&b).Encode(*user)
-		if err != nil {
-			return nil, errors.Wrap(err, "cache save")
-		}
-		defaultCache.Set(cleanName, b.Bytes(), 0)
-	}
-
 	return user, nil
 }
 
 func getUserByField(field, value string) (*User, error) {
-	//rec, err := query(field, value,
-	//	fields.TwitterName, fields.TwitterNameClean,
-	//	fields.Cabin,
-	//	fields.TicketGroup, fields.CheckedIn, fields.Barcode,
-	//	fields.Badge,
-	//)
 	response, err := query(field, value) // get all fields
 	if err != nil {
 		return nil, err
@@ -126,15 +114,18 @@ func getUserByField(field, value string) (*User, error) {
 		busToAUS = strings.Split(busToAUS, " ")[1]
 	}
 
-	return &User{
+	u := &User{
 		AirtableID:        rec.ID,
 		TwitterName:       toStr(rec.Fields[fields.TwitterName]),
 		TwitterNameClean:  toStr(rec.Fields[fields.TwitterNameClean]),
 		Name:              toStr(rec.Fields[fields.Name]),
+		AdmissionLevel:    toStr(rec.Fields[fields.AdmissionLevel]),
 		Cabin:             toStr(rec.Fields[fields.Cabin]),
+		CabinNumber:       toStr(rec.Fields[fields.CabinNumber]),
 		TicketGroup:       toStr(rec.Fields[fields.TicketGroup]),
 		CheckedIn:         rec.Fields[fields.CheckedIn] == checked,
 		Barcode:           toStr(rec.Fields[fields.Barcode]),
+		OrderNotes:        toStr(rec.Fields[fields.OrderNotes]),
 		Badge:             toStr(rec.Fields[fields.Badge]),
 		TransportTo:       toStr(rec.Fields[fields.TransportTo]),
 		TransportFrom:     toStr(rec.Fields[fields.TransportFrom]),
@@ -148,7 +139,18 @@ func getUserByField(field, value string) (*User, error) {
 		GlutenFree:        rec.Fields[fields.GlutenFree] == checked,
 		LactoseIntolerant: rec.Fields[fields.LactoseIntolerant] == checked,
 		FoodComments:      toStr(rec.Fields[fields.FoodComments]),
-	}, nil
+	}
+
+	if defaultCache != nil {
+		var b bytes.Buffer
+		err := gob.NewEncoder(&b).Encode(*u)
+		if err != nil {
+			return nil, errors.Wrap(err, "cache save")
+		}
+		defaultCache.Set(u.cacheKey(), b.Bytes(), 0)
+	}
+
+	return u, nil
 }
 
 func query(field, value string, returnFields ...string) (*airtable.Records, error) {
@@ -222,6 +224,30 @@ func (u *User) SetFood(veg, gf, lact bool, comments string) error {
 	return nil
 }
 
+func (u *User) SetCheckedIn() error {
+	u.CheckedIn = true
+
+	r := &airtable.Records{
+		Records: []*airtable.Record{{
+			ID: u.AirtableID,
+			Fields: map[string]interface{}{
+				fields.CheckedIn: u.CheckedIn,
+			},
+		}},
+	}
+
+	_, err := defaultTable.UpdateRecordsPartial(r)
+	if err != nil {
+		return errors.Wrap(err, "checking in "+u.TwitterName)
+	}
+
+	if defaultCache != nil {
+		defaultCache.Delete(u.cacheKey())
+	}
+
+	return nil
+}
+
 func (u *User) GetCabinMates() ([]string, error) {
 	if u.Cabin == "" {
 		return nil, nil
@@ -245,16 +271,19 @@ func (u *User) GetCabinMates() ([]string, error) {
 type TicketGroupEntry struct {
 	TwitterName string
 	Name        string
+	OrderNotes  string
+	SleepingBag bool
 	CheckedIn   bool
 }
 
 func (u *User) GetTicketGroup() ([]TicketGroupEntry, error) {
 	if u.TicketGroup == "" {
-		return []TicketGroupEntry{{u.TwitterName, u.Name, u.CheckedIn}}, nil
+		return []TicketGroupEntry{{u.TwitterName, u.Name, u.OrderNotes, u.BeddingPaid, u.CheckedIn}}, nil
 	}
 
 	var ticketGroup []TicketGroupEntry
-	response, err := query(fields.TicketGroup, u.TicketGroup, fields.TwitterName, fields.Name, fields.CheckedIn)
+	response, err := query(fields.TicketGroup, u.TicketGroup, fields.TwitterName,
+		fields.Name, fields.CheckedIn, fields.BeddingPaid, fields.OrderNotes)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +292,9 @@ func (u *User) GetTicketGroup() ([]TicketGroupEntry, error) {
 		ticketGroup = append(ticketGroup, TicketGroupEntry{
 			TwitterName: toStr(c.Fields[fields.TwitterName]),
 			Name:        toStr(c.Fields[fields.Name]),
+			OrderNotes:  toStr(c.Fields[fields.OrderNotes]),
 			CheckedIn:   c.Fields[fields.CheckedIn] == checked,
+			SleepingBag: c.Fields[fields.BeddingPaid] == checked,
 		})
 	}
 
@@ -271,6 +302,10 @@ func (u *User) GetTicketGroup() ([]TicketGroupEntry, error) {
 }
 
 func (u *User) cacheKey() string { return u.TwitterNameClean }
+
+func (u *User) HasCheckinPermission() bool {
+	return u.AdmissionLevel == "Staff" || u.TwitterNameClean == "konstell2"
+}
 
 func toStr(i interface{}) string {
 	if i == nil {

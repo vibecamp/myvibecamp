@@ -5,31 +5,53 @@
 <div>
   <h2>Checkin</h2>
 
-  <h3>Group</h3>
-  <div class="table-responsive">
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Checked In</th>
-        </tr>
-      </thead>
-      <tbody>
-          {{ range .TicketGroup }}
-            <tr>
-              <td>{{ .TwitterName }}</td>
-              <td>{{ if .CheckedIn }}yes{{else}}no{{end}}</td>
-            </tr>
-          {{ end }}
-      </tbody>
-    </table>
-  </div>
+  {{ template "flashes" .flashes }}
 
-  notes for user
+  <form method="post">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+            {{ range .group }}
+              <tr>
+                <td>
+                  {{ if eq .TwitterName "" }}
+                    anon or very offline 🤔
+                  {{ else }}
+                    @{{ .TwitterName }}
+                  {{ end }}
 
-  SUBMIT
+                  {{ if .SleepingBag }}
+{{/*                    <br><span class="badge bg-secondary">sleeping bag</span>*/}}
+                    <br><small class="text-muted">bought a sleeping bag</small>
+                  {{ end }}
+                  <br><small class="text-muted">{{ .OrderNotes }}</small>
+                </td>
+                <td style="vertical-align: middle">
+                  {{ if .CheckedIn }}
+                    ✅ checked in
+                  {{ else }}
+                    <div class="form-check form-switch">
+                      <input type="checkbox" class="form-check-input" id="user-{{.TwitterName}}" name="{{.TwitterName}}">
+                      <label class="form-check-label" for="user-{{.TwitterName}}">check them in</label>
+                    </div>
+                  {{ end }}
+                </td>
+              </tr>
+            {{ end }}
+        </tbody>
+      </table>
+    </div>
 
-  confirmation checkmark
+    {{ if .anyUnchecked }}
+      <button class="btn btn-primary" type="submit">Check in selected people</button>
+    {{ end }}
+  </form>
 
 </div>
 

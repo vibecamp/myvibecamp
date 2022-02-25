@@ -55,12 +55,7 @@ func TicketHandler(c *gin.Context) {
 		return
 	}
 
-	ticketDomain := ""
-	if !localDevMode {
-		ticketDomain = "https://my.vibecamp.xyz"
-	}
-
-	qr, err := qrcode.Encode(fmt.Sprintf(`%s/checkin/%s`, ticketDomain, user.Barcode), qrcode.Medium, 256)
+	qr, err := qrcode.Encode(fmt.Sprintf(`%s/checkin/%s`, externalURL, user.Barcode), qrcode.Medium, 256)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "generating qr code"))
 		return
@@ -110,29 +105,69 @@ func CheckinHandler(c *gin.Context) {
 	if !session.SignedIn() {
 		c.Redirect(http.StatusFound, "/")
 		return
-	} else if !session.HasCheckinPermission() {
+	}
+
+	user, err := db.GetUser(session.TwitterName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	} else if !localDevMode && !user.HasCheckinPermission() {
 		c.AbortWithError(http.StatusForbidden, errors.New("This page is for staff only"))
 		return
 	}
 
 	barcode := c.Param("barcode")
-	user, err := db.GetUserFromBarcode(barcode)
+	barcodeUser, err := db.GetUserFromBarcode(barcode)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	ticketGroup, err := user.GetTicketGroup()
+	ticketGroup, err := barcodeUser.GetTicketGroup()
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	c.HTML(http.StatusOK, "checkin.html.tmpl", struct {
-		TicketGroup []db.TicketGroupEntry
-	}{
-		TicketGroup: ticketGroup,
-	})
+	anyUnchecked := false
+	for _, u := range ticketGroup {
+		if !u.CheckedIn {
+			anyUnchecked = true
+			break
+		}
+	}
+
+	if c.Request.Method == http.MethodGet {
+		c.HTML(http.StatusOK, "checkin.html.tmpl", gin.H{
+			"flashes":      GetFlashes(c),
+			"group":        ticketGroup,
+			"anyUnchecked": anyUnchecked,
+		})
+		return
+	}
+
+	checkinCount := 0
+	for _, n := range ticketGroup {
+		if checkedIn := c.PostForm(n.TwitterName); checkedIn == "on" {
+			u, err := db.GetUser(n.TwitterName)
+			if err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+				return
+			}
+			u.SetCheckedIn()
+			checkinCount++
+		}
+	}
+
+	if checkinCount == 0 {
+		WarningFlash(c, "Select at least one person to check in")
+	} else if checkinCount == 1 {
+		SuccessFlash(c, "Checked in 1 person")
+	} else {
+		SuccessFlash(c, fmt.Sprintf("Checked in %d people", checkinCount))
+	}
+
+	c.Redirect(http.StatusFound, "/checkin/"+barcode)
 }
 
 func BadgeHandler(c *gin.Context) {

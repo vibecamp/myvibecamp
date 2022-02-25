@@ -52,6 +52,12 @@ func SuccessFlash(c *gin.Context, value string) {
 	defaultSession.Save()
 }
 
+func WarningFlash(c *gin.Context, value string) {
+	defaultSession := sessions.Default(c)
+	defaultSession.AddFlash(value, "warning")
+	defaultSession.Save()
+}
+
 func GetFlashes(c *gin.Context) map[string][]string {
 	defaultSession := sessions.Default(c)
 	f := map[string][]string{
@@ -74,20 +80,6 @@ func flashes(f []interface{}) []string {
 
 func (s *Session) SignedIn() bool {
 	return s != nil && s.TwitterName != ""
-}
-
-func (s *Session) HasCheckinPermission() bool {
-	if !s.SignedIn() {
-		return false
-	}
-
-	doingCheckin := map[string]struct{}{
-		"grin_io":   {},
-		"gptbrooke": {},
-	}
-
-	_, ok := doingCheckin[s.TwitterName]
-	return ok
 }
 
 func SignInHandler(c *gin.Context) {

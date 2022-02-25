@@ -8,7 +8,7 @@ const (
 	OrderNotes        = "Order Notes"
 	AdmissionLevel    = "Admission Level"
 	Cabin             = "Cabin"
-	Refunded          = "Refunded"
+	CabinNumber       = "Cabin Number"
 	TicketID          = "Ticket ID"
 	OrderDate         = "Order Date"
 	Phone             = "Phone"
