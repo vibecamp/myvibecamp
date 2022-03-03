@@ -35,19 +35,12 @@
     <h4>Next Steps</h4>
     <div class="container mb-3">
       <p>
-        Check the <a href="/logistics">logistics page</a> to make sure everything looks right.
+        When you get to camp, show your <a href="/ticket">ticket</a> at checkin.
       </p>
 
-      <p>
-        Check the <a href="/ticket">ticket page</a> to make sure everyone in your group is
-        on the ticket.
-      </p>
-
-      {{ if eq .Cabin "" }}
+      {{ if .CheckedIn }}
         <p>
-          The deadline to pick a cabin is February 14th. Consider finding one in the #cabins channel of
-          <a href="https://discord.com/invite/PEvx7dbJCp">our Discord</a>. If you don't pick one
-          in time, we'll pick one for you.
+          Now that you're checked in, <a href="/logistics#poap">claim your POAP</a>.
         </p>
       {{ end }}
     </div>
@@ -56,10 +49,10 @@
     <div class="container mb-3">
       <ul>
         <li>
-          <a href="https://vibecamp.xyz/schedule/">Activity Schedule</a> (preliminary!)
+          <a href="https://vibecamp.xyz/schedule/">Activity Schedule</a>
         </li>
         <li>
-          <a href="https://campchampions.com/prospective-families/activities-map">Camp Champions Map</a>
+          <a href="/img/map.png">Camp Champions Map</a>
         </li>
         <li>
           <a href="https://vibecamp.xyz/faq/">FAQ</a>

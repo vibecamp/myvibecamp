@@ -29,4 +29,5 @@ const (
 	GlutenFree        = "Gluten Free"
 	LactoseIntolerant = "Lactose Intolerant"
 	FoodComments      = "Food Comments"
+	POAP              = "POAP"
 )

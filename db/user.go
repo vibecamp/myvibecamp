@@ -50,6 +50,7 @@ type User struct {
 	GlutenFree        bool
 	LactoseIntolerant bool
 	FoodComments      string
+	POAP              string
 
 	AirtableID string
 }
@@ -139,6 +140,7 @@ func getUserByField(field, value string) (*User, error) {
 		GlutenFree:        rec.Fields[fields.GlutenFree] == checked,
 		LactoseIntolerant: rec.Fields[fields.LactoseIntolerant] == checked,
 		FoodComments:      toStr(rec.Fields[fields.FoodComments]),
+		POAP:              toStr(rec.Fields[fields.POAP]),
 	}
 
 	if defaultCache != nil {

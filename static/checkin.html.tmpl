@@ -27,18 +27,17 @@
                   {{ end }}
 
                   {{ if .SleepingBag }}
-{{/*                    <br><span class="badge bg-secondary">sleeping bag</span>*/}}
                     <br><small class="text-muted">bought a sleeping bag</small>
                   {{ end }}
                   <br><small class="text-muted">{{ .OrderNotes }}</small>
                 </td>
                 <td style="vertical-align: middle">
                   {{ if .CheckedIn }}
-                    ✅ checked in
+                    ✔️ already in
                   {{ else }}
                     <div class="form-check form-switch">
-                      <input type="checkbox" class="form-check-input" id="user-{{.TwitterName}}" name="{{.TwitterName}}">
-                      <label class="form-check-label" for="user-{{.TwitterName}}">check them in</label>
+                      <input type="checkbox" class="form-check-input" id="user-{{.TwitterName}}" name="{{.TwitterName}}" checked>
+                      <label class="form-check-label" for="user-{{.TwitterName}}">check in now</label>
                     </div>
                   {{ end }}
                 </td>

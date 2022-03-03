@@ -13,6 +13,53 @@
 
 
 
+    {{ if .User.CheckedIn }}
+      <h4 id="poap">POAP</h4>
+      <div class="container mb-3">
+        <p>
+          POAP stands for "proof of attendance protocol". POAPs function as digital badges
+          you can collect at events, both to prove that you were there, and to remember the occasion.
+        </p>
+        <p>
+          Get your VibeCamp POAP <a href="https://app.poap.xyz/claim/{{ .User.POAP }}">here</a>.
+        </p>
+      </div>
+    {{ end }}
+
+
+
+  <h4>Cabin</h4>
+  <div class="container mb-3">
+      {{ if eq .User.Cabin "" }}
+        <p>
+          You're not in a cabin yet. Pop over to the #cabins channel in
+          <a href="https://discord.com/invite/PEvx7dbJCp">the discord</a>
+          and say hi. Or if you want to take it easy, we'll find one for you.
+          No worries!
+        </p>
+      {{ else }}
+        <p>
+          Your cabin is <strong>{{ .User.Cabin }}</strong>.
+            {{ if ne .User.Cabin .User.CabinNumber }}
+              That's cabin #{{ .User.CabinNumber }} on the <a href="/img/map.png" target="_blank">map</a>.
+            {{ else }}
+              Here's the <a href="/img/map.png" target="_blank">map</a>.
+            {{ end }}
+        </p>
+        <p>
+          You're sharing it with these lovely people:
+        <ul>
+            {{ range $val := .CabinMates }}
+              <li><a href="https://twitter.com/{{ $val }}">@{{ $val }}</a></li>
+            {{ end }}
+        </ul>
+        Why not start a group chat and introduce yourselves?
+        </p>
+      {{ end }}
+  </div>
+
+
+
   <h4>Getting To Camp</h4>
   <div class="container mb-3">
     {{ if eq .User.TransportTo "yes" }}
@@ -99,6 +146,24 @@
 
 
 
+    <h4>Badge</h4>
+    <div class="container mb-3">
+      <p>
+        Set up your badge on the <a href="/badge">badge page</a>.
+      </p>
+    </div>
+
+
+
+      <h4>Food</h4>
+      <div class="container mb-3">
+        <p>
+          Describe your dietary restrictions on the <a href="/food">food page</a>.
+        </p>
+      </div>
+
+
+
   <h4>Sleeping Bag Rental</h4>
   <div class="container mb-3">
     <p>
@@ -118,55 +183,6 @@
     </p>
   </div>
 
-
-
-  <h4>Badge</h4>
-  <div class="container mb-3">
-    <p>
-      Set up your badge on the <a href="/badge">badge page</a>.
-    </p>
-  </div>
-
-
-
-  <h4>Food</h4>
-  <div class="container mb-3">
-    <p>
-      Describe your dietary restrictions on the <a href="/food">food page</a>.
-    </p>
-  </div>
-
-
-
-  <h4>Cabin</h4>
-  <div class="container mb-3">
-      {{ if eq .User.Cabin "" }}
-        <p>
-          You're not in a cabin yet. Pop over to the #cabins channel in
-          <a href="https://discord.com/invite/PEvx7dbJCp">the discord</a>
-          and say hi. Or if you want to take it easy, we'll find one for you.
-          No worries!
-        </p>
-      {{ else }}
-        <p>
-          Your cabin is <strong>{{ .User.Cabin }}</strong>.
-          {{ if ne .User.Cabin .User.CabinNumber }}
-            That's cabin #{{ .User.CabinNumber }} on the <a href="/img/map.png" target="_blank">map</a>.
-          {{ else }}
-            Here's the <a href="/img/map.png" target="_blank">map</a>.
-          {{ end }}
-        </p>
-        <p>
-          You're sharing it with these lovely people:
-          <ul>
-              {{ range $val := .CabinMates }}
-                <li><a href="https://twitter.com/{{ $val }}">@{{ $val }}</a></li>
-              {{ end }}
-          </ul>
-          Why not start a group chat and introduce yourselves?
-        </p>
-      {{ end }}
-  </div>
 
 </div>
 
