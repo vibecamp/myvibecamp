@@ -64,7 +64,7 @@ func TicketHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "ticket.html.tmpl", struct {
 		Name        string
 		QR          string
-		TicketGroup []db.TicketGroupEntry
+		TicketGroup []*db.User
 	}{
 		Name:        session.TwitterName,
 		QR:          base64.StdEncoding.EncodeToString(qr),

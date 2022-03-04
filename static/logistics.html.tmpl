@@ -6,25 +6,23 @@
   <h2>Logistics</h2>
 
   <p>
-    This page has a bunch of info about your trip to Vibecamp. Look it over now to make sure we got
-    everything right.
-    <strong>If anything looks wrong, email <a href="mailto:brooke@vibecamp.xyz">Brooke</a> right away.</strong>
+    This page has a bunch of info about your Vibecamp weekend.
   </p>
 
 
 
-    {{ if .User.CheckedIn }}
-      <h4 id="poap">POAP</h4>
-      <div class="container mb-3">
-        <p>
-          POAP stands for "proof of attendance protocol". POAPs function as digital badges
-          you can collect at events, both to prove that you were there, and to remember the occasion.
-        </p>
-        <p>
-          Get your VibeCamp POAP <a href="https://app.poap.xyz/claim/{{ .User.POAP }}">here</a>.
-        </p>
-      </div>
-    {{ end }}
+  {{ if .User.CheckedIn }}
+    <h4 id="poap">POAP</h4>
+    <div class="container mb-3">
+      <p>
+        POAP stands for "proof of attendance protocol". POAPs function as digital badges
+        you can collect at events, both to prove that you were there and to remember the occasion.
+      </p>
+      <p>
+        Get your VibeCamp POAP <a href="https://app.poap.xyz/claim/{{ .User.POAP }}">here</a>.
+      </p>
+    </div>
+  {{ end }}
 
 
 

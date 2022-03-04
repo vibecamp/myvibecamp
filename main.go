@@ -73,7 +73,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	cacheTime := 15 * time.Minute
+	cacheTime := 24 * time.Hour
 	if localDevMode {
 		cacheTime = 1 * time.Second
 	}
@@ -141,6 +141,13 @@ func main() {
 			log.Errorf("listen: %s\n", err)
 		}
 	}()
+
+	if !localDevMode {
+		go func() {
+			time.Sleep(5 * time.Second)
+			db.CacheWarmup()
+		}()
+	}
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 5 seconds.
 	quit := make(chan os.Signal)

@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/cockroachdb/errors"
 	"github.com/lyoshenka/vibedata/fields"
@@ -270,43 +271,45 @@ func (u *User) GetCabinMates() ([]string, error) {
 	return cabinMates, nil
 }
 
-type TicketGroupEntry struct {
-	TwitterName string
-	Name        string
-	OrderNotes  string
-	SleepingBag bool
-	CheckedIn   bool
-}
-
-func (u *User) GetTicketGroup() ([]TicketGroupEntry, error) {
+func (u *User) GetTicketGroup() ([]*User, error) {
 	if u.TicketGroup == "" {
-		return []TicketGroupEntry{{u.TwitterName, u.Name, u.OrderNotes, u.BeddingPaid, u.CheckedIn}}, nil
+		return []*User{u}, nil
 	}
 
-	var ticketGroup []TicketGroupEntry
-	response, err := query(fields.TicketGroup, u.TicketGroup, fields.TwitterName,
-		fields.Name, fields.CheckedIn, fields.BeddingPaid, fields.OrderNotes)
+	response, err := query(fields.TicketGroup, u.TicketGroup, fields.TwitterName)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, c := range response.Records {
-		ticketGroup = append(ticketGroup, TicketGroupEntry{
-			TwitterName: toStr(c.Fields[fields.TwitterName]),
-			Name:        toStr(c.Fields[fields.Name]),
-			OrderNotes:  toStr(c.Fields[fields.OrderNotes]),
-			CheckedIn:   c.Fields[fields.CheckedIn] == checked,
-			SleepingBag: c.Fields[fields.BeddingPaid] == checked,
-		})
+	group := make([]*User, len(response.Records))
+	for i := 0; i < len(group); i++ {
+		group[i], err = GetUser(toStr(response.Records[i].Fields[fields.TwitterName]))
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return ticketGroup, nil
+	return group, nil
 }
 
 func (u *User) cacheKey() string { return u.TwitterNameClean }
 
 func (u *User) HasCheckinPermission() bool {
-	return u.AdmissionLevel == "Staff" || u.TwitterNameClean == "konstell2"
+	if u.AdmissionLevel == "Staff" {
+		return true
+	}
+
+	helping := []string{
+		"konstell2", "thermestor", "dancinghorse16",
+	}
+
+	for _, h := range helping {
+		if h == u.TwitterNameClean {
+			return true
+		}
+	}
+
+	return false
 }
 
 func toStr(i interface{}) string {
@@ -314,4 +317,32 @@ func toStr(i interface{}) string {
 		return ""
 	}
 	return i.(string)
+}
+
+// CacheWarmup fetches every user to warm up the cache
+func CacheWarmup() {
+	offset := ""
+
+	for {
+		response, err := defaultTable.GetRecords().
+			WithOffset(offset).
+			ReturnFields(fields.TwitterName).
+			InStringFormat("US/Eastern", "en").
+			Do()
+
+		if err != nil {
+			log.Errorf("%+v", err)
+			return
+		}
+
+		for _, r := range response.Records {
+			GetUser(toStr(r.Fields[fields.TwitterName]))
+			time.Sleep(5 * time.Second)
+		}
+
+		if response.Offset == "" {
+			break
+		}
+		offset = response.Offset
+	}
 }
