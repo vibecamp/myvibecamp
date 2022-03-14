@@ -27,47 +27,62 @@
     <h2>Hey @{{ .TwitterName }} 🥰</h2>
     <div class="container mb-3">
       <p>
-        Congrats on your wise decision to come to Vibecamp this year. We can't wait to see you in March!
+        Congrats on your wise decision to come to Vibecamp this year.
       </p>
     </div>
 
 
-    <h4>Next Steps</h4>
+    <h4>Thank You!</h4>
     <div class="container mb-3">
       <p>
-        When you get to camp, show your <a href="/ticket">ticket</a> at checkin.
+        Thanks for coming to Vibecamp. We had so much fun with y'all and we can't wait to see you
+        again. Keep an eye on <a href="https://twitter.com/tpotvibecamp">our Twitter</a> for info
+        on what's next.
       </p>
-      <p>
-        The <a href="/logistics">logistics page</a> has your cabin and travel info.
-      </p>
+    </div>
 
-      {{ if .CheckedIn }}
+    {{ if .CheckedIn }}
+      <h4>POAP (free crypto stickers)</h4>
+      <div class="container mb-3">
         <p>
-          Now that you've checked in, <a href="/logistics#poap">claim your POAP</a>.
+          <a href="https://poap.xyz/">POAP</a> stands for "proof of attendance protocol".
+          POAPs are like stickers or digital badges that you can collect at events, both to
+          prove that you were there and to remember the occasion.
         </p>
-      {{ end }}
-    </div>
+        <p>
+          Getting a Vibecamp POAP is totally free (there's not even gas fees), but you do need
+          an Ethereum wallet and address. If you don't have one yet, install
+          <a href="https://metamask.io/">Metamask</a> or <a href="https://rainbow.me/">Rainbow</a>.
+        </p>
+        <p>
+          If you need help, ask in the Discord or tweet at us.
+        </p>
+        <p class="alert alert-info">
+          Get your VibeCamp POAP <a class="alert-link" href="https://app.poap.xyz/claim/{{ .POAP }}">here</a>.
+        </p>
+      </div>
+    {{ end }}
 
-    <h4>Useful Links</h4>
-    <div class="container mb-3">
-      <ul>
-        <li>
-          <a href="https://vibecamp.xyz/schedule/">Activity Schedule</a>
-        </li>
-        <li>
-          <a href="/img/map.png">Camp Champions Map</a>
-        </li>
-        <li>
-          <a href="https://vibecamp.xyz/faq/">FAQ</a>
-        </li>
-      </ul>
-    </div>
+
+{{/*    <h4>Useful Links</h4>*/}}
+{{/*    <div class="container mb-3">*/}}
+{{/*      <ul>*/}}
+{{/*        <li>*/}}
+{{/*          <a href="https://vibecamp.xyz/schedule/">Activity Schedule</a>*/}}
+{{/*        </li>*/}}
+{{/*        <li>*/}}
+{{/*          <a href="/img/map.png">Camp Champions Map</a>*/}}
+{{/*        </li>*/}}
+{{/*        <li>*/}}
+{{/*          <a href="https://vibecamp.xyz/faq/">FAQ</a>*/}}
+{{/*        </li>*/}}
+{{/*      </ul>*/}}
+{{/*    </div>*/}}
 
     <h4>Contact Us</h4>
     <div class="container mb-3">
       <p>
-        Send us an <a href="mailto:team@vibecamp.xyz">email</a> or join
-        <a href="https://discord.com/invite/PEvx7dbJCp">our Discord</a> to get in touch.
+        If Twitter or Discord don't work, you can always reach us by <a href="mailto:team@vibecamp.xyz">email</a>.
       </p>
     </div>
 
