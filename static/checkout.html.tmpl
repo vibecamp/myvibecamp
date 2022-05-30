@@ -1,0 +1,19 @@
+{{ template "header" }}
+
+{{ template "nav" "logistics" }}
+
+<link rel="stylesheet" href="css/checkout.css" />
+<script src="https://js.stripe.com/v3/"></script>
+<script src="js/checkout.js" defer></script>
+<div class="container">
+    <form id="payment-form">
+        <div id="payment-element">
+            <!-- stripe injection here -->
+        </div>
+        <button id="submit">
+            <div class="spinner hidden" id="spinner"></div>
+            <span id="button-text">Pay now</span>
+        </button>
+        <div id="payment-message" class="hidden"></div>
+    </form>
+</div>
