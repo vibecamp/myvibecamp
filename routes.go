@@ -6,19 +6,15 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
-  	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
-	"bytes"
-	"io"
 
 	"github.com/lyoshenka/vibedata/db"
+	// "github.com/lyoshenka/vibedata/stripe"
 
-  	"github.com/stripe/stripe-go/v72"
-  	"github.com/stripe/stripe-go/v72/paymentintent"
 	"github.com/cockroachdb/errors"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -41,33 +37,9 @@ func IndexHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html.tmpl", user)
 }
 
-type item struct {
-	id string
-  }
-  
-func calculateOrderAmount(items []item) int64 {
-	// Replace this constant with a calculation of the order's amount
-	// Calculate the order total on the server to prevent
-	// people from directly manipulating the amount on the client
-	return 1400
-}
-
-func writeJSON(w http.ResponseWriter, v interface{}) {
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(v); err != nil {
-	  http.Error(w, err.Error(), http.StatusInternalServerError)
-	  log.Printf("json.NewEncoder.Encode: %v", err)
-	  return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	if _, err := io.Copy(w, &buf); err != nil {
-	  log.Printf("io.Copy: %v", err)
-	  return
-	}
-  }
-
 func StripeCheckoutHandler(c *gin.Context) {
 	session := GetSession(c)
+  	// http.HandleFunc("/create-payment-intent", stripe.HandleCreatePaymentIntent)
 
 	if !session.SignedIn() {
 		c.HTML(http.StatusOK, "checkout.html.tmpl", nil)
@@ -81,47 +53,6 @@ func StripeCheckoutHandler(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "checkout.html.tmpl", user)
-}
-
-func CreatePaymentIntentHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-	  http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-	  return
-	}
-  
-	var req struct {
-	  Items []item `json:"items"`
-	}
-  
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-	  http.Error(w, err.Error(), http.StatusInternalServerError)
-	  log.Printf("json.NewDecoder.Decode: %v", err)
-	  return
-	}
-  
-	// Create a PaymentIntent with amount and currency
-	params := &stripe.PaymentIntentParams{
-	  Amount:   stripe.Int64(calculateOrderAmount(req.Items)),
-	  Currency: stripe.String(string(stripe.CurrencyEUR)),
-	  AutomaticPaymentMethods: &stripe.PaymentIntentAutomaticPaymentMethodsParams{
-		Enabled: stripe.Bool(true),
-	  },
-	}
-  
-	pi, err := paymentintent.New(params)
-	log.Printf("pi.New: %v", pi.ClientSecret)
-  
-	if err != nil {
-	  http.Error(w, err.Error(), http.StatusInternalServerError)
-	  log.Printf("pi.New: %v", err)
-	  return
-	}
-  
-	writeJSON(w, struct {
-	  ClientSecret string `json:"clientSecret"`
-	}{
-	  ClientSecret: pi.ClientSecret,
-	})
 }
 
 func TicketHandler(c *gin.Context) {

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/lyoshenka/vibedata/db"
+	"github.com/lyoshenka/vibedata/stripe"
 
 	"github.com/cockroachdb/errors/oserror"
 	"github.com/gin-contrib/sessions"
@@ -53,6 +54,7 @@ func main() {
 		apiKey    = os.Getenv("TWITTER_API_KEY")
 		apiSecret = os.Getenv("TWITTER_API_SECRET")
 		stripeApiKey = os.Getenv("STRIPE_API_KEY")
+		stripePublishableKey = os.Getenv("STRIPE_PUBLISHABLE_KEY")
 	)
 
 	localDevMode = os.Getenv("DEV") == "true"
@@ -63,12 +65,12 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	//if apiKey == "" || apiSecret == "" {
-	//	log.Errorf("You must specify a consumer key and secret.\n")
-	//	os.Exit(1)
-	//}
+	if apiKey == "" || apiSecret == "" {
+		log.Errorf("You must specify a consumer key and secret.\n")
+		os.Exit(1)
+	}
 
-	if stripeApiKey == "" {
+	if stripeApiKey == "" || stripe {
 		log.Errorf("No stripe API key\n")
 		os.Exit(1)
 	}
@@ -127,6 +129,7 @@ func main() {
 	r.GET("/checkin/:barcode", CheckinHandler)
 	r.POST("/checkin/:barcode", CheckinHandler)
 	r.GET("/checkout", StripeCheckoutHandler)
+	r.POST("/create-payment-intent", stripe.HandleCreatePaymentIntent)
 
 	r.GET("/", IndexHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))
@@ -141,7 +144,7 @@ func main() {
 		Addr:    fmt.Sprintf(":%s", port),
 		Handler: r,
 	}
-  	http.HandleFunc("/create-payment-intent", CreatePaymentIntentHandler)
+  	// http.HandleFunc("/create-payment-intent", CreatePaymentIntentHandler)
 	// Initializing the server in a goroutine so that
 	// it won't block the graceful shutdown handling below
 	go func() {
