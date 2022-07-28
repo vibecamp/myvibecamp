@@ -1,0 +1,89 @@
+{{ template "header" }}
+
+<script type="text/javascript">
+    function onTicketTypeChange(ticketType) {
+        if (ticketType === "cabin") {
+            document.getElementById("adult-ticket-label").innerText = "Adult Tickets (Over 8) $590";
+            document.getElementById("child-ticket-label").innerText = "Children Tickets (4-8 years old) $380";
+            document.getElementById("toddler-ticket-label").innerText = "Toddler Tickets (0-3 years old) $0";
+        } else {
+            document.getElementById("adult-ticket-label").innerText = "Adult Tickets (Over 8) $420";
+            document.getElementById("child-ticket-label").innerText = "Children Tickets (4-8 years old) $210";
+            document.getElementById("toddler-ticket-label").innerText = "Toddler Tickets (0-3 years old) $0";
+        }
+    }
+</script>
+
+<div class="container">
+  {{ template "flashes" .flashes }}
+
+  <h2>Add Your Tickets</h2>
+
+  <p>
+    Adult tickets will be limited to one per previous attendee in the soft launch. Children and toddler tickets will not be limited,
+    please reach out to us if you need to buy more than available in the dropdowns.
+  </p>
+
+    <form method="post" action="">
+      <fieldset>
+        <div class="form-select">
+            <label class="form-select-label" for="ticket-type">
+                Ticket Type
+            </label>
+            <select name="ticket-type" id="ticket-type" class="form-select-input" onChange="onTicketTypeChange(this.value)">
+                <option value="cabin">Cabin</option>
+                <option value="tent">Tent</option>
+            </select>
+        </div>
+
+        <div class="form-select">
+            <label class="form-select-label" for="adult-tickets" id="adult-ticket-label">
+                Adult Tickets (Over 8)
+            </label>
+            <select name="adult-tickets" id="adult-tickets" class="form-select-input">
+                <option value=1>1</option>
+                <!-- should add a check here to see if user ticket limit is greater than 1 -->
+            </select>
+        </div>
+
+        <div class="form-select">
+            <label class="form-select-label" for="child-tickets" id="child-ticket-label">
+                Children Tickets (4-8 years old)
+            </label>
+            <select name="child-tickets" id="child-tickets" class="form-select-input">
+                <option value=0>0</option>
+                <option value=1>1</option>
+                <option value=2>2</option>
+                <option value=3>3</option>
+                <option value=4>4</option>
+            </select>
+        </div>
+
+        <div class="form-select">
+            <label class="form-select-label" for="toddler-tickets" id="toddler-ticket-label">
+                Toddler Tickets (0-3 years old)
+            </label>
+            <select name="toddler-tickets" id="toddler-tickets" class="form-select-input">
+                <option value=0>0</option>
+                <option value=1>1</option>
+                <option value=2>2</option>
+                <option value=3>3</option>
+                <option value=4>4</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="donation-amount" class="form-label">Donate to help more people get to vibecamp</label>
+          <input type="text" class="form-text-input" name="donation-amount" id="donation-amount"></input
+        </div>
+
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+
+      </fieldset>
+    </form>
+
+
+</div>
+
+{{ template "footer" }}

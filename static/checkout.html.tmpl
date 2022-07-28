@@ -1,10 +1,11 @@
 {{ template "header" }}
 
-{{ template "nav" "logistics" }}
-
 <link rel="stylesheet" href="css/checkout.css" />
 <script src="https://js.stripe.com/v3/"></script>
 <script src="js/checkout.js" defer></script>
+<script type="text/javascript">
+    initialize({{.Items}})
+</script>
 <div class="container">
     <form id="payment-form">
         <div id="payment-element">

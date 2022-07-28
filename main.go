@@ -70,7 +70,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if stripeApiKey == "" || stripe {
+	if stripeApiKey == "" || stripePublishableKey == "" {
 		log.Errorf("No stripe API key\n")
 		os.Exit(1)
 	}
@@ -118,6 +118,9 @@ func main() {
 	r.GET("/signin", SignInHandler)
 	r.GET("/signout", SignOutHandler)
 	r.GET("/callback", CallbackHandler)
+	r.GET("/calendar", CalendarHandler)
+	r.GET("/team", TeamHandler)
+	r.GET("/contact-us", ContactUsHandler)
 
 	r.GET("/ticket", TicketHandler)
 	r.GET("/logistics", LogisticsHandler)
@@ -130,6 +133,10 @@ func main() {
 	r.POST("/checkin/:barcode", CheckinHandler)
 	r.GET("/checkout", StripeCheckoutHandler)
 	r.POST("/create-payment-intent", stripe.HandleCreatePaymentIntent)
+	r.GET("/ticket-cart", TicketCartHandler)
+	r.POST("/ticket-cart", TicketCartHandler)
+	r.GET("/vc2-sl", SoftLaunchSignIn)
+	r.POST("/vc2-sl", SoftLaunchSignIn)
 
 	r.GET("/", IndexHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))

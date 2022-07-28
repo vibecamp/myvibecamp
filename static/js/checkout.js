@@ -5,20 +5,32 @@ const stripe = Stripe(
   "pk_live_51K3PO6IjvlmyJAlxhV2DLqZyChqriEDWkpw4GpIIT5BtowCdoCzbwVylA4pBYtPdI1EeZIvFM71J1y9ECLcNExTy00LKDowq6n"
 );
 
-// The items the customer wants to buy
-const items = [{ id: "xl-tshirt" }];
-
 let elements;
 
-initialize();
+/*
+let items = [];
+const ticketCart = document.querySelector("#ticket-cart");
+if (ticketCart.hasAttribute("cartData")) {
+  items = JSON.parse(ticketCart.getAttribute("cartData")).items;
+}
+*/
+
+// initialize();
 checkStatus();
 
 document
   .querySelector("#payment-form")
   .addEventListener("submit", handleSubmit);
 
+// how do i get items
+// pass into template from go & call func in html js script tag
+// get from query params within this js script
+// set a hidden html element data attr to it & get that via queryselector in here
+// mostly thinking about whether the handleSubmit bind above captures element before
+// init is called if doing first one
+
 // Fetches a payment intent and captures the client secret
-async function initialize() {
+async function initialize(items) {
   const response = await fetch("/create-payment-intent", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

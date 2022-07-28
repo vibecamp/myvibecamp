@@ -37,12 +37,10 @@ func IndexHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html.tmpl", user)
 }
 
-func StripeCheckoutHandler(c *gin.Context) {
+func CalendarHandler(c *gin.Context) {
 	session := GetSession(c)
-  	// http.HandleFunc("/create-payment-intent", stripe.HandleCreatePaymentIntent)
-
 	if !session.SignedIn() {
-		c.HTML(http.StatusOK, "checkout.html.tmpl", nil)
+		c.HTML(http.StatusOK, "calendar.html.tmpl", nil)
 		return
 	}
 
@@ -52,7 +50,150 @@ func StripeCheckoutHandler(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "checkout.html.tmpl", user)
+	c.HTML(http.StatusOK, "calendar.html.tmpl", user)
+}
+
+func TeamHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.HTML(http.StatusOK, "team.html.tmpl", nil)
+		return
+	}
+
+	user, err := db.GetUser(session.TwitterName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.HTML(http.StatusOK, "team.html.tmpl", user)
+}
+
+func ContactUsHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.HTML(http.StatusOK, "contact.html.tmpl", nil)
+		return
+	}
+
+	user, err := db.GetUser(session.TwitterName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.HTML(http.StatusOK, "contact.html.tmpl", user)
+}
+
+type item struct {
+  id string
+  quantity int
+  amount int
+}
+
+func TicketCartHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	user, err := db.GetUser(session.TwitterName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if c.Request.Method == http.MethodGet {
+		c.HTML(http.StatusOK, "ticketCart.html.tmpl", user)
+		return
+	}
+
+	ticketType := c.PostForm("ticket-type")
+	adultTix := c.PostForm("adult-tickets")
+	childTix := c.PostForm("child-tickets"),
+	toddlerTix := c.PostForm("toddler-tickets")
+	donationAmount := c.PostForm("donation-amount")
+
+	params := url.Values{}
+	params.Set("ticketType", ticketType)
+	params.Set("adult", adultTix)
+	params.Set("child", childTix)
+	params.Set("toddler", toddlerTix)
+	params.Set("donation", donationAmount)
+
+	c.Redirect(http.StatusFound, "/checkout"+"?"+params.encode())
+}
+
+func SoftLaunchSignIn(c *gin.Context) {
+	session := GetSession(c)
+	
+	if c.Request.Method == http.MethodGet {
+		if !session.SignedIn() {
+			c.HTML(http.StatusOK, "softLaunchSignIn.html.tmpl", nil)
+			return
+		}
+
+		user, err := db.GetUser(session.TwitterName)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+
+		// redirect to cart?
+		c.HTML(http.StatusOK, "softLaunchSignIn.html.tmpl", user)
+		return
+	}
+
+	// I need to setup session stuff for this - oauth email?
+	// or just get user by email & handle the rest like their
+	// email is their twitter
+	// magic email links? not hard really but need a way to send emails
+
+	emailAddr := c.PostForm("email-address")
+	// get user by email somehow
+	// then return the same page
+	// c.HTML(http.StatusOK, "softLaunchSignIn.html.tmpl", user)
+}
+
+func StripeCheckoutHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	user, err := db.GetUser(session.TwitterName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	ticketIds := []string{"adult", "child", "toddler", "donation"}
+	ticketType := c.Query("ticketType")
+	items := []item
+	for ind, element := range ticketIds {
+		amt := c.Query(element)
+		if amt > 0 {
+			if ind < 3 {
+				append(items, {id: element+"-"+ticketType, quantity: amt, amount: 0})
+			} else {
+				append(items, {id: ticketIds[ind], quantity: 1, amount: amt})
+			}
+		}
+	}
+
+	/*
+	itemMap = map[string]array{
+		"items": items
+	}
+	itemJson = json.Marshal(itemMap)	
+	*/
+
+	c.HTML(http.StatusOK, "checkout.html.tmpl", gin.H{
+		"User": user,
+		"Items": items
+	})
 }
 
 func TicketHandler(c *gin.Context) {

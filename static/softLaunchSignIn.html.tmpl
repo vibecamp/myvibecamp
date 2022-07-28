@@ -1,0 +1,62 @@
+{{ template "header" }}
+
+{{ if eq . nil }}
+  <div class="jumbotron text-center">
+    <h1>my.vibecamp</h1>
+    <p class="lead">
+      vibecamp2 soft launch
+    </p>
+    <p>
+      <a class="btn btn-lg btn-twitter" href="/signin" role="button">
+        Sign In With Twitter
+      </a>
+    </p>
+    <form method="post" action="">
+      <div class="mb-3">
+        <label for="comments" class="form-label">Or sign in with email</label>
+        <input type="text" class="form-control" id="email-addr" name="email-address"></input>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <small class="text-muted">
+      Sign-in is tied to the twitter account you listed when you bought tickets, or your email if no twitter account was.<br>
+      If you changed your handle or are having issues signing in,
+      <a class="link-secondary" href="mailto:team@vibecamp.xyz?subject=soft launch sign in">let us know</a>.
+    </small>
+  </div>
+
+
+{{ else }}
+
+  {{ template "nav" "home" }}
+
+  <div>
+    <h2>Hey @{{ .TwitterName }} 🥰</h2>
+    <div class="container mb-3">
+      <p>
+        Congrats on your wise decision to come to Vibecamp last year.
+      </p>
+    </div>
+
+
+    <h4>Thank You!</h4>
+    <div class="container mb-3">
+      <p>
+        Thanks for coming to Vibecamp last year. For taking a chance on us last year, we're launching ticket sales to
+        previous attendees first. <a href="/ticketCart">Click here to buy your ticket.</a>
+      </p>
+    </div>
+
+    <h4>Contact Us</h4>
+    <div class="container mb-3">
+      <p>
+        If Twitter or Discord don't work, you can always reach us by <a href="mailto:team@vibecamp.xyz">email</a>.
+      </p>
+    </div>
+
+  </div>
+
+{{ end }}
+
+{{ template "footer" }}
