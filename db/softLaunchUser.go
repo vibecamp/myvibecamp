@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 	"strconv"
+	"os"
 
 	"github.com/cockroachdb/errors"
 	"github.com/lyoshenka/vibedata/fields"
@@ -24,20 +25,25 @@ var defaultCache *cache.Cache
 var softLaunchTable *airtable.Table
 var attendeesTable  *airtable.Table
 var ordersTable *airtable.Table
-var paymentsTable *airtable.Table
 var constantsTable *airtable.Table
 var aggregationsTable *airtable.Table
 
-const testBaseID = "appxcMLM9qHBEVmf7"
 func Init(apiKey, baseID, tableName string, cache *cache.Cache) {
+	var (
+		baseTwo 		= os.Getenv("AIRTABLE_2023_BASE")
+		slTable			= os.Getenv("AIRTABLE_SL_TABLE")
+		attendeeTable	= os.Getenv("AIRTABLE_ATTENDEE_TABLE")
+		constTable		= os.Getenv("AIRTABLE_CONSTANTS_TABLE")
+		aggTable		= os.Getenv("AIRTABLE_AGG_TABLE")
+		orderTable		= os.Getenv("AIRTABLE_ORDER_TABLE")
+	)
 	client = airtable.NewClient(apiKey)
 	defaultTable = client.GetTable(baseID, tableName)
-	softLaunchTable = client.GetTable(testBaseID, "SoftLaunchUsers")
-	attendeesTable = client.GetTable(testBaseID, "2023Attendees")
-	ordersTable = client.GetTable(testBaseID, "Orders")
-	paymentsTable = client.GetTable(testBaseID, "Payments")
-	constantsTable = client.GetTable(testBaseID, "Constants")
-	aggregationsTable = client.GetTable(testBaseID, "Aggregations")
+	softLaunchTable = client.GetTable(baseTwo, slTable)
+	attendeesTable = client.GetTable(baseTwo, attendeeTable)
+	ordersTable = client.GetTable(baseTwo, orderTable)
+	constantsTable = client.GetTable(baseTwo, constTable)
+	aggregationsTable = client.GetTable(baseTwo, aggTable)
 	defaultCache = cache
 }
 
