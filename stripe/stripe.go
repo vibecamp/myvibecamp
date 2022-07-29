@@ -233,12 +233,14 @@ func HandleStripeWebhook(c *gin.Context) {
 	order,err := db.GetOrderByPaymentID(paymentIntent.ID)
 	if err != nil {
 		log.Errorf("error getting order by payment id: %v\n", err)
+      	w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	err = order.UpdateOrderStatus("successful")
 	if err != nil {
 		log.Errorf("error updating order payment status: %v\n", err)
+      	w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
   case "payment_intent.processing":
@@ -255,12 +257,14 @@ func HandleStripeWebhook(c *gin.Context) {
 	order,err := db.GetOrderByPaymentID(paymentIntent.ID)
 	if err != nil {
 		log.Errorf("error getting order by payment id: %v\n", err)
+      	w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	err = order.UpdateOrderStatus("processing")
 	if err != nil {
 		log.Errorf("error updating order payment status: %v\n", err)
+      	w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -279,12 +283,14 @@ func HandleStripeWebhook(c *gin.Context) {
 	order,err := db.GetOrderByPaymentID(paymentIntent.ID)
 	if err != nil {
 		log.Errorf("error getting order by payment id: %v\n", err)
+      	w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	err = order.UpdateOrderStatus("failed")
 	if err != nil {
 		log.Errorf("error updating order payment status: %v\n", err)
+      	w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
