@@ -1,10 +1,11 @@
 // This is a public sample test API key.
 // Don’t submit any personally identifiable information in requests made with this key.
 // Sign in to see your own test API key embedded in code samples.
-const stripe = Stripe(
-  // "pk_live_51K3PO6IjvlmyJAlxhV2DLqZyChqriEDWkpw4GpIIT5BtowCdoCzbwVylA4pBYtPdI1EeZIvFM71J1y9ECLcNExTy00LKDowq6n"
-  "pk_test_TYooMQauvdEDq54NiTphI7jx"
-);
+const pk =
+  window.location.hostname === "127.0.0.1.nip.io"
+    ? "pk_test_TYooMQauvdEDq54NiTphI7jx"
+    : "pk_live_51K3PO6IjvlmyJAlxhV2DLqZyChqriEDWkpw4GpIIT5BtowCdoCzbwVylA4pBYtPdI1EeZIvFM71J1y9ECLcNExTy00LKDowq6n";
+const stripe = Stripe(pk);
 
 let elements;
 
@@ -69,7 +70,8 @@ async function handleSubmit(e) {
     elements,
     confirmParams: {
       // Make sure to change this to your payment completion page
-      return_url: "http://127.0.0.1.nip.io:8080/checkout",
+      return_url: window.location.host + "/checkout",
+      // "http://127.0.0.1.nip.io:8080/checkout",
     },
   });
 
