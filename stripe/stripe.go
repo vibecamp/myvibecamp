@@ -9,11 +9,15 @@ import (
   "os"
   "fmt"
   "strings"
-  "uuid"
 
+  "github.com/lyoshenka/vibedata/db"
+
+  "github.com/gin-contrib/sessions"
+  "github.com/cockroachdb/errors"
   "github.com/stripe/stripe-go/v72"
   "github.com/stripe/stripe-go/v72/paymentintent"
   "github.com/gin-gonic/gin"
+  "github.com/google/uuid"
 )
 
 type item struct {
@@ -22,60 +26,70 @@ type item struct {
   amount int
 }
 
-type CartInfo struct {
-	total int64
-	stripeTotal int64
-	totalTickets int
-	scholarshipTickets int
-}
-
 // this could be put in the DB but should it be? hmm
-ticketPrices := map[string] int {"adult-cabin":590,"adult-tent":420,"child-cabin":380,"child-tent":210,"toddler-cabin":0,"toddler-tent":0}
+var ticketPrices = map[string] int {"adult-cabin":590,"adult-tent":420,"child-cabin":380,"child-tent":210,"toddler-cabin":0,"toddler-tent":0}
 
-func calculateCartInfo(items []item) CartInfo {
-  var cart CartInfo
-  cart.total = 0
-  cart.totalTickets = 0
-  cart.scholarshipTickets = 0
+func calculateCartInfo(items []item, ticketLimit int) (*db.Order, error) {
+  order := &db.Order{}
+  order.Total = 0
+  order.TotalTickets = 0
+  order.OrderID = ""
+  order.UserName = ""
+  order.StripeID = ""
+  order.PaymentStatus = ""
+  order.AirtableID = ""
   for _, element := range items {
 	  if element.id == "donation" && element.quantity > 0 && element.amount > 0 {
-		cart.total += element.amount
-		cart.scholarshipTickets = element.amount / 420
-	  } else if element.quantity > 0 && (element.quantity < 2 || !strings.HasPrefix(element.id, "adult")) {
-		// this should be changed to use the limit on a person's tickets - generally will be one but need a way to change to 2
-		// i should do this below instead, in handle payment intent so that it can reject it before calling a bunch of other funcs
-		// then can just add normally here
+		order.Total += element.amount
+		order.Donation = element.amount
+	  } else if element.quantity > 0 {
+		if (element.quantity > ticketLimit || !strings.HasPrefix(element.id, "adult")) {
+			return nil, errors.New("Exceeded soft launch ticket limit")
+		}	
+		
 		 price, ok1 := ticketPrices[element.id]
 		 if ok1 {
-			cart.total += (price * element.quantity)
-			cart.totalTickets += element.quantity
+			order.Total += (price * element.quantity)
+			order.TotalTickets += element.quantity
+
+			if element.id == "adult-cabin" {
+				order.AdultCabin = element.quantity
+			} else if element.id == "adult-tent" {
+				order.AdultTent = element.quantity
+			} else if element.id == "child-cabin" {
+				order.ChildCabin = element.quantity
+			} else if element.id == "child-tent" {
+				order.ChildTent = element.quantity
+			} else if element.id == "toddler-cabin" {
+				order.ToddlerCabin = element.quantity
+			} else if element.id == "toddler-tent" {
+				order.ToddlerTent = element.quantity
+			}
 		 }
 	  }
   }
 
-  // stripe takes prices in cents
-  cart.stripeTotal = cart.total * 100
-
-  return cart
+  return order, nil
 }
 
-// calculate the total price for an order
-func calculateOrderAmount(items []item) int64 {
-  var total int64 = 0
-  for _, element := range items {
-	  if element.id == "donation" && element.quantity > 0 && element.amount > 0 {
-		total += element.amount
-	  } else if element.quantity > 0 && element.quantity < 2 {
-		// this should be changed to use the limit on a person's tickets - generally will be one but need a way to change to 2
-		 price, ok1 := ticketPrices[element.id]
-		 if ok1 {
-			total += (price * element.quantity)
-		 }
-	  }
-  }
-  return total
+type Session struct {
+	UserName	string
+	TwitterName string
+	TwitterID   string
 }
 
+const sessionKey = "s"
+
+func GetSession(c *gin.Context) *Session {
+	defaultSession := sessions.Default(c)
+	s := defaultSession.Get(sessionKey)
+	if s == nil {
+		return new(Session)
+	}
+
+	ss := s.(Session)
+	return &ss
+}
 
 func HandleCreatePaymentIntent(c *gin.Context) {
 	var w http.ResponseWriter = c.Writer
@@ -86,7 +100,7 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	}
 
 	session := GetSession(c)
-	if !session.SignedIn() {
+	if session == nil || session.UserName == "" {
 		c.Redirect(http.StatusFound, "/")
 		return
 	}
@@ -101,7 +115,8 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	  return
 	}
 
-	user, err := db.GetUser(session.TwitterName)
+	user, err := db.GetSoftLaunchUser(session.UserName)
+	newUser, err := db.GetUser(session.UserName)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -114,20 +129,27 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	// think it should only be stored after succesful api call i think
 	// idempotencyKey := uuid.NewString()
 
-	var cart CartInfo = calculateCartInfo(items)
+	order, err := calculateCartInfo(req.Items, user.TicketLimit)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	order.UserName = user.UserName
+	order.OrderID = uuid.NewString()
   
 	stripe.Key = os.Getenv("STRIPE_API_KEY")
   	// stripe.Key = "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
 	// Create a PaymentIntent with amount and currency
 	params := &stripe.PaymentIntentParams{
-	  Amount:   stripe.Int64(cart.stripeTotal),
+	  Amount:   stripe.Int64(int64(order.Total) * 100),
 	  Currency: stripe.String(string(stripe.CurrencyEUR)),
 	  AutomaticPaymentMethods: &stripe.PaymentIntentAutomaticPaymentMethodsParams{
 		Enabled: stripe.Bool(true),
 	  },
 	  // change when we do hard launch or if we want to add vibecamp2/other name
 	  StatementDescriptor: stripe.String("tickets to vibecamp"),
-	  Descriptor: stripe.String(fmt.Sprintf("%d tickets to vibecamp", cart.totalTickets))
+	  Description: stripe.String(fmt.Sprintf("%d tickets to vibecamp", order.TotalTickets)),
 	}
 
 	// create an (unpaid) order here? can track orders separate from payments that way ig
@@ -136,10 +158,7 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	// why not put all the order data into the metadata? hmm
 	// can use orders to store customer info away from stripe tho since we dont have uids
 
-	orderId := uuid.NewString()
-	params.AddMetaData("orderId", orderId)
-	params.AddMetaData("cart", json.Marshal(req))
-
+	params.AddMetadata("orderId", order.OrderID)
   
 	pi, err := paymentintent.New(params)
 	log.Printf("pi.New: %v", pi.ClientSecret)
@@ -148,6 +167,22 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	  http.Error(w, err.Error(), http.StatusInternalServerError)
 	  log.Printf("pi.New: %v", err)
 	  return
+	}
+
+	order.StripeID = pi.ID
+
+	err = order.CreateOrder()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("order.CreateOrder: %v", err)
+		return
+	}
+
+	err = newUser.UpdateOrderID(order.OrderID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("user.UpdateOrderID: %v", err)
+		return
 	}
 
 	writeJSON(w, struct {

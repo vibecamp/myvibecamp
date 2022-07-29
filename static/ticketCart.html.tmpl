@@ -3,13 +3,13 @@
 <script type="text/javascript">
     function onTicketTypeChange(ticketType) {
         if (ticketType === "cabin") {
-            document.getElementById("adult-ticket-label").innerText = "Adult Tickets (Over 8) $590";
-            document.getElementById("child-ticket-label").innerText = "Children Tickets (4-8 years old) $380";
-            document.getElementById("toddler-ticket-label").innerText = "Toddler Tickets (0-3 years old) $0";
+            document.getElementById("adult-ticket-label").innerText = "Adult Tickets (9 years old and older) $590";
+            document.getElementById("child-ticket-label").innerText = "Children Tickets (3-8 years old) $380";
+            document.getElementById("toddler-ticket-label").innerText = "Toddler Tickets (0-2 years old) $0";
         } else {
-            document.getElementById("adult-ticket-label").innerText = "Adult Tickets (Over 8) $420";
-            document.getElementById("child-ticket-label").innerText = "Children Tickets (4-8 years old) $210";
-            document.getElementById("toddler-ticket-label").innerText = "Toddler Tickets (0-3 years old) $0";
+            document.getElementById("adult-ticket-label").innerText = "Adult Tickets (9 years old and older) $420";
+            document.getElementById("child-ticket-label").innerText = "Children Tickets (3-8 years old) $210";
+            document.getElementById("toddler-ticket-label").innerText = "Toddler Tickets (0-2 years old) $0";
         }
     }
 </script>
@@ -26,44 +26,34 @@
 
     <form method="post" action="">
       <fieldset>
-        <div class="form-select">
+        <div class="mb-3">
             <label class="form-select-label" for="ticket-type">
                 Ticket Type
             </label>
-            <select name="ticket-type" id="ticket-type" class="form-select-input" onChange="onTicketTypeChange(this.value)">
+            <select name="ticket-type" id="ticket-type" class="form-select" onChange="onTicketTypeChange(this.value)" value="none">
+                <option value="none" selected hidden></option>
                 <option value="cabin">Cabin</option>
                 <option value="tent">Tent</option>
             </select>
         </div>
 
-        <div class="form-select">
+        <div class="mb-3">
             <label class="form-select-label" for="adult-tickets" id="adult-ticket-label">
-                Adult Tickets (Over 8)
+                Adult Tickets (9 years old and older)
             </label>
-            <select name="adult-tickets" id="adult-tickets" class="form-select-input">
+            <select name="adult-tickets" id="adult-tickets" class="form-select">
                 <option value=1>1</option>
-                <!-- should add a check here to see if user ticket limit is greater than 1 -->
-            </select>
-        </div>
-
-        <div class="form-select">
-            <label class="form-select-label" for="child-tickets" id="child-ticket-label">
-                Children Tickets (4-8 years old)
-            </label>
-            <select name="child-tickets" id="child-tickets" class="form-select-input">
-                <option value=0>0</option>
-                <option value=1>1</option>
+                {{ if eq .User.TicketLimit 2 }}
                 <option value=2>2</option>
-                <option value=3>3</option>
-                <option value=4>4</option>
+                {{ end }}
             </select>
         </div>
 
-        <div class="form-select">
-            <label class="form-select-label" for="toddler-tickets" id="toddler-ticket-label">
-                Toddler Tickets (0-3 years old)
+        <div class="mb-3">
+            <label class="form-select-label" for="child-tickets" id="child-ticket-label">
+                Children Tickets (3-8 years old)
             </label>
-            <select name="toddler-tickets" id="toddler-tickets" class="form-select-input">
+            <select name="child-tickets" id="child-tickets" class="form-select">
                 <option value=0>0</option>
                 <option value=1>1</option>
                 <option value=2>2</option>
@@ -73,8 +63,21 @@
         </div>
 
         <div class="mb-3">
-          <label for="donation-amount" class="form-label">Donate to help more people get to vibecamp</label>
-          <input type="text" class="form-text-input" name="donation-amount" id="donation-amount"></input
+            <label class="form-select-label" for="toddler-tickets" id="toddler-ticket-label">
+                Toddler Tickets (0-2 years old)
+            </label>
+            <select name="toddler-tickets" id="toddler-tickets" class="form-select">
+                <option value=0>0</option>
+                <option value=1>1</option>
+                <option value=2>2</option>
+                <option value=3>3</option>
+                <option value=4>4</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="donation-amount" class="form-label">Donate to help more people get to vibecamp</label><br/>
+          <input type="text" class="form-text-input" name="donation-amount" id="donation-amount"></input>
         </div>
 
 

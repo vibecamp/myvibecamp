@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/gob"
 	"net/http"
+	"strings"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,7 @@ import (
 )
 
 type Session struct {
+	UserName	string
 	TwitterName string
 	TwitterID   string
 	Oauth       *oauth1a.UserConfig
@@ -58,6 +60,12 @@ func WarningFlash(c *gin.Context, value string) {
 	defaultSession.Save()
 }
 
+func ErrorFlash(c *gin.Context, value string) {
+	defaultSession := sessions.Default(c)
+	defaultSession.AddFlash(value, "error")
+	defaultSession.Save()
+}
+
 func GetFlashes(c *gin.Context) map[string][]string {
 	defaultSession := sessions.Default(c)
 	f := map[string][]string{
@@ -79,7 +87,7 @@ func flashes(f []interface{}) []string {
 }
 
 func (s *Session) SignedIn() bool {
-	return s != nil && s.TwitterName != ""
+	return s != nil && (s.TwitterName != "" || s.UserName != "")
 }
 
 func SignInHandler(c *gin.Context) {
@@ -142,10 +150,12 @@ func CallbackHandler(c *gin.Context) {
 
 	session.TwitterName = session.Oauth.AccessValues.Get("screen_name")
 	session.TwitterID = session.Oauth.AccessValues.Get("user_id")
+	session.UserName = strings.ToLower(session.TwitterName)
 	session.Oauth = nil
 
 	if localDevMode {
 		session.TwitterName = "GRINTESTING" // login as this user, for dev
+		session.UserName = strings.ToLower(session.TwitterName)
 	}
 
 	SaveSession(c, session)

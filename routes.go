@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"strconv"
 
 	"github.com/lyoshenka/vibedata/db"
 	// "github.com/lyoshenka/vibedata/stripe"
@@ -28,10 +29,16 @@ func IndexHandler(c *gin.Context) {
 		return
 	}
 
-	user, err := db.GetUser(session.TwitterName)
+	user, err := db.GetUser(session.UserName)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
+		_, err = db.GetSoftLaunchUser(session.UserName)
+
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+	
+		c.Redirect(http.StatusFound, "/ticket-cart")
 	}
 
 	c.HTML(http.StatusOK, "index.html.tmpl", user)
@@ -98,31 +105,76 @@ func TicketCartHandler(c *gin.Context) {
 		return
 	}
 
-	user, err := db.GetUser(session.TwitterName)
+	user, err := db.GetSoftLaunchUser(session.UserName)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	if c.Request.Method == http.MethodGet {
-		c.HTML(http.StatusOK, "ticketCart.html.tmpl", user)
+		c.HTML(http.StatusOK, "ticketCart.html.tmpl", gin.H{
+			"flashes": GetFlashes(c),
+			"User": user,
+		})
 		return
 	}
 
 	ticketType := c.PostForm("ticket-type")
-	adultTix := c.PostForm("adult-tickets")
-	childTix := c.PostForm("child-tickets"),
-	toddlerTix := c.PostForm("toddler-tickets")
-	donationAmount := c.PostForm("donation-amount")
+	adultTix,_ := strconv.Atoi(c.PostForm("adult-tickets"))
+	childTix,_ := strconv.Atoi(c.PostForm("child-tickets"))
+	toddlerTix,_ := strconv.Atoi(c.PostForm("toddler-tickets"))
+	donationAmount,_ := strconv.Atoi(c.PostForm("donation-amount"))
+
+	if adultTix > user.TicketLimit {
+		ErrorFlash(c, fmt.Sprintf("You're limited to %d ticket in the soft launch", user.TicketLimit))
+		return
+	}
+
+	var admissionLevel string
+	if ticketType == "cabin" {
+		admissionLevel = "Cabin"
+	} else {
+		admissionLevel = "Tent"
+	}
+
+	var ticketGroup = ""
+	if adultTix + childTix + toddlerTix > 1 {
+		ticketGroup = user.UserName
+	}
+
+	newUser := &db.User{
+		AirtableID:			"",
+		UserName:			user.UserName,
+		TwitterName:		user.TwitterName,
+		Name:				user.Name,
+		Email:				user.Email,
+		AdmissionLevel:		admissionLevel,
+		TicketGroup:		ticketGroup,
+		CheckedIn:			false,
+		Barcode:			"",
+		OrderNotes:			"",
+		OrderID:			"",
+		Badge:				c.PostForm("badge") == "on",
+		Vegetarian:			c.PostForm("vegetarian") == "on",
+		GlutenFree:			c.PostForm("glutenfree") == "on",
+		LactoseIntolerant:	c.PostForm("lactose") == "on",
+		FoodComments:		c.PostForm("comments"),
+	}
+
+	err = newUser.CreateUser()
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
 	params := url.Values{}
 	params.Set("ticketType", ticketType)
-	params.Set("adult", adultTix)
-	params.Set("child", childTix)
-	params.Set("toddler", toddlerTix)
-	params.Set("donation", donationAmount)
+	params.Set("adult", strconv.Itoa(adultTix))
+	params.Set("child", strconv.Itoa(childTix))
+	params.Set("toddler", strconv.Itoa(toddlerTix))
+	params.Set("donation", strconv.Itoa(donationAmount))
 
-	c.Redirect(http.StatusFound, "/checkout"+"?"+params.encode())
+	c.Redirect(http.StatusFound, "/checkout"+"?"+params.Encode())
 }
 
 func SoftLaunchSignIn(c *gin.Context) {
@@ -134,7 +186,7 @@ func SoftLaunchSignIn(c *gin.Context) {
 			return
 		}
 
-		user, err := db.GetUser(session.TwitterName)
+		user, err := db.GetSoftLaunchUser(session.UserName)
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
@@ -152,8 +204,18 @@ func SoftLaunchSignIn(c *gin.Context) {
 
 	emailAddr := c.PostForm("email-address")
 	// get user by email somehow
+	user, err := db.GetSoftLaunchUser(emailAddr)
 	// then return the same page
-	// c.HTML(http.StatusOK, "softLaunchSignIn.html.tmpl", user)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	session.UserName = user.UserName
+	SaveSession(c, session)
+
+	c.HTML(http.StatusOK, "softLaunchSignIn.html.tmpl", user)
+	return
 }
 
 func StripeCheckoutHandler(c *gin.Context) {
@@ -163,7 +225,7 @@ func StripeCheckoutHandler(c *gin.Context) {
 		return
 	}
 
-	user, err := db.GetUser(session.TwitterName)
+	user, err := db.GetUser(session.UserName)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -171,14 +233,22 @@ func StripeCheckoutHandler(c *gin.Context) {
 
 	ticketIds := []string{"adult", "child", "toddler", "donation"}
 	ticketType := c.Query("ticketType")
-	items := []item
+	var items []item
 	for ind, element := range ticketIds {
-		amt := c.Query(element)
+		amt,_ := strconv.Atoi(c.Query(element))
 		if amt > 0 {
 			if ind < 3 {
-				append(items, {id: element+"-"+ticketType, quantity: amt, amount: 0})
+				items = append(items, item{
+					id: element+"-"+ticketType,
+					quantity: amt, 
+					amount: 0,
+				})
 			} else {
-				append(items, {id: ticketIds[ind], quantity: 1, amount: amt})
+				items = append(items, item{
+					id: ticketIds[ind], 
+					quantity: 1, 
+					amount: amt,
+				})
 			}
 		}
 	}
@@ -192,7 +262,7 @@ func StripeCheckoutHandler(c *gin.Context) {
 
 	c.HTML(http.StatusOK, "checkout.html.tmpl", gin.H{
 		"User": user,
-		"Items": items
+		"Items": items,
 	})
 }
 
@@ -245,7 +315,8 @@ func LogisticsHandler(c *gin.Context) {
 		return
 	}
 
-	cabinMates, err := user.GetCabinMates()
+	// cabinMates, err := user.GetCabinMates()
+	var cabinMates []string
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -355,8 +426,8 @@ func BadgeHandler(c *gin.Context) {
 	switchedFromYesToNo := false
 
 	badgeChoice := c.PostForm("badge")
-	if badgeChoice != user.Badge {
-		if user.Badge == "yes" && badgeChoice == "no" {
+	if (badgeChoice == "yes") != user.Badge {
+		if user.Badge && badgeChoice == "no" {
 			switchedFromYesToNo = true
 		}
 		err = user.SetBadge(badgeChoice)
@@ -367,19 +438,19 @@ func BadgeHandler(c *gin.Context) {
 	}
 
 	params := url.Values{}
-	params.Set("cabin", user.Cabin)
+	// params.Set("cabin", user.Cabin)
 	params.Set("handle", user.TwitterName)
 
 	hmacSecret := os.Getenv("HMAC_SECRET")
 	if hmacSecret != "" {
 		h := hmac.New(sha256.New, []byte(hmacSecret))
-		h.Write([]byte(fmt.Sprintf("%s|%s", user.Cabin, user.TwitterName)))
+		h.Write([]byte(fmt.Sprintf("%s", user.TwitterName)))
 		params.Set("hmac", strings.TrimRight(base64.URLEncoding.EncodeToString(h.Sum(nil)), "="))
 	}
 
 	badgeDomain := "https://that-part-of-twitter.herokuapp.com"
 
-	if user.Badge == "no" {
+	if !user.Badge {
 		if switchedFromYesToNo && !localDevMode {
 			go func() {
 				_, err := http.Get(badgeDomain + "/delete?" + params.Encode())

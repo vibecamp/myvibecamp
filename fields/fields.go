@@ -1,6 +1,11 @@
 package fields
 
+type Order struct {
+
+}
+
 const (
+	// 2022 attendees table fields (reusing applicable ones in 2023)
 	TwitterName       = "Twitter Name"
 	TwitterNameClean  = "twitter clean"
 	Name              = "Name"
@@ -30,4 +35,59 @@ const (
 	LactoseIntolerant = "Lactose Intolerant"
 	FoodComments      = "Food Comments"
 	POAP              = "POAP"
+
+	// new ones for 2023
+	// for attendees & soft launch
+	UserName          = "Username"
+	
+	// for soft launch users table
+	TicketLimit		  = "Ticket Limit"
+
+	// for attendees
+	// adult child or toddler
+	TicketType        = "Ticket Type"
+	OrderID           = "OrderID"
+
+	// orders
+		Total         = "Total"
+		TotalTickets  = "Total Tickets"
+		AdultCabin    = "Adult Cabin"
+		AdultTent     = "Adult Tent"
+		ChildCabin    = "Child Cabin"
+		ChildTent     = "Child Tent"
+		ToddlerCabin  = "Toddler Cabin"
+		ToddlerTent   = "Toddler Tent"
+		Donation      = "Donation Amount"
+		PaymentID     = "PaymentIntentID"
+		PaymentStatus = "Payment Status"
+
+	// payments
+		StripeID      = "StripeID"
+		Status        = "Status"
+
+	// constants table
+		SalesCap            = "Sales Cap"
+		CabinCap            = "Cabin Cap"
+		SoftCabinCap        = "Soft Launch Cabin Cap"
+		AdultCabinPrice     = "Adult Cabin Price"
+		AdultTentPrice      = "Adult Tent Price"
+		ChildCabinPrice     = "Child Cabin Price"
+		ChildTentPrice      = "Child Tent Price"
+		ToddlerCabinPrice   = "Toddler Cabin Price"
+		ToddlerTentPrice    = "Toddler Tent Price"
+	Value             = "Value"
+
+
+	// aggregations
+	Quantity          = "Quantity"
+	Revenue           = "Revenue" 
+		TotalTicketsSold    = "Total Tickets Sold"
+		SoftLaunchSold      = "Soft Launch Tickets Sold"
+		CabinSold           = "Cabin Tickets Sold"
+		TentSold            = "Tent Tickets Sold"
+		AdultSold           = "Adult Tickets Sold"
+		ChildSold           = "Child Tickets Sold"
+		ToddlerSold         = "Toddler Tickets Sold"
+		DonationsRecv       = "Donations Received"
+		ScholarshipTickets  = "Scholarship Tickets Covered"
 )
