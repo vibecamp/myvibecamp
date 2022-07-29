@@ -121,8 +121,7 @@ func (u *User) CreateUser() error {
 
 	recvRecords, err := attendeesTable.AddRecords(recordsToSend)
 	if err != nil {
-		err = errors.New("Error creating your tickets - contact orb_net")
-		return err
+		return errors.Wrap(err, "creating attendee record")
 	}
 
 	if recvRecords == nil || len(recvRecords.Records) == 0 {

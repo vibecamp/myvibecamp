@@ -79,7 +79,7 @@ func main() {
 		os.Getenv("AIRTABLE_TABLE_NAME") == "" || os.Getenv("AIRTABLE_2023_BASE") == "" ||
 		os.Getenv("AIRTABLE_SL_TABLE") == "" || os.Getenv("AIRTABLE_ATTENDEE_TABLE") == "" ||
 		os.Getenv("AIRTABLE_CONSTANTS_TABLE") == "" || os.Getenv("AIRTABLE_AGG_TABLE") == "" ||
-		os.Getenv("AIRTABLE_ORDER_TABLE") {
+		os.Getenv("AIRTABLE_ORDER_TABLE") == "" {
 		log.Errorf("need all AIRTABLE_ env vars set")
 		os.Exit(1)
 	}

@@ -75,6 +75,49 @@
             </select>
         </div>
 
+        <fieldset>
+        <legend>Dietary Restrictions</legend>
+        <p>
+          Check all that apply:
+        </p>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="vegetarian" id="veg" {{if .User.Vegetarian}}checked{{end}}>
+          <label class="form-check-label" for="veg">
+            Vegetarian
+          </label>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="glutenfree" id="gf" {{if .User.GlutenFree}}checked{{end}}>
+          <label class="form-check-label" for="gf">
+            Gluten free
+          </label>
+        </div>
+
+        <div class="form-check mb-4">
+          <input class="form-check-input" type="checkbox" name="lactose" id="lactose" {{if .User.LactoseIntolerant}}checked{{end}}>
+          <label class="form-check-label" for="lactose">
+            Lactose intolerant
+          </label>
+        </div>
+
+        <div class="mb-3">
+          <label for="comments" class="form-label">Other considerations (e.g. allergies)</label>
+          <textarea class="form-control" id="comments" name="comments" rows="3"></textarea>
+        </div>
+      </fieldset>
+
+        <fieldset>
+        <legend>Badges</legend>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="badge" id="badge" {{if .User.Badge}}checked{{end}}>
+          <label class="form-check-label" for="Badge">
+            Would you like a badge at vibecamp 2023?
+          </label>
+        </div>
+        </fieldset>
+
         <div class="mb-3">
           <label for="donation-amount" class="form-label">Donate to help more people get to vibecamp</label><br/>
           <input type="text" class="form-text-input" name="donation-amount" id="donation-amount"></input>

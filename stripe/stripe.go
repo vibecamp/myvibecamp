@@ -6,7 +6,7 @@ import (
   "io"
   "log"
   "net/http"
-  "os"
+//  "os"
   "fmt"
   "strings"
 
@@ -138,8 +138,8 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	order.UserName = user.UserName
 	order.OrderID = uuid.NewString()
   
-	stripe.Key = os.Getenv("STRIPE_API_KEY")
-  	// stripe.Key = "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
+	// stripe.Key = os.Getenv("STRIPE_API_KEY")
+  	 stripe.Key = "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
 	// Create a PaymentIntent with amount and currency
 	params := &stripe.PaymentIntentParams{
 	  Amount:   stripe.Int64(int64(order.Total) * 100),
