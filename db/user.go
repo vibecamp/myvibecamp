@@ -87,6 +87,7 @@ type User struct {
 func init() {
 	gob.Register(User{})
 	gob.Register(SoftLaunchUser{})
+	gob.Register(Order{})
 }
 
 func (u *User) CreateUser() error {
@@ -94,6 +95,7 @@ func (u *User) CreateUser() error {
 		err := errors.New("User already exists")
 		return err
 	}
+
 
 	recordsToSend := &airtable.Records{
 		Records: []*airtable.Record{
@@ -192,7 +194,7 @@ func getUserByField(field, value string) (*User, error) {
 		CheckedIn:         rec.Fields[fields.CheckedIn] == checked,
 		Barcode:           toStr(rec.Fields[fields.Barcode]),
 		OrderNotes:        toStr(rec.Fields[fields.OrderNotes]),
-		Badge:             toStr(rec.Fields[fields.Badge]) == "yes",
+		Badge:             rec.Fields[fields.Badge] == checked,
 		Vegetarian:        rec.Fields[fields.Vegetarian] == checked,
 		GlutenFree:        rec.Fields[fields.GlutenFree] == checked,
 		LactoseIntolerant: rec.Fields[fields.LactoseIntolerant] == checked,
@@ -214,7 +216,7 @@ func getUserByField(field, value string) (*User, error) {
 func GetSoftLaunchUser(userName string) (*SoftLaunchUser, error) {
 	cleanName := strings.ToLower(userName)
 	if defaultCache != nil {
-		if u, found := defaultCache.Get(cleanName); found {
+		if u, found := defaultCache.Get("sl" + cleanName); found {
 			log.Trace("user cache hit")
 			var user SoftLaunchUser
 			err := gob.NewDecoder(bytes.NewBuffer(u.([]byte))).Decode(&user)
@@ -254,7 +256,6 @@ func getSoftLaunchUserByField(field, value string) (*SoftLaunchUser, error) {
 
 	rec := response.Records[0]
 	ticketLimit,_ := strconv.Atoi(rec.Fields[fields.TicketLimit].(string))
-	fmt.Printf("%d", ticketLimit)
 
 	u := &SoftLaunchUser{
 		AirtableID:        rec.ID,
@@ -445,7 +446,7 @@ func (u *User) GetTicketGroup() ([]*User, error) {
 }
 
 func (u *User) cacheKey() string { return u.UserName }
-func (u *SoftLaunchUser) cacheKey() string { return u.UserName + "sl"}
+func (u *SoftLaunchUser) cacheKey() string { return "sl" + u.UserName }
 
 func (u *User) HasCheckinPermission() bool {
 	if u.AdmissionLevel == "Staff" {

@@ -92,6 +92,12 @@ func main() {
 
 	db.Init(os.Getenv("AIRTABLE_API_KEY"), os.Getenv("AIRTABLE_BASE_ID"), os.Getenv("AIRTABLE_TABLE_NAME"), c)
 
+	if localDevMode {
+		stripe.Init("sk_test_4eC39HqLyjWDarjtT1zdp7dc")
+	} else {
+		stripe.Init(stripeApiKey)
+	}
+
 	callbackUrl := fmt.Sprintf("%s/callback", externalURL)
 	log.Println("Twitter callback URL: ", callbackUrl)
 	service = &oauth1a.Service{
@@ -140,6 +146,7 @@ func main() {
 	r.POST("/ticket-cart", TicketCartHandler)
 	r.GET("/vc2-sl", SoftLaunchSignIn)
 	r.POST("/vc2-sl", SoftLaunchSignIn)
+	r.POST("/stripe-webhook", stripe.HandleStripeWebhook)
 
 	r.GET("/", IndexHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))

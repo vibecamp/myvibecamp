@@ -4,32 +4,36 @@ import (
   "bytes"
   "encoding/json"
   "io"
-  "log"
+  "io/ioutil"
   "net/http"
-//  "os"
   "fmt"
   "strings"
 
   "github.com/lyoshenka/vibedata/db"
 
-  "github.com/gin-contrib/sessions"
   "github.com/cockroachdb/errors"
   "github.com/stripe/stripe-go/v72"
   "github.com/stripe/stripe-go/v72/paymentintent"
+  "github.com/stripe/stripe-go/v72/webhook"
   "github.com/gin-gonic/gin"
   "github.com/google/uuid"
+  log "github.com/sirupsen/logrus"
 )
 
-type item struct {
-  id string
-  quantity int
-  amount int
+type Item struct {
+  Id string `json:"id"`
+  Quantity int `json:"quantity"`
+  Amount int `json:"amount"`
 }
 
 // this could be put in the DB but should it be? hmm
 var ticketPrices = map[string] int {"adult-cabin":590,"adult-tent":420,"child-cabin":380,"child-tent":210,"toddler-cabin":0,"toddler-tent":0}
 
-func calculateCartInfo(items []item, ticketLimit int) (*db.Order, error) {
+func Init(key string) {
+	stripe.Key = key
+}
+
+func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
   order := &db.Order{}
   order.Total = 0
   order.TotalTickets = 0
@@ -39,56 +43,37 @@ func calculateCartInfo(items []item, ticketLimit int) (*db.Order, error) {
   order.PaymentStatus = ""
   order.AirtableID = ""
   for _, element := range items {
-	  if element.id == "donation" && element.quantity > 0 && element.amount > 0 {
-		order.Total += element.amount
-		order.Donation = element.amount
-	  } else if element.quantity > 0 {
-		if (element.quantity > ticketLimit || !strings.HasPrefix(element.id, "adult")) {
+	  if element.Id == "donation" && element.Quantity > 0 && element.Amount > 0 {
+		order.Total += element.Amount
+		order.Donation = element.Amount
+	  } else if element.Quantity > 0 {
+		if (element.Quantity > ticketLimit && strings.HasPrefix(element.Id, "adult")) {
 			return nil, errors.New("Exceeded soft launch ticket limit")
 		}	
 		
-		 price, ok1 := ticketPrices[element.id]
+		 price, ok1 := ticketPrices[element.Id]
 		 if ok1 {
-			order.Total += (price * element.quantity)
-			order.TotalTickets += element.quantity
+			order.Total += (price * element.Quantity)
+			order.TotalTickets += element.Quantity
 
-			if element.id == "adult-cabin" {
-				order.AdultCabin = element.quantity
-			} else if element.id == "adult-tent" {
-				order.AdultTent = element.quantity
-			} else if element.id == "child-cabin" {
-				order.ChildCabin = element.quantity
-			} else if element.id == "child-tent" {
-				order.ChildTent = element.quantity
-			} else if element.id == "toddler-cabin" {
-				order.ToddlerCabin = element.quantity
-			} else if element.id == "toddler-tent" {
-				order.ToddlerTent = element.quantity
+			if element.Id == "adult-cabin" {
+				order.AdultCabin = element.Quantity
+			} else if element.Id == "adult-tent" {
+				order.AdultTent = element.Quantity
+			} else if element.Id == "child-cabin" {
+				order.ChildCabin = element.Quantity
+			} else if element.Id == "child-tent" {
+				order.ChildTent = element.Quantity
+			} else if element.Id == "toddler-cabin" {
+				order.ToddlerCabin = element.Quantity
+			} else if element.Id == "toddler-tent" {
+				order.ToddlerTent = element.Quantity
 			}
 		 }
 	  }
   }
 
   return order, nil
-}
-
-type Session struct {
-	UserName	string
-	TwitterName string
-	TwitterID   string
-}
-
-const sessionKey = "s"
-
-func GetSession(c *gin.Context) *Session {
-	defaultSession := sessions.Default(c)
-	s := defaultSession.Get(sessionKey)
-	if s == nil {
-		return new(Session)
-	}
-
-	ss := s.(Session)
-	return &ss
 }
 
 func HandleCreatePaymentIntent(c *gin.Context) {
@@ -99,14 +84,9 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	  return
 	}
 
-	session := GetSession(c)
-	if session == nil || session.UserName == "" {
-		c.Redirect(http.StatusFound, "/")
-		return
-	}
-
 	var req struct {
-	  Items []item `json:"items"`
+	  Items []Item `json:"items"`
+	  UserName string `json:"username"`
 	}
   
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -115,8 +95,13 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	  return
 	}
 
-	user, err := db.GetSoftLaunchUser(session.UserName)
-	newUser, err := db.GetUser(session.UserName)
+	user, err := db.GetSoftLaunchUser(req.UserName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	newUser, err := db.GetUser(req.UserName)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -138,8 +123,6 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	order.UserName = user.UserName
 	order.OrderID = uuid.NewString()
   
-	// stripe.Key = os.Getenv("STRIPE_API_KEY")
-  	 stripe.Key = "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
 	// Create a PaymentIntent with amount and currency
 	params := &stripe.PaymentIntentParams{
 	  Amount:   stripe.Int64(int64(order.Total) * 100),
@@ -151,12 +134,6 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	  StatementDescriptor: stripe.String("tickets to vibecamp"),
 	  Description: stripe.String(fmt.Sprintf("%d tickets to vibecamp", order.TotalTickets)),
 	}
-
-	// create an (unpaid) order here? can track orders separate from payments that way ig
-	// or before the payment intent creation, then allowing us to add id to payment intent
-	// as metadata
-	// why not put all the order data into the metadata? hmm
-	// can use orders to store customer info away from stripe tho since we dont have uids
 
 	params.AddMetadata("orderId", order.OrderID)
   
@@ -204,4 +181,116 @@ func writeJSON(w http.ResponseWriter, v interface{}) {
     log.Printf("io.Copy: %v", err)
     return
   }
+}
+
+func HandleStripeWebhook(c *gin.Context) {
+  var w http.ResponseWriter = c.Writer
+  var req *http.Request = c.Request
+  const MaxBodyBytes = int64(65536)
+  req.Body = http.MaxBytesReader(w, req.Body, MaxBodyBytes)
+  payload, err := ioutil.ReadAll(req.Body)
+  if err != nil {
+    log.Errorf("Error reading request body: %v\n", err)
+    w.WriteHeader(http.StatusServiceUnavailable)
+    return
+  }
+
+  event := stripe.Event{}
+
+  if err := json.Unmarshal(payload, &event); err != nil {
+    log.Errorf("⚠️  Webhook error while parsing basic request. %v\n", err.Error())
+    w.WriteHeader(http.StatusBadRequest)
+    return
+  }
+
+  // Replace this endpoint secret with your endpoint's unique secret
+  // If you are testing with the CLI, find the secret by running 'stripe listen'
+  // If you are using an endpoint defined with the API or dashboard, look in your webhook settings
+  // at https://dashboard.stripe.com/webhooks
+  endpointSecret := "whsec_..."
+  signatureHeader := req.Header.Get("Stripe-Signature")
+  event, err = webhook.ConstructEvent(payload, signatureHeader, endpointSecret)
+  if err != nil {
+    log.Errorf("⚠️  Webhook signature verification failed. %v\n", err)
+    w.WriteHeader(http.StatusBadRequest) // Return a 400 error on a bad signature
+    return
+  }
+  // Unmarshal the event data into an appropriate struct depending on its Type
+  switch event.Type {
+  case "payment_intent.succeeded":
+    var paymentIntent stripe.PaymentIntent
+    err := json.Unmarshal(event.Data.Raw, &paymentIntent)
+    if err != nil {
+      log.Errorf("Error parsing webhook JSON: %v\n", err)
+      w.WriteHeader(http.StatusBadRequest)
+      return
+    }
+    log.Printf("Successful payment for %d.", paymentIntent.Amount)
+    // Then define and call a func to handle the successful payment intent.
+    // handlePaymentIntentSucceeded(paymentIntent)
+
+	// update order in db to mark as successful payment
+	order,err := db.GetOrderByPaymentID(paymentIntent.ID)
+	if err != nil {
+		log.Errorf("error getting order by payment id: %v\n", err)
+		return
+	}
+
+	err = order.UpdateOrderStatus("successful")
+	if err != nil {
+		log.Errorf("error updating order payment status: %v\n", err)
+		return
+	}
+  case "payment_intent.processing":
+    var paymentIntent stripe.PaymentIntent
+    err := json.Unmarshal(event.Data.Raw, &paymentIntent)
+    if err != nil {
+      log.Errorf("Error parsing webhook JSON: %v\n", err)
+      w.WriteHeader(http.StatusBadRequest)
+      return
+    }
+    log.Printf("Processing payment for %d.", paymentIntent.Amount)
+
+	// idk do nothing here?
+	order,err := db.GetOrderByPaymentID(paymentIntent.ID)
+	if err != nil {
+		log.Errorf("error getting order by payment id: %v\n", err)
+		return
+	}
+
+	err = order.UpdateOrderStatus("processing")
+	if err != nil {
+		log.Errorf("error updating order payment status: %v\n", err)
+		return
+	}
+
+  case "payment_intent.failed":
+    var paymentIntent stripe.PaymentIntent
+    err := json.Unmarshal(event.Data.Raw, &paymentIntent)
+    if err != nil {
+      log.Errorf("Error parsing webhook JSON: %v\n", err)
+      w.WriteHeader(http.StatusBadRequest)
+      return
+    }
+    log.Printf("Failed payment for %d.", paymentIntent.Amount)
+
+	// update db with failed order
+	// update user to have 0 tickets in table? or just rm from table?
+	order,err := db.GetOrderByPaymentID(paymentIntent.ID)
+	if err != nil {
+		log.Errorf("error getting order by payment id: %v\n", err)
+		return
+	}
+
+	err = order.UpdateOrderStatus("failed")
+	if err != nil {
+		log.Errorf("error updating order payment status: %v\n", err)
+		return
+	}
+
+  default:
+    log.Errorf("Unhandled event type: %s\n", event.Type)
+  }
+
+  w.WriteHeader(http.StatusOK)
 }

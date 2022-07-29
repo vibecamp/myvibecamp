@@ -6,6 +6,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -14,7 +15,7 @@ import (
 	"strconv"
 
 	"github.com/lyoshenka/vibedata/db"
-	// "github.com/lyoshenka/vibedata/stripe"
+	"github.com/lyoshenka/vibedata/stripe"
 
 	"github.com/cockroachdb/errors"
 	"github.com/gin-gonic/gin"
@@ -92,12 +93,6 @@ func ContactUsHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "contact.html.tmpl", user)
 }
 
-type item struct {
-  id string
-  quantity int
-  amount int
-}
-
 func TicketCartHandler(c *gin.Context) {
 	session := GetSession(c)
 	if !session.SignedIn() {
@@ -154,7 +149,7 @@ func TicketCartHandler(c *gin.Context) {
 		Barcode:			"",
 		OrderNotes:			"",
 		OrderID:			"",
-		Badge:				c.PostForm("badge") == "on",
+		Badge:				c.PostForm("badge-checkbox") == "on",
 		Vegetarian:			c.PostForm("vegetarian") == "on",
 		GlutenFree:			c.PostForm("glutenfree") == "on",
 		LactoseIntolerant:	c.PostForm("lactose") == "on",
@@ -212,6 +207,9 @@ func SoftLaunchSignIn(c *gin.Context) {
 	}
 
 	session.UserName = user.UserName
+	session.TwitterName = user.UserName
+	session.TwitterID = user.AirtableID
+	session.Oauth = nil
 	SaveSession(c, session)
 
 	c.HTML(http.StatusOK, "softLaunchSignIn.html.tmpl", user)
@@ -233,36 +231,44 @@ func StripeCheckoutHandler(c *gin.Context) {
 
 	ticketIds := []string{"adult", "child", "toddler", "donation"}
 	ticketType := c.Query("ticketType")
-	var items []item
+	var items []stripe.Item
 	for ind, element := range ticketIds {
 		amt,_ := strconv.Atoi(c.Query(element))
 		if amt > 0 {
 			if ind < 3 {
-				items = append(items, item{
-					id: element+"-"+ticketType,
-					quantity: amt, 
-					amount: 0,
+				items = append(items, stripe.Item{
+					Id: element+"-"+ticketType,
+					Quantity: amt, 
+					Amount: 0,
 				})
 			} else {
-				items = append(items, item{
-					id: ticketIds[ind], 
-					quantity: 1, 
-					amount: amt,
+				items = append(items, stripe.Item{
+					Id: ticketIds[ind], 
+					Quantity: 1, 
+					Amount: amt,
 				})
 			}
 		}
 	}
 
-	/*
-	itemMap = map[string]array{
-		"items": items
+	// log.Debugf("%v", items)
+	itemMap := struct {
+		Items []stripe.Item `json:"items"`
+	}{
+		Items: items,
 	}
-	itemJson = json.Marshal(itemMap)	
-	*/
+	// log.Debugf("%v", itemMap)
+	itemJson,err := json.Marshal(itemMap)	
+	if err != nil {
+		log.Errorf("%v", err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	// log.Debugf(string(itemJson))
 
 	c.HTML(http.StatusOK, "checkout.html.tmpl", gin.H{
 		"User": user,
-		"Items": items,
+		"Items": string(itemJson),
 	})
 }
 

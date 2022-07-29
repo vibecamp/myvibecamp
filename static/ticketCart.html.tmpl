@@ -30,7 +30,7 @@
             <label class="form-select-label" for="ticket-type">
                 Ticket Type
             </label>
-            <select name="ticket-type" id="ticket-type" class="form-select" onChange="onTicketTypeChange(this.value)" value="none">
+            <select name="ticket-type" id="ticket-type" class="form-select" onChange="onTicketTypeChange(this.value)" value="none" required>
                 <option value="none" selected hidden></option>
                 <option value="cabin">Cabin</option>
                 <option value="tent">Tent</option>
@@ -42,6 +42,7 @@
                 Adult Tickets (9 years old and older)
             </label>
             <select name="adult-tickets" id="adult-tickets" class="form-select">
+                <option value=0>0</option>
                 <option value=1>1</option>
                 {{ if eq .User.TicketLimit 2 }}
                 <option value=2>2</option>
@@ -73,6 +74,11 @@
                 <option value=3>3</option>
                 <option value=4>4</option>
             </select>
+        </div>
+        
+        <div class="mb-3">
+          <label for="donation-amount" class="form-label">Donate to help more people get to vibecamp</label><br/>
+          <input type="text" class="form-text-input" name="donation-amount" id="donation-amount"></input>
         </div>
 
         <fieldset>
@@ -111,17 +117,14 @@
         <fieldset>
         <legend>Badges</legend>
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="badge" id="badge" {{if .User.Badge}}checked{{end}}>
-          <label class="form-check-label" for="Badge">
+          <input class="form-check-input" type="checkbox" name="badge-checkbox" id="badge-checkbox" checked>
+          <label class="form-check-label" for="badge-checkbox">
             Would you like a badge at vibecamp 2023?
           </label>
         </div>
         </fieldset>
 
-        <div class="mb-3">
-          <label for="donation-amount" class="form-label">Donate to help more people get to vibecamp</label><br/>
-          <input type="text" class="form-text-input" name="donation-amount" id="donation-amount"></input>
-        </div>
+
 
 
         <button type="submit" class="btn btn-primary">Submit</button>

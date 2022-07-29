@@ -8,15 +8,18 @@ const stripe = Stripe(
 
 let elements;
 
-/*
 let items = [];
+let username = "";
 const ticketCart = document.querySelector("#ticket-cart");
 if (ticketCart.hasAttribute("cartData")) {
   items = JSON.parse(ticketCart.getAttribute("cartData")).items;
+  username = ticketCart.getAttribute("username");
 }
-*/
 
-// initialize();
+console.log(items);
+console.log(username);
+
+initialize();
 checkStatus();
 
 document
@@ -31,11 +34,20 @@ document
 // init is called if doing first one
 
 // Fetches a payment intent and captures the client secret
-async function initialize(items) {
+async function initialize() {
+  const currSecret = new URLSearchParams(window.location.search).get(
+    "payment_intent_client_secret"
+  );
+
+  if (currSecret) {
+    return;
+  }
+
+  setLoading(true);
   const response = await fetch("/create-payment-intent", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ items }),
+    body: JSON.stringify({ items, username }),
   });
   const { clientSecret } = await response.json();
 
@@ -46,6 +58,7 @@ async function initialize(items) {
 
   const paymentElement = elements.create("payment");
   paymentElement.mount("#payment-element");
+  setLoading(false);
 }
 
 async function handleSubmit(e) {
@@ -56,7 +69,7 @@ async function handleSubmit(e) {
     elements,
     confirmParams: {
       // Make sure to change this to your payment completion page
-      return_url: "http://localhost:4242/checkout.html",
+      return_url: "http://127.0.0.1.nip.io:8080/checkout",
     },
   });
 
@@ -84,11 +97,27 @@ async function checkStatus() {
     return;
   }
 
+  setLoading(true);
+
   const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
 
   switch (paymentIntent.status) {
     case "succeeded":
       showMessage("Payment succeeded!");
+      // redirect to checkout complete where
+      // it can get order with the pi in the query params?
+      const piId = new URLSearchParams(window.location.search).get(
+        "payment_intent"
+      );
+      if (!paymentIntent) {
+        // idk
+        return;
+      } else {
+        setTimeout(function () {
+          console.log(window.host);
+          window.location.replace("/checkout-complete?payment_intent=" + piId);
+        }, 4000);
+      }
       break;
     case "processing":
       showMessage("Your payment is processing.");
@@ -105,6 +134,11 @@ async function checkStatus() {
 // ------- UI helpers -------
 
 function showMessage(messageText) {
+  setLoading(false);
+  document.querySelector("#submit").disabled = true;
+  document.querySelector("#submit").classList.add("hidden");
+  document.querySelector("#button-text").classList.add("hidden");
+
   const messageContainer = document.querySelector("#payment-message");
 
   messageContainer.classList.remove("hidden");
@@ -113,7 +147,7 @@ function showMessage(messageText) {
   setTimeout(function () {
     messageContainer.classList.add("hidden");
     messageText.textContent = "";
-  }, 4000);
+  }, 3000);
 }
 
 // Show a spinner on payment submission
