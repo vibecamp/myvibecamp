@@ -13,6 +13,7 @@ import (
 	"github.com/lyoshenka/vibedata/fields"
 	"github.com/mehanizm/airtable"
 	"github.com/patrickmn/go-cache"
+  	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -70,7 +71,6 @@ type User struct {
 	Name              string
 	Email             string	
 	AdmissionLevel    string
-	TicketGroup       string
 	Barcode           string
 	OrderNotes        string
 	OrderID           string
@@ -80,6 +80,7 @@ type User struct {
 	GlutenFree        bool
 	LactoseIntolerant bool
 	FoodComments      string
+	TicketID          string
 
 	AirtableID string
 }
@@ -96,6 +97,7 @@ func (u *User) CreateUser() error {
 		return err
 	}
 
+	log.Debugf("%v", u)
 
 	recordsToSend := &airtable.Records{
 		Records: []*airtable.Record{
@@ -106,7 +108,6 @@ func (u *User) CreateUser() error {
 					fields.Name: u.Name,
 					fields.Email: u.Email,
 					fields.AdmissionLevel: u.AdmissionLevel,
-					fields.TicketGroup: u.TicketGroup,
 					fields.Barcode: u.Barcode,
 					fields.OrderNotes: u.OrderNotes,
 					fields.OrderID: u.OrderID,
@@ -116,6 +117,7 @@ func (u *User) CreateUser() error {
 					fields.GlutenFree: u.GlutenFree,
 					fields.LactoseIntolerant: u.LactoseIntolerant,
 					fields.FoodComments: u.FoodComments,
+					fields.TicketID: uuid.NewString(),
 				},
 			},
 		},
@@ -190,7 +192,6 @@ func getUserByField(field, value string) (*User, error) {
 		Name:              toStr(rec.Fields[fields.Name]),
 		Email:             toStr(rec.Fields[fields.Email]),
 		AdmissionLevel:    toStr(rec.Fields[fields.AdmissionLevel]),
-		TicketGroup:       toStr(rec.Fields[fields.TicketGroup]),
 		CheckedIn:         rec.Fields[fields.CheckedIn] == checked,
 		Barcode:           toStr(rec.Fields[fields.Barcode]),
 		OrderNotes:        toStr(rec.Fields[fields.OrderNotes]),
@@ -458,11 +459,11 @@ func (u *User) GetCabinMates() ([]string, error) {
 */
 
 func (u *User) GetTicketGroup() ([]*User, error) {
-	if u.TicketGroup == "" {
+	if u.OrderID == "" {
 		return []*User{u}, nil
 	}
 
-	response, err := query(attendeesTable, fields.TicketGroup, u.TicketGroup, fields.UserName)
+	response, err := query(attendeesTable, fields.OrderID, u.OrderID, fields.UserName)
 	if err != nil {
 		return nil, err
 	}

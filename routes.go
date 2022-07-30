@@ -40,6 +40,7 @@ func IndexHandler(c *gin.Context) {
 		}
 	
 		c.Redirect(http.StatusFound, "/ticket-cart")
+		return
 	}
 
 	c.HTML(http.StatusOK, "index.html.tmpl", user)
@@ -132,11 +133,6 @@ func TicketCartHandler(c *gin.Context) {
 		admissionLevel = "Tent"
 	}
 
-	var ticketGroup = ""
-	if adultTix + childTix + toddlerTix > 1 {
-		ticketGroup = user.UserName
-	}
-
 	newUser := &db.User{
 		AirtableID:			"",
 		UserName:			user.UserName,
@@ -144,11 +140,11 @@ func TicketCartHandler(c *gin.Context) {
 		Name:				user.Name,
 		Email:				user.Email,
 		AdmissionLevel:		admissionLevel,
-		TicketGroup:		ticketGroup,
 		CheckedIn:			false,
 		Barcode:			"",
 		OrderNotes:			"",
 		OrderID:			"",
+		TicketID:			"",
 		Badge:				c.PostForm("badge-checkbox") == "on",
 		Vegetarian:			c.PostForm("vegetarian") == "on",
 		GlutenFree:			c.PostForm("glutenfree") == "on",
