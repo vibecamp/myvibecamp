@@ -70,7 +70,7 @@ async function handleSubmit(e) {
     elements,
     confirmParams: {
       // Make sure to change this to your payment completion page
-      return_url: window.location.host + "/checkout",
+      return_url: (window.location.host.startsWith("127") ? "http://" : "https://") + window.location.host + "/checkout",
       // "http://127.0.0.1.nip.io:8080/checkout",
     },
   });
