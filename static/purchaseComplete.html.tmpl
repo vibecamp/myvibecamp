@@ -1,0 +1,26 @@
+{{ template "header" }}
+
+{{ template "nav" "softlaunch" }}
+
+<div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/vc2-sl">Soft Launch Welcome</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Purchase Complete</li>
+    </ol>
+  </nav>
+  {{ template "flashes" .flashes }}
+
+  <h2>Your Purchase is Complete!</h2>
+
+  <p>
+    Thank you for purchasing {{ if gt .Order.TotalTickets 1 }}{{ .Order.TotalTickets }} tickets{{else}}a ticket{{end}} to vibecamp 2 and participating in our soft launch! We can't wait
+    to see you in 2023, and stay posted for updates from the team!
+  </p>
+
+  <p>
+    If you'd like to edit any of the information you submitted with your purchase, you can do that <a href="/2023-logistics">here</a>.
+  </p>
+</div>
+
+{{ template "footer" }}

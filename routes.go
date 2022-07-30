@@ -272,6 +272,79 @@ func StripeCheckoutHandler(c *gin.Context) {
 	})
 }
 
+func PurchaseCompleteHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	user, err := db.GetUser(session.UserName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	log.Debugf("%v", user)
+
+	order, err := db.GetOrder(user.OrderID)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.HTML(http.StatusOK, "purchaseComplete.html.tmpl", gin.H{
+		"User": user,
+		"Order": order,
+	})
+}
+
+func Logistics2023Handler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	user, err := db.GetUser(session.UserName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	order, err := db.GetOrder(user.OrderID)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if c.Request.Method == http.MethodGet {
+		c.HTML(http.StatusOK, "logistics2023.html.tmpl", gin.H{
+			"flashes": GetFlashes(c),
+			"User": user,
+			"Order": order,
+		})
+		return
+	}
+
+	badge := c.PostForm("badge-checkbox") == "on"
+	vegetarian := c.PostForm("vegetarian") == "on"
+	glutenFree := c.PostForm("glutenfree") == "on"
+	lactoseIntolerant := c.PostForm("lactose") == "on"
+	foodComments :=	c.PostForm("comments")
+
+	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	SuccessFlash(c, "Saved!")
+
+	c.Redirect(http.StatusFound, "/2023-logistics")
+	return
+}
+
 func TicketHandler(c *gin.Context) {
 	session := GetSession(c)
 	if !session.SignedIn() {

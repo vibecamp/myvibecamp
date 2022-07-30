@@ -2,19 +2,28 @@
 
 <script type="text/javascript">
     function onTicketTypeChange(ticketType) {
+        document.getElementById("adult-tickets").disabled = false;
+        document.getElementById("child-tickets").disabled = false;
+        document.getElementById("toddler-tickets").disabled = false;
         if (ticketType === "cabin") {
-            document.getElementById("adult-ticket-label").innerText = "Adult Tickets (9 years old and older) $590";
-            document.getElementById("child-ticket-label").innerText = "Children Tickets (3-8 years old) $380";
-            document.getElementById("toddler-ticket-label").innerText = "Toddler Tickets (0-2 years old) $0";
+            document.getElementById("adult-price-tag").innerText = "$590";
+            document.getElementById("child-price-tag").innerText = "$380";
         } else {
-            document.getElementById("adult-ticket-label").innerText = "Adult Tickets (9 years old and older) $420";
-            document.getElementById("child-ticket-label").innerText = "Children Tickets (3-8 years old) $210";
-            document.getElementById("toddler-ticket-label").innerText = "Toddler Tickets (0-2 years old) $0";
+            document.getElementById("adult-price-tag").innerText = "$420";
+            document.getElementById("child-price-tag").innerText = "$210";
         }
     }
 </script>
 
+{{ template "nav" "softlaunch" }}
+
 <div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/vc2-sl">Soft Launch Welcome</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Tickets</li>
+    </ol>
+  </nav>
   {{ template "flashes" .flashes }}
 
   <h2>Add Your Tickets</h2>
@@ -31,48 +40,62 @@
 
     <form method="post" action="">
       <fieldset>
-        <div class="mb-3">
-            <label class="form-select-label" for="ticket-type">
+        <legend>Tickets</legend>
+        <div class="form-group row">
+            <label class="col-sm-9 col-form-label" for="ticket-type">
                 Ticket Type
             </label>
-            <select name="ticket-type" id="ticket-type" class="form-select" onChange="onTicketTypeChange(this.value)" value="none" required>
+            <div class="col-sm-3">
+            <select name="ticket-type" id="ticket-type" class="form-select" onChange="onTicketTypeChange(this.value)" value="none" required style="text-align: right;">
                 <option value="none" selected hidden></option>
                 <option value="cabin">Cabin</option>
                 <option value="tent">Tent</option>
             </select>
+            </div>
         </div>
+        <br/>
 
-        <div class="mb-3">
-            <label class="form-select-label" for="adult-tickets" id="adult-ticket-label">
+        <div class="form-group row">
+            <label class="col-sm-8 col-form-label" for="adult-tickets" id="adult-ticket-label">
                 Adult Tickets (9 years old and older)
             </label>
-            <select name="adult-tickets" id="adult-tickets" class="form-select">
+            <span class="col-sm-1 col-form-label" id="adult-price-tag"></span>
+            <div class="col-sm-3">
+            <select name="adult-tickets" id="adult-tickets" class="form-select" disabled style="text-align: right;">
                 <option value=0>0</option>
                 <option value=1>1</option>
                 {{ if eq .User.TicketLimit 2 }}
                 <option value=2>2</option>
                 {{ end }}
             </select>
-        </div>
+            </div>
+          </div>
+        <br/>
 
-        <div class="mb-3">
-            <label class="form-select-label" for="child-tickets" id="child-ticket-label">
+        <div class="form-group row">
+            <label class="col-sm-8 col-form-label" for="child-tickets" id="child-ticket-label">
                 Children Tickets (3-8 years old)
             </label>
-            <select name="child-tickets" id="child-tickets" class="form-select">
+            <span class="col-sm-1 col-form-label" id="child-price-tag"></span>
+            <div class="col-sm-3">
+            <select name="child-tickets" id="child-tickets" class="form-select" disabled style="text-align: right;">
                 <option value=0>0</option>
                 <option value=1>1</option>
                 <option value=2>2</option>
                 <option value=3>3</option>
                 <option value=4>4</option>
             </select>
+            </div>
         </div>
+        <br/>
 
-        <div class="mb-3">
-            <label class="form-select-label" for="toddler-tickets" id="toddler-ticket-label">
+        <div class="form-group row">
+            <label class="col-sm-8 col-form-label" for="toddler-tickets" id="toddler-ticket-label">
                 Toddler Tickets (0-2 years old)
             </label>
-            <select name="toddler-tickets" id="toddler-tickets" class="form-select">
+            <span class="col-sm-1 col-form-label" id="toddler-price-tag">$0</span>
+            <div class="col-sm-3">
+            <select name="toddler-tickets" id="toddler-tickets" class="form-select" disabled style="text-align: right;">
                 <option value=0>0</option>
                 <option value=1>1</option>
                 <option value=2>2</option>
@@ -80,11 +103,30 @@
                 <option value=4>4</option>
             </select>
         </div>
+        </fieldset>
+        <br/>
         
-        <div class="mb-3">
-          <label for="donation-amount" class="form-label">Donate to help more people get to vibecamp</label><br/>
-          <input type="text" class="form-text-input" name="donation-amount" id="donation-amount"></input>
+        <fieldset>
+          <legend>Donate</legend>
+          <div class="form-group row">
+            <label for="donation-amount" class="col-sm-9 col-form-label">Every $420 means one more low-income person can come!</label>
+            <div class="col-sm-3">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">$</div>
+                </div>
+                <input type="number" class="form-control" name="donation-amount" id="donation-amount" min="0" style="text-align: right;"/>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+        <br/>
+
+        <div class="row">
+          <span class="col-sm-9 col-form-label">Your Total</span>
+          <span class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;">$0</span>
         </div>
+        <br/>
 
         <fieldset>
         <legend>Badges</legend>
@@ -95,6 +137,7 @@
           </label>
         </div>
         </fieldset>
+        <br/>
 
         <fieldset>
         <legend>Dietary Restrictions</legend>
@@ -128,10 +171,9 @@
           <textarea class="form-control" id="comments" name="comments" rows="3"></textarea>
         </div>
       </fieldset>
+      <br/>
 
-      <button type="submit" class="btn btn-primary">Submit</button>
-
-      </fieldset>
+      <button type="submit" class="btn btn-primary">Checkout</button>
     </form>
 
 

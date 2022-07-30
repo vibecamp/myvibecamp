@@ -147,6 +147,9 @@ func main() {
 	r.GET("/vc2-sl", SoftLaunchSignIn)
 	r.POST("/vc2-sl", SoftLaunchSignIn)
 	r.POST("/stripe-webhook", stripe.HandleStripeWebhook)
+	r.GET("/checkout-complete", PurchaseCompleteHandler)
+	r.GET("/2023-logistics", Logistics2023Handler)
+	r.POST("/2023-logistics", Logistics2023Handler)
 
 	r.GET("/", IndexHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))

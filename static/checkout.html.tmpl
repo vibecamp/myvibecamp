@@ -3,7 +3,17 @@
 <link rel="stylesheet" href="css/checkout.css" />
 <script src="https://js.stripe.com/v3/"></script>
 <script src="js/checkout.js" defer></script>
+
+{{ template "nav" "softlaunch" }}
+
 <div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/vc2-sl">Soft Launch Welcome</a></li>
+            <li class="breadcrumb-item"><a href="/ticket-cart">Tickets</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+        </ol>
+    </nav>
     <form id="payment-form">
         <div id="payment-element">
             <!-- stripe injection here -->

@@ -199,6 +199,7 @@ func getUserByField(field, value string) (*User, error) {
 		GlutenFree:        rec.Fields[fields.GlutenFree] == checked,
 		LactoseIntolerant: rec.Fields[fields.LactoseIntolerant] == checked,
 		FoodComments:      toStr(rec.Fields[fields.FoodComments]),
+		OrderID:		   toStr(rec.Fields[fields.OrderID]),
 	}
 
 	if defaultCache != nil {
@@ -338,6 +339,38 @@ func (u *User) SetFood(veg, gf, lact bool, comments string) error {
 				fields.GlutenFree:        u.GlutenFree,
 				fields.LactoseIntolerant: u.LactoseIntolerant,
 				fields.FoodComments:      comments,
+			},
+		}},
+	}
+
+	_, err := attendeesTable.UpdateRecordsPartial(r)
+	if err != nil {
+		return errors.Wrap(err, "setting food")
+	}
+
+	if defaultCache != nil {
+		defaultCache.Delete(u.cacheKey())
+	}
+
+	return nil
+}
+
+func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments string) error {
+	u.Badge = badge
+	u.Vegetarian = veg
+	u.GlutenFree = gf
+	u.LactoseIntolerant = lact
+	u.FoodComments = comments
+
+	r := &airtable.Records{
+		Records: []*airtable.Record{{
+			ID: u.AirtableID,
+			Fields: map[string]interface{}{
+				fields.Vegetarian:        u.Vegetarian,
+				fields.GlutenFree:        u.GlutenFree,
+				fields.LactoseIntolerant: u.LactoseIntolerant,
+				fields.FoodComments:      comments,
+				fields.Badge:			  u.Badge,
 			},
 		}},
 	}

@@ -1,0 +1,83 @@
+{{ template "header" }}
+
+{{ template "nav" "softlaunch" }}
+
+<div class="container">
+  {{ template "flashes" .flashes }}
+
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/vc2-sl">Soft Launch Welcome</a></li>
+      <li class="breadcrumb-item active" aria-current="page">2023 Logistics</li>
+    </ol>
+  </nav>
+  <h2>vibecamp2 Logistics</h2>
+
+  <p>
+    You can edit any of the information you submitted during your purchase here. In the future if we need more
+    information from you, you will be able to edit it here. 
+  </p>
+
+  <h3>You Purchased</h3>
+
+  {{ if gt .Order.AdultCabin 0 }}<p>{{.Order.AdultCabin}} adult cabin ticket{{if gt .Order.AdultCabin 1}}s{{end}}</p>{{end}}
+  {{ if gt .Order.AdultTent 0 }}<p>{{.Order.AdultTent}} adult tent ticket{{if gt .Order.AdultTent 1}}s{{end}}</p>{{end}}
+  {{ if gt .Order.ChildCabin 0 }}<p>{{.Order.ChildCabin}} child cabin ticket{{if gt .Order.ChildCabin 1}}s{{end}}</p>{{end}}
+  {{ if gt .Order.ChildTent 0 }}<p>{{.Order.ChildTent}} child tent ticket{{if gt .Order.ChildTent 1}}s{{end}}</p>{{end}}
+  {{ if gt .Order.ToddlerCabin 0 }}<p>{{.Order.ToddlerCabin}} toddler cabin ticket{{if gt .Order.ToddlerCabin 1}}s{{end}}</p>{{end}}
+  {{ if gt .Order.ToddlerTent 0 }}<p>{{.Order.ToddlerTent}} toddler tent ticket{{if gt .Order.ToddlerTent 1}}s{{end}}</p>{{end}}
+
+    <form method="post" action="">
+      <fieldset>
+        <fieldset>
+        <legend>Badges</legend>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="badge-checkbox" id="badge-checkbox" {{if .User.Badge}}checked{{end}}>
+          <label class="form-check-label" for="badge-checkbox">
+            Would you like a badge at vibecamp 2023?
+          </label>
+        </div>
+        </fieldset>
+
+        <fieldset>
+        <legend>Dietary Restrictions</legend>
+        <p>
+          Check all that apply:
+        </p>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="vegetarian" id="veg" {{if .User.Vegetarian}}checked{{end}}>
+          <label class="form-check-label" for="veg">
+            Vegetarian
+          </label>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="glutenfree" id="gf" {{if .User.GlutenFree}}checked{{end}}>
+          <label class="form-check-label" for="gf">
+            Gluten free
+          </label>
+        </div>
+
+        <div class="form-check mb-4">
+          <input class="form-check-input" type="checkbox" name="lactose" id="lactose" {{if .User.LactoseIntolerant}}checked{{end}}>
+          <label class="form-check-label" for="lactose">
+            Lactose intolerant
+          </label>
+        </div>
+
+        <div class="mb-3">
+          <label for="comments" class="form-label">Other considerations (e.g. allergies)</label>
+          <textarea class="form-control" id="comments" name="comments" rows="3">{{.User.FoodComments}}</textarea>
+        </div>
+      </fieldset>
+
+      <button type="submit" class="btn btn-primary">Submit</button>
+
+      </fieldset>
+    </form>
+
+
+</div>
+
+{{ template "footer" }}
