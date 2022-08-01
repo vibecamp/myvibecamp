@@ -10,6 +10,7 @@ import (
   "strings"
 
   "github.com/lyoshenka/vibedata/db"
+  "github.com/lyoshenka/vibedata/fields"
 
   "github.com/cockroachdb/errors"
   "github.com/stripe/stripe-go/v72"
@@ -27,7 +28,7 @@ type Item struct {
 }
 
 // this could be put in the DB but should it be? hmm
-var ticketPrices = map[string] int {"adult-cabin":590,"adult-tent":420,"child-cabin":380,"child-tent":210,"toddler-cabin":0,"toddler-tent":0}
+var ticketPrices = map[string] int {"adult-cabin":590,"adult-tent":420,"adult-sat":140,"child-cabin":380,"child-tent":210,"child-sat":70,"toddler-cabin":0,"toddler-tent":0,"toddler-sat":0}
 
 func Init(key string) {
 	stripe.Key = key
@@ -60,14 +61,20 @@ func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 				order.AdultCabin = element.Quantity
 			} else if element.Id == "adult-tent" {
 				order.AdultTent = element.Quantity
+			} else if element.Id == "adult-sat" {
+				order.AdultSat = element.Quantity
 			} else if element.Id == "child-cabin" {
 				order.ChildCabin = element.Quantity
 			} else if element.Id == "child-tent" {
 				order.ChildTent = element.Quantity
+			} else if element.Id == "child-sat" {
+				order.ChildSat = element.Quantity
 			} else if element.Id == "toddler-cabin" {
 				order.ToddlerCabin = element.Quantity
 			} else if element.Id == "toddler-tent" {
 				order.ToddlerTent = element.Quantity
+			} else if element.Id == "toddler-sat" {
+				order.ToddlerSat = element.Quantity
 			}
 		 }
 	  }
@@ -237,12 +244,177 @@ func HandleStripeWebhook(c *gin.Context) {
 		return
 	}
 
-	err = order.UpdateOrderStatus("successful")
+	err = order.UpdateOrderStatus("success")
 	if err != nil {
 		log.Errorf("error updating order payment status: %v\n", err)
       	w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	// update aggregations
+	if order.TotalTickets > 0 {
+		ticketRevenue := order.Total - order.Donation
+		tixSold, err := db.GetAggregation(fields.TotalTicketsSold)
+		if err != nil {
+			log.Errorf("error getting tickets sold agg: %v\n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	
+		tixSold.UpdateAggregation(tixSold.Quantity + order.TotalTickets, tixSold.Revenue + ticketRevenue)
+		if err != nil {
+			log.Errorf("error updating tickets sold agg: %v\n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+
+
+		cabinTixSold := order.AdultCabin + order.ChildCabin + order.ToddlerCabin
+		tentTixSold := order.AdultTent + order.ChildTent + order.ToddlerTent
+		satTixSold := order.AdultSat + order.ChildSat + order.ToddlerSat
+		adultTixSold := order.AdultCabin + order.AdultTent + order.AdultSat
+		childTixSold := order.ChildCabin + order.ChildTent + order.ChildSat
+		toddlerTixSold := order.ToddlerCabin + order.ToddlerTent + order.ToddlerSat
+
+		// remove at hard launch
+		softLaunchSold, err := db.GetAggregation(fields.SoftLaunchSold)
+		if err != nil {
+			log.Errorf("error getting soft launch sales agg: %v\n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		softLaunchSold.UpdateAggregation(softLaunchSold.Quantity + order.TotalTickets, softLaunchSold.Revenue + ticketRevenue)
+
+		// end remove
+		
+		if cabinTixSold > 0 {
+			cabinTixTotal, err := db.GetAggregation(fields.CabinSold)
+			if err != nil {
+				log.Errorf("error getting cabin tickets sold agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			err = cabinTixTotal.UpdateAggregationFromOrder(order)
+			if err != nil {
+				log.Errorf("error updating cabin tickets sold agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		if tentTixSold > 0 {
+			tentTixTotal, err := db.GetAggregation(fields.TentSold)
+			if err != nil {
+				log.Errorf("error getting tent tickets sold agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			err = tentTixTotal.UpdateAggregationFromOrder(order)
+			if err != nil {
+				log.Errorf("error updating tent tickets sold agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		if satTixSold > 0 {
+			satTixTotal, err := db.GetAggregation(fields.SatSold)
+			if err != nil {
+				log.Errorf("error getting sat tickets sold agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			err = satTixTotal.UpdateAggregationFromOrder(order)
+			if err != nil {
+				log.Errorf("error updating sat tickets sold agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		if adultTixSold > 0 {
+			adultTixTotal, err := db.GetAggregation(fields.AdultSold)
+			if err != nil {
+				log.Errorf("error getting adult tickets sold agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			err = adultTixTotal.UpdateAggregationFromOrder(order)
+			if err != nil {
+				log.Errorf("error updating adult tickets sold agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		if childTixSold > 0 {
+			childTixTotal, err := db.GetAggregation(fields.ChildSold)
+			if err != nil {
+				log.Errorf("error getting child tickets sold agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			err = childTixTotal.UpdateAggregationFromOrder(order)
+			if err != nil {
+				log.Errorf("error updating child tickets sold agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		if toddlerTixSold > 0 {
+			toddlerTixTotal, err := db.GetAggregation(fields.ToddlerSold)
+			if err != nil {
+				log.Errorf("error getting toddler tickets sold agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			err = toddlerTixTotal.UpdateAggregationFromOrder(order)
+			if err != nil {
+				log.Errorf("error updating toddler tickets sold agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		if order.Donation > 0 {
+			donationRecv, err := db.GetAggregation(fields.DonationsRecv)
+			if err != nil {
+				log.Errorf("error getting donations agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			err = donationRecv.UpdateAggregationFromOrder(order)
+			if err != nil {
+				log.Errorf("error updating donations agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}	
+			scholarshipTix, err := db.GetAggregation(fields.ScholarshipTickets)
+			if err != nil {
+				log.Errorf("error getting scholarship tickets agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			err = scholarshipTix.UpdateAggregationFromOrder(order)
+			if err != nil {
+				log.Errorf("error updating scholarship tickets agg: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+
   case "payment_intent.processing":
     var paymentIntent stripe.PaymentIntent
     err := json.Unmarshal(event.Data.Raw, &paymentIntent)

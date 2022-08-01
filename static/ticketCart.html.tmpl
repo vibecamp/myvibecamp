@@ -5,13 +5,38 @@
         document.getElementById("adult-tickets").disabled = false;
         document.getElementById("child-tickets").disabled = false;
         document.getElementById("toddler-tickets").disabled = false;
+        document.getElementById("adult-tickets").value = 0;
+        document.getElementById("child-tickets").value = 0;
+        document.getElementById("toddler-tickets").value = 0;
+        document.getElementById("order-total").value = "$" + Number(document.getElementById("donation-amount").value).toString();
         if (ticketType === "cabin") {
             document.getElementById("adult-price-tag").innerText = "$590";
             document.getElementById("child-price-tag").innerText = "$380";
-        } else {
+        } else if (ticketType === "tent") {
             document.getElementById("adult-price-tag").innerText = "$420";
             document.getElementById("child-price-tag").innerText = "$210";
+        } else if (ticketType === "sat") {
+            document.getElementById("adult-price-tag").innerText = "$140";
+            document.getElementById("child-price-tag").innerText = "$70";
         }
+    }
+
+    function onCartInputChange(event) {
+      let total = Number(document.getElementById("donation-amount").value);
+      const ticketType = document.getElementById("ticket-type").value;
+      
+      if (ticketType === "cabin") {
+        total += Number(document.getElementById("adult-tickets").value) * 590;
+        total += Number(document.getElementById("child-tickets").value) * 380;
+      } else if (ticketType === "tent") {
+        total += Number(document.getElementById("adult-tickets").value) * 420;
+        total += Number(document.getElementById("child-tickets").value) * 210;
+      } else if (ticketType === "sat") {
+        total += Number(document.getElementById("adult-tickets").value) * 140;
+        total += Number(document.getElementById("child-tickets").value) * 70;
+      }
+
+      document.getElementById("order-total").value = "$" + total.toString();
     }
 </script>
 
@@ -50,6 +75,7 @@
                 <option value="none" selected hidden></option>
                 <option value="cabin">Cabin</option>
                 <option value="tent">Tent</option>
+                <option value="sat">Saturday Night</option>
             </select>
             </div>
         </div>
@@ -61,7 +87,7 @@
             </label>
             <span class="col-sm-1 col-form-label" id="adult-price-tag"></span>
             <div class="col-sm-3">
-            <select name="adult-tickets" id="adult-tickets" class="form-select" disabled style="text-align: right;">
+            <select name="adult-tickets" id="adult-tickets" class="form-select" disabled style="text-align: right;" onChange="onCartInputChange()">
                 <option value=0>0</option>
                 <option value=1>1</option>
                 {{ if eq .User.TicketLimit 2 }}
@@ -78,7 +104,7 @@
             </label>
             <span class="col-sm-1 col-form-label" id="child-price-tag"></span>
             <div class="col-sm-3">
-            <select name="child-tickets" id="child-tickets" class="form-select" disabled style="text-align: right;">
+            <select name="child-tickets" id="child-tickets" class="form-select" disabled style="text-align: right;" onChange="onCartInputChange()">
                 <option value=0>0</option>
                 <option value=1>1</option>
                 <option value=2>2</option>
@@ -95,7 +121,7 @@
             </label>
             <span class="col-sm-1 col-form-label" id="toddler-price-tag">$0</span>
             <div class="col-sm-3">
-            <select name="toddler-tickets" id="toddler-tickets" class="form-select" disabled style="text-align: right;">
+            <select name="toddler-tickets" id="toddler-tickets" class="form-select" disabled style="text-align: right;" onChange="onCartInputChange()">
                 <option value=0>0</option>
                 <option value=1>1</option>
                 <option value=2>2</option>
@@ -115,7 +141,7 @@
                 <div class="input-group-prepend">
                   <div class="input-group-text">$</div>
                 </div>
-                <input type="number" class="form-control" name="donation-amount" id="donation-amount" min="0" style="text-align: right;"/>
+                <input type="number" class="form-control" name="donation-amount" id="donation-amount" min="0" style="text-align: right;" onChange="onCartInputChange()"/>
               </div>
             </div>
           </div>
@@ -124,7 +150,7 @@
 
         <div class="row">
           <span class="col-sm-9 col-form-label">Your Total</span>
-          <span class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;">$0</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;" value="$0"/>
         </div>
         <br/>
 

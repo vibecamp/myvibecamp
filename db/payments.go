@@ -21,10 +21,13 @@ type Order struct {
 	TotalTickets  int
 	AdultCabin    int
 	AdultTent     int
+	AdultSat	  int
 	ChildCabin    int
 	ChildTent     int
+	ChildSat	  int
 	ToddlerCabin  int
 	ToddlerTent   int
+	ToddlerSat	  int
 	Donation      int 
 	StripeID      string
 	PaymentStatus string
@@ -48,10 +51,13 @@ func (order *Order) CreateOrder() error {
 					fields.TotalTickets: order.TotalTickets,
 					fields.AdultCabin: order.AdultCabin,
 					fields.AdultTent: order.AdultTent,
+					fields.AdultSat: order.AdultSat,
 					fields.ChildCabin: order.ChildCabin,
 					fields.ChildTent: order.ChildTent,
+					fields.ChildSat: order.ChildSat,
 					fields.ToddlerCabin: order.ToddlerCabin,
 					fields.ToddlerTent: order.ToddlerTent,
+					fields.ToddlerSat: order.ToddlerSat,
 					fields.Donation: order.Donation,
 					fields.PaymentID: order.StripeID,
 					fields.PaymentStatus: order.PaymentStatus,
@@ -144,10 +150,13 @@ func getOrderByField(field, value string) (*Order, error) {
 		TotalTickets:		toInt(rec.Fields[fields.TotalTickets]),
 		AdultCabin:			toInt(rec.Fields[fields.AdultCabin]),
 		AdultTent:			toInt(rec.Fields[fields.AdultTent]),
+		AdultSat:			toInt(rec.Fields[fields.AdultSat]),
 		ChildCabin:			toInt(rec.Fields[fields.ChildCabin]),
 		ChildTent:			toInt(rec.Fields[fields.ChildTent]),
+		ChildSat:			toInt(rec.Fields[fields.ChildSat]),
 		ToddlerCabin:		toInt(rec.Fields[fields.ToddlerCabin]),
 		ToddlerTent:		toInt(rec.Fields[fields.ToddlerTent]),
+		ToddlerSat:			toInt(rec.Fields[fields.ToddlerSat]),
 		Donation:			toInt(rec.Fields[fields.Donation]),
 		StripeID:			toStr(rec.Fields[fields.PaymentID]),
 		PaymentStatus:		toStr(rec.Fields[fields.PaymentStatus]),

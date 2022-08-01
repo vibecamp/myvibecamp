@@ -16,6 +16,7 @@ import (
 
 	"github.com/lyoshenka/vibedata/db"
 	"github.com/lyoshenka/vibedata/stripe"
+	"github.com/lyoshenka/vibedata/fields"
 
 	"github.com/cockroachdb/errors"
 	"github.com/gin-gonic/gin"
@@ -126,12 +127,80 @@ func TicketCartHandler(c *gin.Context) {
 		return
 	}
 
+	totalTix := adultTix + childTix + toddlerTix
+
+	// check if they hit any caps here
+	// e.g. cabin cap
+
 	var admissionLevel string
 	if ticketType == "cabin" {
 		admissionLevel = "Cabin"
-	} else {
+		cabinCap, err := db.GetConstant(fields.SoftCabinCap)
+
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		cabinSold, err := db.GetAggregation(fields.CabinSold)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		if totalTix + cabinSold.Quantity > cabinCap.Value {
+			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many cabin tickets exceeds our cap! %d cabin tickets left.", cabinCap.Value - cabinSold.Quantity))
+			return
+		}
+		
+	} else if ticketType == "tent" {
 		admissionLevel = "Tent"
+	} else if ticketType == "sat" {
+		admissionLevel = "Saturday Night"
 	}
+
+	if (ticketType != "sat") {
+		salesCap, err := db.GetConstant(fields.SalesCap)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		tixSold, err := db.GetAggregation(fields.TotalTicketsSold)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		satSold, err := db.GetAggregation(fields.SatSold)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		if totalTix + tixSold.Quantity - satSold.Quantity > salesCap.Value {
+			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many tickets exceeds our cap! %d tickets left.", salesCap.Value - tixSold.Quantity + satSold.Quantity))
+			return
+		}
+	} else {
+		satCap, err := db.GetConstant(fields.SatCap)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		satSold, err := db.GetAggregation(fields.SatSold)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		if totalTix + satSold.Quantity > satCap.Value {
+			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many tickets exceeds our Saturday night cap! %d Saturday tickets left.", satCap.Value - satSold.Quantity))
+			return
+		}
+	}
+
 
 	newUser := &db.User{
 		AirtableID:			"",
