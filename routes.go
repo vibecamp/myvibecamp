@@ -11,12 +11,12 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/lyoshenka/vibedata/db"
-	"github.com/lyoshenka/vibedata/stripe"
 	"github.com/lyoshenka/vibedata/fields"
+	"github.com/lyoshenka/vibedata/stripe"
 
 	"github.com/cockroachdb/errors"
 	"github.com/gin-gonic/gin"
@@ -39,7 +39,7 @@ func IndexHandler(c *gin.Context) {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-	
+
 		c.Redirect(http.StatusFound, "/ticket-cart")
 		return
 	}
@@ -111,16 +111,16 @@ func TicketCartHandler(c *gin.Context) {
 	if c.Request.Method == http.MethodGet {
 		c.HTML(http.StatusOK, "ticketCart.html.tmpl", gin.H{
 			"flashes": GetFlashes(c),
-			"User": user,
+			"User":    user,
 		})
 		return
 	}
 
 	ticketType := c.PostForm("ticket-type")
-	adultTix,_ := strconv.Atoi(c.PostForm("adult-tickets"))
-	childTix,_ := strconv.Atoi(c.PostForm("child-tickets"))
-	toddlerTix,_ := strconv.Atoi(c.PostForm("toddler-tickets"))
-	donationAmount,_ := strconv.Atoi(c.PostForm("donation-amount"))
+	adultTix, _ := strconv.Atoi(c.PostForm("adult-tickets"))
+	childTix, _ := strconv.Atoi(c.PostForm("child-tickets"))
+	toddlerTix, _ := strconv.Atoi(c.PostForm("toddler-tickets"))
+	donationAmount, _ := strconv.Atoi(c.PostForm("donation-amount"))
 
 	if adultTix > user.TicketLimit {
 		ErrorFlash(c, fmt.Sprintf("You're limited to %d ticket in the soft launch", user.TicketLimit))
@@ -148,38 +148,32 @@ func TicketCartHandler(c *gin.Context) {
 			return
 		}
 
-		if totalTix + cabinSold.Quantity > cabinCap.Value {
-			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many cabin tickets exceeds our cap! %d cabin tickets left.", cabinCap.Value - cabinSold.Quantity))
+		if totalTix+cabinSold.Quantity > cabinCap.Value {
+			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many cabin tickets exceeds our cap! %d cabin tickets left.", cabinCap.Value-cabinSold.Quantity))
 			return
 		}
-		
+
 	} else if ticketType == "tent" {
 		admissionLevel = "Tent"
 	} else if ticketType == "sat" {
 		admissionLevel = "Saturday Night"
 	}
 
-	if (ticketType != "sat") {
+	if ticketType != "sat" {
 		salesCap, err := db.GetConstant(fields.SalesCap)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
 
-		tixSold, err := db.GetAggregation(fields.TotalTicketsSold)
+		fullTixSold, err := db.GetAggregation(fields.FullSold)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
 
-		satSold, err := db.GetAggregation(fields.SatSold)
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-
-		if totalTix + tixSold.Quantity - satSold.Quantity > salesCap.Value {
-			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many tickets exceeds our cap! %d tickets left.", salesCap.Value - tixSold.Quantity + satSold.Quantity))
+		if totalTix+fullTixSold.Quantity > salesCap.Value {
+			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many tickets exceeds our cap! %d tickets left.", salesCap.Value-fullTixSold.Quantity))
 			return
 		}
 	} else {
@@ -195,30 +189,29 @@ func TicketCartHandler(c *gin.Context) {
 			return
 		}
 
-		if totalTix + satSold.Quantity > satCap.Value {
-			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many tickets exceeds our Saturday night cap! %d Saturday tickets left.", satCap.Value - satSold.Quantity))
+		if totalTix+satSold.Quantity > satCap.Value {
+			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many tickets exceeds our Saturday night cap! %d Saturday tickets left.", satCap.Value-satSold.Quantity))
 			return
 		}
 	}
 
-
 	newUser := &db.User{
-		AirtableID:			"",
-		UserName:			user.UserName,
-		TwitterName:		user.TwitterName,
-		Name:				user.Name,
-		Email:				user.Email,
-		AdmissionLevel:		admissionLevel,
-		CheckedIn:			false,
-		Barcode:			"",
-		OrderNotes:			"",
-		OrderID:			"",
-		TicketID:			"",
-		Badge:				c.PostForm("badge-checkbox") == "on",
-		Vegetarian:			c.PostForm("vegetarian") == "on",
-		GlutenFree:			c.PostForm("glutenfree") == "on",
-		LactoseIntolerant:	c.PostForm("lactose") == "on",
-		FoodComments:		c.PostForm("comments"),
+		AirtableID:        "",
+		UserName:          user.UserName,
+		TwitterName:       user.TwitterName,
+		Name:              user.Name,
+		Email:             user.Email,
+		AdmissionLevel:    admissionLevel,
+		CheckedIn:         false,
+		Barcode:           "",
+		OrderNotes:        "",
+		OrderID:           "",
+		TicketID:          "",
+		Badge:             c.PostForm("badge-checkbox") == "on",
+		Vegetarian:        c.PostForm("vegetarian") == "on",
+		GlutenFree:        c.PostForm("glutenfree") == "on",
+		LactoseIntolerant: c.PostForm("lactose") == "on",
+		FoodComments:      c.PostForm("comments"),
 	}
 
 	err = newUser.CreateUser()
@@ -240,9 +233,9 @@ func TicketCartHandler(c *gin.Context) {
 func SoftLaunchSignIn(c *gin.Context) {
 	session := GetSession(c)
 
-	agg,err := db.GetAggregation(fields.TotalTicketsSold)
+	agg, err := db.GetAggregation(fields.TotalTicketsSold)
 	log.Debugf("%v", agg)
-	
+
 	if c.Request.Method == http.MethodGet {
 		if !session.SignedIn() {
 			c.HTML(http.StatusOK, "softLaunchSignIn.html.tmpl", nil)
@@ -301,19 +294,19 @@ func StripeCheckoutHandler(c *gin.Context) {
 	ticketType := c.Query("ticketType")
 	var items []stripe.Item
 	for ind, element := range ticketIds {
-		amt,_ := strconv.Atoi(c.Query(element))
+		amt, _ := strconv.Atoi(c.Query(element))
 		if amt > 0 {
 			if ind < 3 {
 				items = append(items, stripe.Item{
-					Id: element+"-"+ticketType,
-					Quantity: amt, 
-					Amount: 0,
+					Id:       element + "-" + ticketType,
+					Quantity: amt,
+					Amount:   0,
 				})
 			} else {
 				items = append(items, stripe.Item{
-					Id: ticketIds[ind], 
-					Quantity: 1, 
-					Amount: amt,
+					Id:       ticketIds[ind],
+					Quantity: 1,
+					Amount:   amt,
 				})
 			}
 		}
@@ -326,7 +319,7 @@ func StripeCheckoutHandler(c *gin.Context) {
 		Items: items,
 	}
 	// log.Debugf("%v", itemMap)
-	itemJson,err := json.Marshal(itemMap)	
+	itemJson, err := json.Marshal(itemMap)
 	if err != nil {
 		log.Errorf("%v", err)
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -335,7 +328,7 @@ func StripeCheckoutHandler(c *gin.Context) {
 	// log.Debugf(string(itemJson))
 
 	c.HTML(http.StatusOK, "checkout.html.tmpl", gin.H{
-		"User": user,
+		"User":  user,
 		"Items": string(itemJson),
 	})
 }
@@ -362,7 +355,7 @@ func PurchaseCompleteHandler(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "purchaseComplete.html.tmpl", gin.H{
-		"User": user,
+		"User":  user,
 		"Order": order,
 	})
 }
@@ -389,8 +382,8 @@ func Logistics2023Handler(c *gin.Context) {
 	if c.Request.Method == http.MethodGet {
 		c.HTML(http.StatusOK, "logistics2023.html.tmpl", gin.H{
 			"flashes": GetFlashes(c),
-			"User": user,
-			"Order": order,
+			"User":    user,
+			"Order":   order,
 		})
 		return
 	}
@@ -399,7 +392,7 @@ func Logistics2023Handler(c *gin.Context) {
 	vegetarian := c.PostForm("vegetarian") == "on"
 	glutenFree := c.PostForm("glutenfree") == "on"
 	lactoseIntolerant := c.PostForm("lactose") == "on"
-	foodComments :=	c.PostForm("comments")
+	foodComments := c.PostForm("comments")
 
 	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments)
 	if err != nil {
