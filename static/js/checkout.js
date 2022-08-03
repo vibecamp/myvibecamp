@@ -17,9 +17,6 @@ if (ticketCart.hasAttribute("cartData")) {
   username = ticketCart.getAttribute("username");
 }
 
-console.log(items);
-console.log(username);
-
 initialize();
 checkStatus();
 
@@ -50,13 +47,15 @@ async function initialize() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ items, username }),
   });
-  const { clientSecret } = await response.json();
+  const { clientSecret, total } = await response.json();
 
   const appearance = {
     theme: "stripe",
   };
   elements = stripe.elements({ appearance, clientSecret });
 
+  document.querySelector("#order-total").value = `$${total.toString()}.00`;
+  document.querySelector("#total-div").classList.remove("hidden");
   const paymentElement = elements.create("payment");
   paymentElement.mount("#payment-element");
   setLoading(false);
@@ -70,7 +69,10 @@ async function handleSubmit(e) {
     elements,
     confirmParams: {
       // Make sure to change this to your payment completion page
-      return_url: (window.location.host.startsWith("127") ? "http://" : "https://") + window.location.host + "/checkout",
+      return_url:
+        (window.location.host.startsWith("127") ? "http://" : "https://") +
+        window.location.host +
+        "/checkout",
       // "http://127.0.0.1.nip.io:8080/checkout",
     },
   });

@@ -179,8 +179,10 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 
 	writeJSON(w, struct {
 		ClientSecret string `json:"clientSecret"`
+		Total        int    `json:"total"`
 	}{
 		ClientSecret: pi.ClientSecret,
+		Total:        order.Total,
 	})
 }
 
