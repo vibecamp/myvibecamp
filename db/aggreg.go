@@ -3,6 +3,7 @@ package db
 import (
 	"bytes"
 	"encoding/gob"
+	"strconv"
 	//"fmt"
 	//"strings"
 	//"time"
@@ -155,12 +156,17 @@ func getAggregationByField(field, value string) (*Aggregation, error) {
 	rec := response.Records[0]
 
 	log.Debugf("%v", rec.Fields[fields.Revenue])
+	revenueStr := toStr(rec.Fields[fields.Revenue])[1:]
+	log.Debugf("%s", revenueStr)
+	log.Debugf("%s", revenueStr[:len(revenueStr) - 3])
+	currencyInts,_ := strconv.Atoi(revenueStr[:len(revenueStr) - 3])
+	currencyCents,_ := strconv.Atoi(revenueStr[len(revenueStr) - 2:])
+	revenue := currencyInts * 100 + currencyCents
 	a := &Aggregation{
 		AirtableID:		rec.ID,
 		Name:			toStr(rec.Fields[fields.Name]),
-		Quantity:		toInt(rec.Fields[fields.Value]),
-		Revenue:		0,
-		//toInt(rec.Fields[fields.Revenue]),
+		Quantity:		toInt(rec.Fields[fields.Quantity]),
+		Revenue:		revenue,
 	}
 
 	if defaultCache != nil {
@@ -175,16 +181,51 @@ func getAggregationByField(field, value string) (*Aggregation, error) {
 	return a, nil
 }
 
+func GetAggregations() ([]*Aggregation, error) {
+	response, err := table.GetRecords().
+		InStringFormat("US/Eastern", "en").
+		Do()
+	if err != nil {
+		return nil, err
+	}
+
+	if response == nil || len(response.Records) == 0 {
+		return nil, errors.Wrap(ErrNoRecords, "")
+	} 
+
+	var aggregations []*Aggregation
+	for _, rec:= range response.Records {
+		log.Debugf("%v", rec.Fields[fields.Revenue])
+		revenueStr := toStr(rec.Fields[fields.Revenue])[1:]
+		log.Debugf("%s", revenueStr)
+		log.Debugf("%s", revenueStr[:len(revenueStr) - 3])
+		currencyInts,_ := strconv.Atoi(revenueStr[:len(revenueStr) - 3])
+		currencyCents,_ := strconv.Atoi(revenueStr[len(revenueStr) - 2:])
+		revenue := currencyInts * 100 + currencyCents
+	
+		aggregations = append(aggregations, Aggregation{
+			AirtableID:		rec.ID,
+			Name:			toStr(rec.Fields[fields.Name]),
+			Quantity:		toInt(rec.Fields[fields.Quantity]),
+			Revenue:		revenue,
+		})
+	}
+
+	return aggregations, nil
+}
+
 func (agg *Aggregation) UpdateAggregation(quantity int, revenue int) error {
 	agg.Quantity = quantity
 	agg.Revenue = revenue
+
+	revenueStr := "$" + strconv.Itoa(revenue / 100) + "." + strconv.Itoa(revenue % 100)
 
 	r := &airtable.Records{
 		Records: []*airtable.Record{{
 			ID: agg.AirtableID,
 			Fields: map[string]interface{}{
 				fields.Quantity:	agg.Quantity,
-				fields.Revenue:		agg.Revenue,
+				fields.Revenue:		revenueStr,
 			},
 		}},
 	}
@@ -234,12 +275,14 @@ func (agg *Aggregation) UpdateAggregationFromOrder(order *Order) error {
 		return errors.New("No such aggregation")
 	}
 
+	revenueStr := "$" + strconv.Itoa(agg.Revenue / 100) + "." + strconv.Itoa(agg.Revenue % 100)
+
 	r := &airtable.Records{
 		Records: []*airtable.Record{{
 			ID: agg.AirtableID,
 			Fields: map[string]interface{}{
 				fields.Quantity:	agg.Quantity,
-				fields.Revenue:		agg.Revenue,
+				fields.Revenue:		revenueStr,
 			},
 		}},
 	}
@@ -254,6 +297,52 @@ func (agg *Aggregation) UpdateAggregationFromOrder(order *Order) error {
 	}
 
 	return nil
+}
+
+func (agg *Aggregation) MakeUpdatedRecord(order *Order) *airtable.Record {
+	if agg.Name == fields.TotalTicketsSold || agg.Name == fields.SoftLaunchSold {
+		agg.Quantity += order.TotalTickets
+		agg.Revenue += (order.Total - order.Donation) * 100
+	} else if agg.Name == fields.CabinSold {
+		agg.Quantity += order.AdultCabin + order.ChildCabin + order.ToddlerCabin
+		agg.Revenue += ((order.AdultCabin * 590) + (order.ChildCabin * 380)) * 100
+	} else if agg.Name == fields.TentSold {
+		agg.Quantity += order.AdultTent + order.ChildTent + order.ToddlerTent
+		agg.Revenue += ((order.AdultTent * 420) + (order.ChildTent * 210)) * 100
+	} else if agg.Name == fields.SatSold {
+		agg.Quantity += order.AdultSat + order.ChildSat + order.ToddlerSat
+		agg.Revenue += ((order.AdultSat * 140) + (order.ChildSat * 70)) * 100
+	} else if agg.Name == fields.AdultSold {
+		agg.Quantity += order.AdultCabin + order.AdultTent + order.AdultSat
+		agg.Revenue += ((order.AdultCabin * 590) + (order.AdultTent * 420) + (order.AdultSat * 140)) * 100
+	} else if agg.Name == fields.ChildSold {
+		agg.Quantity += order.ChildCabin + order.ChildTent + order.ChildSat
+		agg.Revenue += ((order.ChildCabin * 380) + (order.ChildTent * 210) + (order.ChildSat * 70)) * 100
+	} else if agg.Name == fields.DonationsRecv {
+		if order.Donation > 0 {
+			agg.Quantity += 1
+			agg.Revenue += order.Donation * 100
+		}
+	} else if agg.Name == fields.ScholarshipTickets {
+		if order.Donation > 0 {
+			agg.Revenue += order.Donation * 100
+			agg.Quantity = (int)(agg.Revenue / 42000)
+		}
+	} else {
+		return errors.New("No such aggregation")
+	}
+
+	revenueStr := "$" + strconv.Itoa(agg.Revenue / 100) + "." + strconv.Itoa(agg.Revenue % 100)
+
+	r := &airtable.Record{{
+			ID: agg.AirtableID,
+			Fields: map[string]interface{}{
+				fields.Quantity:	agg.Quantity,
+				fields.Revenue:		revenueStr,
+			},
+	}},
+
+	return r
 }
 
 func (c *Constant) cacheKey() string { return "cons-" + c.Name }
