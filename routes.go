@@ -108,6 +108,12 @@ func TicketCartHandler(c *gin.Context) {
 		return
 	}
 
+	attendee, err := db.GetUser(session.UserName)
+	if err == nil && attendee != nil {
+		c.Redirect(http.StatusFound, "/checkout-complete")
+		return
+	}
+
 	if c.Request.Method == http.MethodGet {
 		c.HTML(http.StatusOK, "ticketCart.html.tmpl", gin.H{
 			"flashes": GetFlashes(c),
