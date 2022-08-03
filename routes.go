@@ -233,9 +233,6 @@ func TicketCartHandler(c *gin.Context) {
 func SoftLaunchSignIn(c *gin.Context) {
 	session := GetSession(c)
 
-	agg, err := db.GetAggregation(fields.TotalTicketsSold)
-	log.Debugf("%v", agg)
-
 	if c.Request.Method == http.MethodGet {
 		if !session.SignedIn() {
 			c.HTML(http.StatusOK, "softLaunchSignIn.html.tmpl", nil)

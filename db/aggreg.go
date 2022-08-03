@@ -157,10 +157,7 @@ func getAggregationByField(field, value string) (*Aggregation, error) {
 
 	rec := response.Records[0]
 
-	log.Debugf("%v", rec.Fields[fields.Revenue])
 	revenueStr := toStr(rec.Fields[fields.Revenue])[1:]
-	log.Debugf("%s", revenueStr)
-	log.Debugf("%s", revenueStr[:len(revenueStr)-3])
 	currencyInts, _ := strconv.Atoi(revenueStr[:len(revenueStr)-3])
 	currencyCents, _ := strconv.Atoi(revenueStr[len(revenueStr)-2:])
 	revenue := currencyInts*100 + currencyCents
