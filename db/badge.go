@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cockroachdb/errors"
-	"github.com/lyoshenka/vibedata/fields"
+	"github.com/vibecamp/myvibecamp/fields"
 )
 
 func GetCabinsForBadgeGenerator() (map[string]string, error) {

@@ -6,14 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	//"fmt"
-	//"strings"
-	//"time"
-
 	"github.com/cockroachdb/errors"
-	"github.com/lyoshenka/vibedata/fields"
 	"github.com/mehanizm/airtable"
 	log "github.com/sirupsen/logrus"
+	"github.com/vibecamp/myvibecamp/fields"
 )
 
 type Constant struct {
@@ -33,7 +29,8 @@ type Aggregation struct {
 
 func GetConstant(constantName string) (*Constant, error) {
 	if defaultCache != nil {
-		if c, found := defaultCache.Get("cons-" + constantName); found {
+		tempC := Constant{Name: constantName}
+		if c, found := defaultCache.Get(tempC.cacheKey()); found {
 			log.Trace("order cache hit")
 			var dbConst Constant
 			err := gob.NewDecoder(bytes.NewBuffer(c.([]byte))).Decode(&dbConst)
@@ -91,12 +88,12 @@ func getConstantByField(field, value string) (*Constant, error) {
 	return c, nil
 }
 
-func (dbConst *Constant) UpdateConstantValue(value int) error {
-	dbConst.Value = value
+func (c *Constant) UpdateConstantValue(value int) error {
+	c.Value = value
 
 	r := &airtable.Records{
 		Records: []*airtable.Record{{
-			ID: dbConst.AirtableID,
+			ID: c.AirtableID,
 			Fields: map[string]interface{}{
 				fields.Value: value,
 			},
@@ -109,7 +106,7 @@ func (dbConst *Constant) UpdateConstantValue(value int) error {
 	}
 
 	if defaultCache != nil {
-		defaultCache.Delete(dbConst.cacheKey())
+		defaultCache.Delete(c.cacheKey())
 	}
 
 	return nil
@@ -117,7 +114,8 @@ func (dbConst *Constant) UpdateConstantValue(value int) error {
 
 func GetAggregation(aggName string) (*Aggregation, error) {
 	if defaultCache != nil {
-		if a, found := defaultCache.Get("agg-" + aggName); found {
+		tempA := Aggregation{Name: aggName}
+		if a, found := defaultCache.Get(tempA.cacheKey()); found {
 			log.Trace("order cache hit")
 			var agg Aggregation
 			err := gob.NewDecoder(bytes.NewBuffer(a.([]byte))).Decode(&agg)
@@ -210,17 +208,17 @@ func GetAggregations() ([]*Aggregation, error) {
 	return aggregations, nil
 }
 
-func (agg *Aggregation) UpdateAggregation(quantity int, revenue int) error {
-	agg.Quantity = quantity
-	agg.Revenue = revenue
+func (a *Aggregation) UpdateAggregation(quantity int, revenue int) error {
+	a.Quantity = quantity
+	a.Revenue = revenue
 
 	revenueStr := "$" + strconv.Itoa(revenue/100) + "." + strconv.Itoa(revenue%100)
 
 	r := &airtable.Records{
 		Records: []*airtable.Record{{
-			ID: agg.AirtableID,
+			ID: a.AirtableID,
 			Fields: map[string]interface{}{
-				fields.Quantity: agg.Quantity,
+				fields.Quantity: a.Quantity,
 				fields.Revenue:  revenueStr,
 			},
 		}},
@@ -232,47 +230,47 @@ func (agg *Aggregation) UpdateAggregation(quantity int, revenue int) error {
 	}
 
 	if defaultCache != nil {
-		defaultCache.Delete(agg.cacheKey())
+		defaultCache.Delete(a.cacheKey())
 	}
 
 	return nil
 }
 
-func (agg *Aggregation) UpdateAggregationFromOrder(order *Order) error {
-	if agg.Name == fields.TotalTicketsSold || agg.Name == fields.SoftLaunchSold {
-		agg.Quantity += order.TotalTickets
-		agg.Revenue += order.Total - order.Donation
-	} else if agg.Name == fields.CabinSold {
-		agg.Quantity += order.AdultCabin + order.ChildCabin + order.ToddlerCabin
-		agg.Revenue += (order.AdultCabin * 590) + (order.ChildCabin * 380)
-	} else if agg.Name == fields.TentSold {
-		agg.Quantity += order.AdultTent + order.ChildTent + order.ToddlerTent
-		agg.Revenue += (order.AdultTent * 420) + (order.ChildTent * 210)
-	} else if agg.Name == fields.SatSold {
-		agg.Quantity += order.AdultSat + order.ChildSat + order.ToddlerSat
-		agg.Revenue += (order.AdultSat * 140) + (order.ChildSat * 70)
-	} else if agg.Name == fields.AdultSold {
-		agg.Quantity += order.AdultCabin + order.AdultTent + order.AdultSat
-		agg.Revenue += (order.AdultCabin * 590) + (order.AdultTent * 420) + (order.AdultSat * 140)
-	} else if agg.Name == fields.ChildSold {
-		agg.Quantity += order.ChildCabin + order.ChildTent + order.ChildSat
-		agg.Revenue += (order.ChildCabin * 380) + (order.ChildTent * 210) + (order.ChildSat * 70)
-	} else if agg.Name == fields.DonationsRecv {
+func (a *Aggregation) UpdateAggregationFromOrder(order *Order) error {
+	if a.Name == fields.TotalTicketsSold || a.Name == fields.SoftLaunchSold {
+		a.Quantity += order.TotalTickets
+		a.Revenue += order.Total - order.Donation
+	} else if a.Name == fields.CabinSold {
+		a.Quantity += order.AdultCabin + order.ChildCabin + order.ToddlerCabin
+		a.Revenue += (order.AdultCabin * 590) + (order.ChildCabin * 380)
+	} else if a.Name == fields.TentSold {
+		a.Quantity += order.AdultTent + order.ChildTent + order.ToddlerTent
+		a.Revenue += (order.AdultTent * 420) + (order.ChildTent * 210)
+	} else if a.Name == fields.SatSold {
+		a.Quantity += order.AdultSat + order.ChildSat + order.ToddlerSat
+		a.Revenue += (order.AdultSat * 140) + (order.ChildSat * 70)
+	} else if a.Name == fields.AdultSold {
+		a.Quantity += order.AdultCabin + order.AdultTent + order.AdultSat
+		a.Revenue += (order.AdultCabin * 590) + (order.AdultTent * 420) + (order.AdultSat * 140)
+	} else if a.Name == fields.ChildSold {
+		a.Quantity += order.ChildCabin + order.ChildTent + order.ChildSat
+		a.Revenue += (order.ChildCabin * 380) + (order.ChildTent * 210) + (order.ChildSat * 70)
+	} else if a.Name == fields.DonationsRecv {
 		if order.Donation > 0 {
-			agg.Quantity += 1
-			agg.Revenue += order.Donation
+			a.Quantity += 1
+			a.Revenue += order.Donation
 		}
 	} else {
 		return errors.New("No such aggregation")
 	}
 
-	revenueStr := "$" + strconv.Itoa(agg.Revenue/100) + "." + strconv.Itoa(agg.Revenue%100)
+	revenueStr := "$" + strconv.Itoa(a.Revenue/100) + "." + strconv.Itoa(a.Revenue%100)
 
 	r := &airtable.Records{
 		Records: []*airtable.Record{{
-			ID: agg.AirtableID,
+			ID: a.AirtableID,
 			Fields: map[string]interface{}{
-				fields.Quantity: agg.Quantity,
+				fields.Quantity: a.Quantity,
 				fields.Revenue:  revenueStr,
 			},
 		}},
@@ -284,42 +282,42 @@ func (agg *Aggregation) UpdateAggregationFromOrder(order *Order) error {
 	}
 
 	if defaultCache != nil {
-		defaultCache.Delete(agg.cacheKey())
+		defaultCache.Delete(a.cacheKey())
 	}
 
 	return nil
 }
 
-func (agg *Aggregation) MakeUpdatedRecord(order *Order) *airtable.Record {
-	if agg.Name == fields.TotalTicketsSold || agg.Name == fields.SoftLaunchSold {
-		agg.Quantity += order.TotalTickets
-		agg.Revenue += (order.Total - order.Donation) * 100
-	} else if agg.Name == fields.CabinSold {
-		agg.Quantity += order.AdultCabin + order.ChildCabin + order.ToddlerCabin
-		agg.Revenue += ((order.AdultCabin * 590) + (order.ChildCabin * 380)) * 100
-	} else if agg.Name == fields.TentSold {
-		agg.Quantity += order.AdultTent + order.ChildTent + order.ToddlerTent
-		agg.Revenue += ((order.AdultTent * 420) + (order.ChildTent * 210)) * 100
-	} else if agg.Name == fields.SatSold {
-		agg.Quantity += order.AdultSat + order.ChildSat + order.ToddlerSat
-		agg.Revenue += ((order.AdultSat * 140) + (order.ChildSat * 70)) * 100
-	} else if agg.Name == fields.AdultSold {
-		agg.Quantity += order.AdultCabin + order.AdultTent + order.AdultSat
-		agg.Revenue += ((order.AdultCabin * 590) + (order.AdultTent * 420) + (order.AdultSat * 140)) * 100
-	} else if agg.Name == fields.ChildSold {
-		agg.Quantity += order.ChildCabin + order.ChildTent + order.ChildSat
-		agg.Revenue += ((order.ChildCabin * 380) + (order.ChildTent * 210) + (order.ChildSat * 70)) * 100
-	} else if agg.Name == fields.DonationsRecv {
+func (a *Aggregation) MakeUpdatedRecord(order *Order) *airtable.Record {
+	if a.Name == fields.TotalTicketsSold || a.Name == fields.SoftLaunchSold {
+		a.Quantity += order.TotalTickets
+		a.Revenue += (order.Total - order.Donation) * 100
+	} else if a.Name == fields.CabinSold {
+		a.Quantity += order.AdultCabin + order.ChildCabin + order.ToddlerCabin
+		a.Revenue += ((order.AdultCabin * 590) + (order.ChildCabin * 380)) * 100
+	} else if a.Name == fields.TentSold {
+		a.Quantity += order.AdultTent + order.ChildTent + order.ToddlerTent
+		a.Revenue += ((order.AdultTent * 420) + (order.ChildTent * 210)) * 100
+	} else if a.Name == fields.SatSold {
+		a.Quantity += order.AdultSat + order.ChildSat + order.ToddlerSat
+		a.Revenue += ((order.AdultSat * 140) + (order.ChildSat * 70)) * 100
+	} else if a.Name == fields.AdultSold {
+		a.Quantity += order.AdultCabin + order.AdultTent + order.AdultSat
+		a.Revenue += ((order.AdultCabin * 590) + (order.AdultTent * 420) + (order.AdultSat * 140)) * 100
+	} else if a.Name == fields.ChildSold {
+		a.Quantity += order.ChildCabin + order.ChildTent + order.ChildSat
+		a.Revenue += ((order.ChildCabin * 380) + (order.ChildTent * 210) + (order.ChildSat * 70)) * 100
+	} else if a.Name == fields.DonationsRecv {
 		if order.Donation > 0 {
-			agg.Quantity += 1
-			agg.Revenue += order.Donation * 100
+			a.Quantity += 1
+			a.Revenue += order.Donation * 100
 		}
-	} else if agg.Name == fields.FullSold {
-		agg.Quantity += order.AdultCabin + order.AdultTent + order.ChildCabin + order.ChildTent + order.ToddlerCabin + order.ToddlerTent
-		agg.Revenue += ((order.AdultCabin * 590) + (order.AdultTent * 420) + (order.ChildCabin * 380) + (order.ChildTent * 210)) * 100
+	} else if a.Name == fields.FullSold {
+		a.Quantity += order.AdultCabin + order.AdultTent + order.ChildCabin + order.ChildTent + order.ToddlerCabin + order.ToddlerTent
+		a.Revenue += ((order.AdultCabin * 590) + (order.AdultTent * 420) + (order.ChildCabin * 380) + (order.ChildTent * 210)) * 100
 	}
 
-	cents := agg.Revenue % 100
+	cents := a.Revenue % 100
 	centsStr := "00"
 	if cents < 10 {
 		centsStr = "0" + strconv.Itoa(cents)
@@ -327,16 +325,16 @@ func (agg *Aggregation) MakeUpdatedRecord(order *Order) *airtable.Record {
 		centsStr = strconv.Itoa(cents)
 	}
 	// "$" +
-	revenueStr := strconv.Itoa(agg.Revenue/100) + "." + centsStr
+	revenueStr := strconv.Itoa(a.Revenue/100) + "." + centsStr
 	revenueFloat, err := strconv.ParseFloat(revenueStr, 64)
 	if err != nil {
 		log.Errorf("Error converting revenue %s %v", revenueStr, err)
 	}
 
 	r := &airtable.Record{
-		ID: agg.AirtableID,
+		ID: a.AirtableID,
 		Fields: map[string]interface{}{
-			fields.Quantity: agg.Quantity,
+			fields.Quantity: a.Quantity,
 			fields.Revenue:  revenueFloat,
 		},
 	}

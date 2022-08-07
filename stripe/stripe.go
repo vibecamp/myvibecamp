@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/lyoshenka/vibedata/db"
+	"github.com/vibecamp/myvibecamp/db"
 
 	"github.com/cockroachdb/errors"
 	"github.com/gin-gonic/gin"

@@ -14,8 +14,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/lyoshenka/vibedata/db"
-	"github.com/lyoshenka/vibedata/stripe"
+	"github.com/vibecamp/myvibecamp/db"
+	"github.com/vibecamp/myvibecamp/stripe"
 
 	"github.com/cockroachdb/errors/oserror"
 	"github.com/gin-contrib/sessions"
@@ -50,10 +50,10 @@ func main() {
 
 	externalURL = os.Getenv("EXTERNAL_URL")
 	var (
-		port      = os.Getenv("PORT")
-		apiKey    = os.Getenv("TWITTER_API_KEY")
-		apiSecret = os.Getenv("TWITTER_API_SECRET")
-		stripeApiKey = os.Getenv("STRIPE_API_KEY")
+		port                 = os.Getenv("PORT")
+		apiKey               = os.Getenv("TWITTER_API_KEY")
+		apiSecret            = os.Getenv("TWITTER_API_SECRET")
+		stripeApiKey         = os.Getenv("STRIPE_API_KEY")
 		stripePublishableKey = os.Getenv("STRIPE_PUBLISHABLE_KEY")
 	)
 
@@ -164,7 +164,7 @@ func main() {
 		Addr:    fmt.Sprintf(":%s", port),
 		Handler: r,
 	}
-  	// http.HandleFunc("/create-payment-intent", CreatePaymentIntentHandler)
+
 	// Initializing the server in a goroutine so that
 	// it won't block the graceful shutdown handling below
 	go func() {

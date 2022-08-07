@@ -14,9 +14,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lyoshenka/vibedata/db"
-	"github.com/lyoshenka/vibedata/fields"
-	"github.com/lyoshenka/vibedata/stripe"
+	"github.com/vibecamp/myvibecamp/db"
+	"github.com/vibecamp/myvibecamp/fields"
+	"github.com/vibecamp/myvibecamp/stripe"
 
 	"github.com/cockroachdb/errors"
 	"github.com/gin-gonic/gin"

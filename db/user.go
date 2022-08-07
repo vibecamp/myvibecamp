@@ -4,17 +4,17 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"os"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
-	"os"
 
 	"github.com/cockroachdb/errors"
-	"github.com/lyoshenka/vibedata/fields"
+	"github.com/google/uuid"
 	"github.com/mehanizm/airtable"
 	"github.com/patrickmn/go-cache"
-  	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
+	"github.com/vibecamp/myvibecamp/fields"
 )
 
 const checked = "checked"
@@ -24,19 +24,19 @@ var defaultTable *airtable.Table
 var defaultCache *cache.Cache
 
 var softLaunchTable *airtable.Table
-var attendeesTable  *airtable.Table
+var attendeesTable *airtable.Table
 var ordersTable *airtable.Table
 var constantsTable *airtable.Table
 var aggregationsTable *airtable.Table
 
 func Init(apiKey, baseID, tableName string, cache *cache.Cache) {
 	var (
-		baseTwo 		= os.Getenv("AIRTABLE_2023_BASE")
-		slTable			= os.Getenv("AIRTABLE_SL_TABLE")
-		attendeeTable	= os.Getenv("AIRTABLE_ATTENDEE_TABLE")
-		constTable		= os.Getenv("AIRTABLE_CONSTANTS_TABLE")
-		aggTable		= os.Getenv("AIRTABLE_AGG_TABLE")
-		orderTable		= os.Getenv("AIRTABLE_ORDER_TABLE")
+		baseTwo       = os.Getenv("AIRTABLE_2023_BASE")
+		slTable       = os.Getenv("AIRTABLE_SL_TABLE")
+		attendeeTable = os.Getenv("AIRTABLE_ATTENDEE_TABLE")
+		constTable    = os.Getenv("AIRTABLE_CONSTANTS_TABLE")
+		aggTable      = os.Getenv("AIRTABLE_AGG_TABLE")
+		orderTable    = os.Getenv("AIRTABLE_ORDER_TABLE")
 	)
 	client = airtable.NewClient(apiKey)
 	defaultTable = client.GetTable(baseID, tableName)
@@ -52,24 +52,24 @@ var ErrNoRecords = fmt.Errorf("no records found")
 var ErrManyRecords = fmt.Errorf("multiple records for value")
 
 type SoftLaunchUser struct {
-	UserName		  string
-	Name			  string
-	TwitterName		  string
-	Email  			  string
-	TicketLimit		  int
-	Badge			  bool
-	POAP			  string
+	UserName          string
+	Name              string
+	TwitterName       string
+	Email             string
+	TicketLimit       int
+	Badge             bool
+	POAP              string
 	Vegetarian        bool
 	GlutenFree        bool
 	LactoseIntolerant bool
-	AirtableID string
+	AirtableID        string
 }
 
 type User struct {
-	UserName		  string
+	UserName          string
 	TwitterName       string
 	Name              string
-	Email             string	
+	Email             string
 	AdmissionLevel    string
 	Barcode           string
 	OrderNotes        string
@@ -103,21 +103,21 @@ func (u *User) CreateUser() error {
 		Records: []*airtable.Record{
 			{
 				Fields: map[string]interface{}{
-					fields.UserName: u.UserName,
-					fields.TwitterName: u.TwitterName,
-					fields.Name: u.Name,
-					fields.Email: u.Email,
-					fields.AdmissionLevel: u.AdmissionLevel,
-					fields.Barcode: u.Barcode,
-					fields.OrderNotes: u.OrderNotes,
-					fields.OrderID: u.OrderID,
-					fields.CheckedIn: u.CheckedIn,
-					fields.Badge: u.Badge,
-					fields.Vegetarian: u.Vegetarian,
-					fields.GlutenFree: u.GlutenFree,
+					fields.UserName:          u.UserName,
+					fields.TwitterName:       u.TwitterName,
+					fields.Name:              u.Name,
+					fields.Email:             u.Email,
+					fields.AdmissionLevel:    u.AdmissionLevel,
+					fields.Barcode:           u.Barcode,
+					fields.OrderNotes:        u.OrderNotes,
+					fields.OrderID:           u.OrderID,
+					fields.CheckedIn:         u.CheckedIn,
+					fields.Badge:             u.Badge,
+					fields.Vegetarian:        u.Vegetarian,
+					fields.GlutenFree:        u.GlutenFree,
 					fields.LactoseIntolerant: u.LactoseIntolerant,
-					fields.FoodComments: u.FoodComments,
-					fields.TicketID: uuid.NewString(),
+					fields.FoodComments:      u.FoodComments,
+					fields.TicketID:          uuid.NewString(),
 				},
 			},
 		},
@@ -187,7 +187,7 @@ func getUserByField(field, value string) (*User, error) {
 
 	u := &User{
 		AirtableID:        rec.ID,
-		UserName:		   toStr(rec.Fields[fields.UserName]),
+		UserName:          toStr(rec.Fields[fields.UserName]),
 		TwitterName:       toStr(rec.Fields[fields.TwitterName]),
 		Name:              toStr(rec.Fields[fields.Name]),
 		Email:             toStr(rec.Fields[fields.Email]),
@@ -200,7 +200,7 @@ func getUserByField(field, value string) (*User, error) {
 		GlutenFree:        rec.Fields[fields.GlutenFree] == checked,
 		LactoseIntolerant: rec.Fields[fields.LactoseIntolerant] == checked,
 		FoodComments:      toStr(rec.Fields[fields.FoodComments]),
-		OrderID:		   toStr(rec.Fields[fields.OrderID]),
+		OrderID:           toStr(rec.Fields[fields.OrderID]),
 	}
 
 	if defaultCache != nil {
@@ -257,15 +257,15 @@ func getSoftLaunchUserByField(field, value string) (*SoftLaunchUser, error) {
 	}
 
 	rec := response.Records[0]
-	ticketLimit,_ := strconv.Atoi(rec.Fields[fields.TicketLimit].(string))
+	ticketLimit, _ := strconv.Atoi(rec.Fields[fields.TicketLimit].(string))
 
 	u := &SoftLaunchUser{
 		AirtableID:        rec.ID,
-		UserName:		   toStr(rec.Fields[fields.UserName]),
+		UserName:          toStr(rec.Fields[fields.UserName]),
 		TwitterName:       toStr(rec.Fields[fields.TwitterName]),
 		Name:              toStr(rec.Fields[fields.Name]),
 		Email:             toStr(rec.Fields[fields.Email]),
-		POAP:			   toStr(rec.Fields[fields.POAP]),
+		POAP:              toStr(rec.Fields[fields.POAP]),
 		Badge:             toStr(rec.Fields[fields.Badge]) == "yes",
 		TicketLimit:       ticketLimit,
 		Vegetarian:        rec.Fields[fields.Vegetarian] == checked,
@@ -371,7 +371,7 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments string) erro
 				fields.GlutenFree:        u.GlutenFree,
 				fields.LactoseIntolerant: u.LactoseIntolerant,
 				fields.FoodComments:      comments,
-				fields.Badge:			  u.Badge,
+				fields.Badge:             u.Badge,
 			},
 		}},
 	}
@@ -395,7 +395,7 @@ func (u *User) UpdateOrderID(orderId string) error {
 		Records: []*airtable.Record{{
 			ID: u.AirtableID,
 			Fields: map[string]interface{}{
-				fields.OrderID:			u.OrderID,
+				fields.OrderID: u.OrderID,
 			},
 		}},
 	}
@@ -479,7 +479,7 @@ func (u *User) GetTicketGroup() ([]*User, error) {
 	return group, nil
 }
 
-func (u *User) cacheKey() string { return u.UserName }
+func (u *User) cacheKey() string           { return u.UserName }
 func (u *SoftLaunchUser) cacheKey() string { return "sl" + u.UserName }
 
 func (u *User) HasCheckinPermission() bool {

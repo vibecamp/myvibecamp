@@ -35,15 +35,13 @@ const (
 	FoodComments      = "Food Comments"
 	POAP              = "POAP"
 
-	// new ones for 2023
-	// for attendees & soft launch
+	// UserName is new ones for 2023. for attendees & soft launch
 	UserName = "Username"
 
-	// for soft launch users table
+	// TicketLimit is for soft launch users table
 	TicketLimit = "Ticket Limit"
 
-	// for attendees
-	// adult child or toddler
+	// TicketType is for attendees (adult, child, or toddler)
 	TicketType = "Ticket Type"
 	OrderID    = "OrderID"
 

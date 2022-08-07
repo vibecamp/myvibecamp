@@ -3,40 +3,37 @@ package db
 import (
 	"bytes"
 	"encoding/gob"
-	//"fmt"
-	//"strings"
-	//"time"
 	"strconv"
 
 	"github.com/cockroachdb/errors"
-	"github.com/lyoshenka/vibedata/fields"
 	"github.com/mehanizm/airtable"
 	log "github.com/sirupsen/logrus"
+	"github.com/vibecamp/myvibecamp/fields"
 )
 
 type Order struct {
-	OrderID	      string
+	OrderID       string
 	UserName      string
 	Total         int
 	TotalTickets  int
 	AdultCabin    int
 	AdultTent     int
-	AdultSat	  int
+	AdultSat      int
 	ChildCabin    int
 	ChildTent     int
-	ChildSat	  int
+	ChildSat      int
 	ToddlerCabin  int
 	ToddlerTent   int
-	ToddlerSat	  int
-	Donation      int 
+	ToddlerSat    int
+	Donation      int
 	StripeID      string
 	PaymentStatus string
 
-	AirtableID    string
+	AirtableID string
 }
 
-func (order *Order) CreateOrder() error {
-	if order.AirtableID != "" {
+func (o *Order) CreateOrder() error {
+	if o.AirtableID != "" {
 		err := errors.New("Order already exists")
 		return err
 	}
@@ -45,22 +42,22 @@ func (order *Order) CreateOrder() error {
 		Records: []*airtable.Record{
 			{
 				Fields: map[string]interface{}{
-					fields.UserName: order.UserName,
-					fields.OrderID: order.OrderID,
-					fields.Total: order.Total,
-					fields.TotalTickets: order.TotalTickets,
-					fields.AdultCabin: order.AdultCabin,
-					fields.AdultTent: order.AdultTent,
-					fields.AdultSat: order.AdultSat,
-					fields.ChildCabin: order.ChildCabin,
-					fields.ChildTent: order.ChildTent,
-					fields.ChildSat: order.ChildSat,
-					fields.ToddlerCabin: order.ToddlerCabin,
-					fields.ToddlerTent: order.ToddlerTent,
-					fields.ToddlerSat: order.ToddlerSat,
-					fields.Donation: order.Donation,
-					fields.PaymentID: order.StripeID,
-					fields.PaymentStatus: order.PaymentStatus,
+					fields.UserName:      o.UserName,
+					fields.OrderID:       o.OrderID,
+					fields.Total:         o.Total,
+					fields.TotalTickets:  o.TotalTickets,
+					fields.AdultCabin:    o.AdultCabin,
+					fields.AdultTent:     o.AdultTent,
+					fields.AdultSat:      o.AdultSat,
+					fields.ChildCabin:    o.ChildCabin,
+					fields.ChildTent:     o.ChildTent,
+					fields.ChildSat:      o.ChildSat,
+					fields.ToddlerCabin:  o.ToddlerCabin,
+					fields.ToddlerTent:   o.ToddlerTent,
+					fields.ToddlerSat:    o.ToddlerSat,
+					fields.Donation:      o.Donation,
+					fields.PaymentID:     o.StripeID,
+					fields.PaymentStatus: o.PaymentStatus,
 				},
 			},
 		},
@@ -77,12 +74,9 @@ func (order *Order) CreateOrder() error {
 		return errors.Wrap(ErrManyRecords, "")
 	}
 
-	order.AirtableID = recvRecords.Records[0].ID
+	o.AirtableID = recvRecords.Records[0].ID
 	return nil
 }
-
-/*
-*/
 
 func GetOrder(orderId string) (*Order, error) {
 	if defaultCache != nil {
@@ -143,23 +137,23 @@ func getOrderByField(field, value string) (*Order, error) {
 	rec := response.Records[0]
 
 	o := &Order{
-		AirtableID:			rec.ID,
-		UserName:			toStr(rec.Fields[fields.UserName]),
-		OrderID:			toStr(rec.Fields[fields.OrderID]),	
-		Total:				toInt(rec.Fields[fields.Total]),
-		TotalTickets:		toInt(rec.Fields[fields.TotalTickets]),
-		AdultCabin:			toInt(rec.Fields[fields.AdultCabin]),
-		AdultTent:			toInt(rec.Fields[fields.AdultTent]),
-		AdultSat:			toInt(rec.Fields[fields.AdultSat]),
-		ChildCabin:			toInt(rec.Fields[fields.ChildCabin]),
-		ChildTent:			toInt(rec.Fields[fields.ChildTent]),
-		ChildSat:			toInt(rec.Fields[fields.ChildSat]),
-		ToddlerCabin:		toInt(rec.Fields[fields.ToddlerCabin]),
-		ToddlerTent:		toInt(rec.Fields[fields.ToddlerTent]),
-		ToddlerSat:			toInt(rec.Fields[fields.ToddlerSat]),
-		Donation:			toInt(rec.Fields[fields.Donation]),
-		StripeID:			toStr(rec.Fields[fields.PaymentID]),
-		PaymentStatus:		toStr(rec.Fields[fields.PaymentStatus]),
+		AirtableID:    rec.ID,
+		UserName:      toStr(rec.Fields[fields.UserName]),
+		OrderID:       toStr(rec.Fields[fields.OrderID]),
+		Total:         toInt(rec.Fields[fields.Total]),
+		TotalTickets:  toInt(rec.Fields[fields.TotalTickets]),
+		AdultCabin:    toInt(rec.Fields[fields.AdultCabin]),
+		AdultTent:     toInt(rec.Fields[fields.AdultTent]),
+		AdultSat:      toInt(rec.Fields[fields.AdultSat]),
+		ChildCabin:    toInt(rec.Fields[fields.ChildCabin]),
+		ChildTent:     toInt(rec.Fields[fields.ChildTent]),
+		ChildSat:      toInt(rec.Fields[fields.ChildSat]),
+		ToddlerCabin:  toInt(rec.Fields[fields.ToddlerCabin]),
+		ToddlerTent:   toInt(rec.Fields[fields.ToddlerTent]),
+		ToddlerSat:    toInt(rec.Fields[fields.ToddlerSat]),
+		Donation:      toInt(rec.Fields[fields.Donation]),
+		StripeID:      toStr(rec.Fields[fields.PaymentID]),
+		PaymentStatus: toStr(rec.Fields[fields.PaymentStatus]),
 	}
 
 	if defaultCache != nil {
@@ -174,14 +168,14 @@ func getOrderByField(field, value string) (*Order, error) {
 	return o, nil
 }
 
-func (order *Order) UpdateOrderStatus(paymentStatus string) error {
-	order.PaymentStatus = paymentStatus
+func (o *Order) UpdateOrderStatus(paymentStatus string) error {
+	o.PaymentStatus = paymentStatus
 
 	r := &airtable.Records{
 		Records: []*airtable.Record{{
-			ID: order.AirtableID,
+			ID: o.AirtableID,
 			Fields: map[string]interface{}{
-				fields.PaymentStatus:		order.PaymentStatus,
+				fields.PaymentStatus: o.PaymentStatus,
 			},
 		}},
 	}
@@ -192,7 +186,7 @@ func (order *Order) UpdateOrderStatus(paymentStatus string) error {
 	}
 
 	if defaultCache != nil {
-		defaultCache.Delete(order.cacheKey())
+		defaultCache.Delete(o.cacheKey())
 	}
 
 	return nil
@@ -202,7 +196,7 @@ func toInt(i interface{}) int {
 	if i == nil {
 		return 0
 	}
-	num,_ := strconv.Atoi(i.(string))
+	num, _ := strconv.Atoi(i.(string))
 	return num
 }
 
