@@ -14,7 +14,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/lyoshenka/vibedata/db"
+	"github.com/vibecamp/myvibecamp/db"
+	"github.com/vibecamp/myvibecamp/stripe"
 
 	"github.com/cockroachdb/errors/oserror"
 	"github.com/gin-contrib/sessions"
@@ -49,9 +50,11 @@ func main() {
 
 	externalURL = os.Getenv("EXTERNAL_URL")
 	var (
-		port      = os.Getenv("PORT")
-		apiKey    = os.Getenv("TWITTER_API_KEY")
-		apiSecret = os.Getenv("TWITTER_API_SECRET")
+		port                 = os.Getenv("PORT")
+		apiKey               = os.Getenv("TWITTER_API_KEY")
+		apiSecret            = os.Getenv("TWITTER_API_SECRET")
+		stripeApiKey         = os.Getenv("STRIPE_API_KEY")
+		stripePublishableKey = os.Getenv("STRIPE_PUBLISHABLE_KEY")
 	)
 
 	localDevMode = os.Getenv("DEV") == "true"
@@ -67,9 +70,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	if stripeApiKey == "" || stripePublishableKey == "" {
+		log.Errorf("No stripe API key\n")
+		os.Exit(1)
+	}
+
 	if os.Getenv("AIRTABLE_API_KEY") == "" || os.Getenv("AIRTABLE_BASE_ID") == "" ||
-		os.Getenv("AIRTABLE_TABLE_NAME") == "" {
-		log.Errorf("need all three AIRTABLE_ env vars set")
+		os.Getenv("AIRTABLE_TABLE_NAME") == "" || os.Getenv("AIRTABLE_2023_BASE") == "" ||
+		os.Getenv("AIRTABLE_SL_TABLE") == "" || os.Getenv("AIRTABLE_ATTENDEE_TABLE") == "" ||
+		os.Getenv("AIRTABLE_CONSTANTS_TABLE") == "" || os.Getenv("AIRTABLE_AGG_TABLE") == "" ||
+		os.Getenv("AIRTABLE_ORDER_TABLE") == "" {
+		log.Errorf("need all AIRTABLE_ env vars set")
 		os.Exit(1)
 	}
 
@@ -80,6 +91,12 @@ func main() {
 	c := cache.New(cacheTime, 1*time.Hour)
 
 	db.Init(os.Getenv("AIRTABLE_API_KEY"), os.Getenv("AIRTABLE_BASE_ID"), os.Getenv("AIRTABLE_TABLE_NAME"), c)
+
+	if localDevMode {
+		stripe.Init("sk_test_4eC39HqLyjWDarjtT1zdp7dc")
+	} else {
+		stripe.Init(stripeApiKey)
+	}
 
 	callbackUrl := fmt.Sprintf("%s/callback", externalURL)
 	log.Println("Twitter callback URL: ", callbackUrl)
@@ -110,6 +127,9 @@ func main() {
 	r.GET("/signin", SignInHandler)
 	r.GET("/signout", SignOutHandler)
 	r.GET("/callback", CallbackHandler)
+	r.GET("/calendar", CalendarHandler)
+	r.GET("/team", TeamHandler)
+	r.GET("/contact-us", ContactUsHandler)
 
 	r.GET("/ticket", TicketHandler)
 	r.GET("/logistics", LogisticsHandler)
@@ -120,6 +140,16 @@ func main() {
 	r.GET("/cabinlist", CabinListHandler)
 	r.GET("/checkin/:barcode", CheckinHandler)
 	r.POST("/checkin/:barcode", CheckinHandler)
+	r.GET("/checkout", StripeCheckoutHandler)
+	r.POST("/create-payment-intent", stripe.HandleCreatePaymentIntent)
+	r.GET("/ticket-cart", TicketCartHandler)
+	r.POST("/ticket-cart", TicketCartHandler)
+	r.GET("/vc2-sl", SoftLaunchSignIn)
+	r.POST("/vc2-sl", SoftLaunchSignIn)
+	r.POST("/stripe-webhook", stripe.HandleStripeWebhook)
+	r.GET("/checkout-complete", PurchaseCompleteHandler)
+	r.GET("/2023-logistics", Logistics2023Handler)
+	r.POST("/2023-logistics", Logistics2023Handler)
 
 	r.GET("/", IndexHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))
@@ -134,6 +164,7 @@ func main() {
 		Addr:    fmt.Sprintf(":%s", port),
 		Handler: r,
 	}
+
 	// Initializing the server in a goroutine so that
 	// it won't block the graceful shutdown handling below
 	go func() {
