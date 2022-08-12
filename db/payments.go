@@ -15,6 +15,7 @@ type Order struct {
 	OrderID       string
 	UserName      string
 	Total         int
+	ProcessingFee int // this will be stored as currency * 100 I think?
 	TotalTickets  int
 	AdultCabin    int
 	AdultTent     int
@@ -45,6 +46,7 @@ func (o *Order) CreateOrder() error {
 					fields.UserName:      o.UserName,
 					fields.OrderID:       o.OrderID,
 					fields.Total:         o.Total,
+					fields.ProcessingFee: o.ProcessingFee,
 					fields.TotalTickets:  o.TotalTickets,
 					fields.AdultCabin:    o.AdultCabin,
 					fields.AdultTent:     o.AdultTent,
@@ -141,6 +143,7 @@ func getOrderByField(field, value string) (*Order, error) {
 		UserName:      toStr(rec.Fields[fields.UserName]),
 		OrderID:       toStr(rec.Fields[fields.OrderID]),
 		Total:         toInt(rec.Fields[fields.Total]),
+		ProcessingFee: toInt(rec.Fields[fields.ProcessingFee]),
 		TotalTickets:  toInt(rec.Fields[fields.TotalTickets]),
 		AdultCabin:    toInt(rec.Fields[fields.AdultCabin]),
 		AdultTent:     toInt(rec.Fields[fields.AdultTent]),

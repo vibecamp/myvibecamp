@@ -37,6 +37,7 @@ func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 	order := &db.Order{}
 	order.Total = 0
 	order.TotalTickets = 0
+	order.ProcessingFee = 0
 	order.OrderID = ""
 	order.UserName = ""
 	order.StripeID = ""
@@ -78,6 +79,9 @@ func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 			}
 		}
 	}
+
+	// this needs to be rounded off correctly
+	order.ProcessingFee = (order.Total - order.Donation) * 0.03
 
 	return order, nil
 }

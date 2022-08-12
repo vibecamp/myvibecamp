@@ -22,21 +22,26 @@
     }
 
     function onCartInputChange(event) {
-      let total = Number(document.getElementById("donation-amount").value);
+      const donationAmt = Number(document.getElementById("donation-amount").value);
       const ticketType = document.getElementById("ticket-type").value;
       
+      let ticketTotal = 0;
       if (ticketType === "cabin") {
-        total += Number(document.getElementById("adult-tickets").value) * 590;
-        total += Number(document.getElementById("child-tickets").value) * 380;
+        ticketTotal += Number(document.getElementById("adult-tickets").value) * 590;
+        ticketTotal += Number(document.getElementById("child-tickets").value) * 380;
       } else if (ticketType === "tent") {
-        total += Number(document.getElementById("adult-tickets").value) * 420;
-        total += Number(document.getElementById("child-tickets").value) * 210;
+        ticketTotal += Number(document.getElementById("adult-tickets").value) * 420;
+        ticketTotal += Number(document.getElementById("child-tickets").value) * 210;
       } else if (ticketType === "sat") {
-        total += Number(document.getElementById("adult-tickets").value) * 140;
-        total += Number(document.getElementById("child-tickets").value) * 70;
+        ticketTotal += Number(document.getElementById("adult-tickets").value) * 140;
+        ticketTotal += Number(document.getElementById("child-tickets").value) * 70;
       }
 
+      const processingFee = Math.round(ticketTotal * 0.03 / 100) * 100;
+      const total = donationAmt + ticketTotal + processingFee;
+
       document.getElementById("order-total").value = "$" + total.toString();
+      document.getElementById("processing-fee").value = "$" + processingFee.toString();
     }
 </script>
 
@@ -146,6 +151,12 @@
             </div>
           </div>
         </fieldset>
+        <br/>
+
+        <div class="row">
+          <span class="col-sm-9 col-form-label">Processing Fee</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="$0"/>
+        </div>
         <br/>
 
         <div class="row">
