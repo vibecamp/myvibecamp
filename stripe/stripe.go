@@ -43,9 +43,9 @@ func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 	order.StripeID = ""
 	order.PaymentStatus = ""
 	order.AirtableID = ""
+	ticketTotal = 0
 	for _, element := range items {
 		if element.Id == "donation" && element.Quantity > 0 && element.Amount > 0 {
-			order.Total += element.Amount
 			order.Donation = element.Amount
 		} else if element.Quantity > 0 {
 			if element.Quantity > ticketLimit && strings.HasPrefix(element.Id, "adult") {
@@ -54,7 +54,7 @@ func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 
 			price, ok1 := ticketPrices[element.Id]
 			if ok1 {
-				order.Total += (price * element.Quantity)
+				ticketTotal += (price * element.Quantity)
 				order.TotalTickets += element.Quantity
 
 				if element.Id == "adult-cabin" {
@@ -81,7 +81,8 @@ func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 	}
 
 	// this needs to be rounded off correctly
-	order.ProcessingFee = (order.Total - order.Donation) * 0.03
+	order.ProcessingFee = ticketTotal * 0.03
+	order.Total = ticketTotal + order.ProcessingFee + order.Donation
 
 	return order, nil
 }
