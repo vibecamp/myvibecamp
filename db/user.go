@@ -71,6 +71,7 @@ type User struct {
 	Name              string
 	Email             string
 	AdmissionLevel    string
+	TicketType		  string
 	Barcode           string
 	OrderNotes        string
 	OrderID           string
@@ -108,6 +109,7 @@ func (u *User) CreateUser() error {
 					fields.Name:              u.Name,
 					fields.Email:             u.Email,
 					fields.AdmissionLevel:    u.AdmissionLevel,
+					fields.TicketType:		  u.TicketType,
 					fields.Barcode:           u.Barcode,
 					fields.OrderNotes:        u.OrderNotes,
 					fields.OrderID:           u.OrderID,
@@ -191,6 +193,7 @@ func getUserByField(field, value string) (*User, error) {
 		TwitterName:       toStr(rec.Fields[fields.TwitterName]),
 		Name:              toStr(rec.Fields[fields.Name]),
 		Email:             toStr(rec.Fields[fields.Email]),
+		TicketType:		   toStr(rec.Fields[fields.TicketType]),
 		AdmissionLevel:    toStr(rec.Fields[fields.AdmissionLevel]),
 		CheckedIn:         rec.Fields[fields.CheckedIn] == checked,
 		Barcode:           toStr(rec.Fields[fields.Barcode]),

@@ -14,8 +14,8 @@ import (
 type Order struct {
 	OrderID       string
 	UserName      string
-	Total         int
-	ProcessingFee int // this will be stored as currency * 100 I think?
+	Total         *Currency
+	ProcessingFee *Currency
 	TotalTickets  int
 	AdultCabin    int
 	AdultTent     int
@@ -38,6 +38,7 @@ func (o *Order) CreateOrder() error {
 		err := errors.New("Order already exists")
 		return err
 	}
+	log.Debugf("%v", o.ProcessingFee.ToString())
 
 	recordsToSend := &airtable.Records{
 		Records: []*airtable.Record{
@@ -45,8 +46,8 @@ func (o *Order) CreateOrder() error {
 				Fields: map[string]interface{}{
 					fields.UserName:      o.UserName,
 					fields.OrderID:       o.OrderID,
-					fields.Total:         o.Total,
-					fields.ProcessingFee: o.ProcessingFee,
+					fields.Total:         o.Total.ToFloat(),
+					fields.ProcessingFee: o.ProcessingFee.ToFloat(),
 					fields.TotalTickets:  o.TotalTickets,
 					fields.AdultCabin:    o.AdultCabin,
 					fields.AdultTent:     o.AdultTent,
@@ -142,8 +143,8 @@ func getOrderByField(field, value string) (*Order, error) {
 		AirtableID:    rec.ID,
 		UserName:      toStr(rec.Fields[fields.UserName]),
 		OrderID:       toStr(rec.Fields[fields.OrderID]),
-		Total:         toInt(rec.Fields[fields.Total]),
-		ProcessingFee: toInt(rec.Fields[fields.ProcessingFee]),
+		Total:         CurrencyFromAirtableString(toStr(rec.Fields[fields.Total])),
+		ProcessingFee: CurrencyFromAirtableString(toStr(rec.Fields[fields.ProcessingFee])),
 		TotalTickets:  toInt(rec.Fields[fields.TotalTickets]),
 		AdultCabin:    toInt(rec.Fields[fields.AdultCabin]),
 		AdultTent:     toInt(rec.Fields[fields.AdultTent]),

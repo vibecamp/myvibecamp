@@ -28,6 +28,7 @@ type Item struct {
 
 // this could be put in the DB but should it be? hmm
 var ticketPrices = map[string]int{"adult-cabin": 590, "adult-tent": 420, "adult-sat": 140, "child-cabin": 380, "child-tent": 210, "child-sat": 70, "toddler-cabin": 0, "toddler-tent": 0, "toddler-sat": 0}
+var stripeFeePercent float64 = 0.03
 
 func Init(key string) {
 	stripe.Key = key
@@ -35,15 +36,13 @@ func Init(key string) {
 
 func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 	order := &db.Order{}
-	order.Total = 0
 	order.TotalTickets = 0
-	order.ProcessingFee = 0
 	order.OrderID = ""
 	order.UserName = ""
 	order.StripeID = ""
 	order.PaymentStatus = ""
 	order.AirtableID = ""
-	ticketTotal = 0
+	var ticketTotal = 0
 	for _, element := range items {
 		if element.Id == "donation" && element.Quantity > 0 && element.Amount > 0 {
 			order.Donation = element.Amount
@@ -81,8 +80,9 @@ func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 	}
 
 	// this needs to be rounded off correctly
-	order.ProcessingFee = ticketTotal * 0.03
-	order.Total = ticketTotal + order.ProcessingFee + order.Donation
+	var stripeFee float64 = float64(ticketTotal) * stripeFeePercent
+	order.ProcessingFee = db.CurrencyFromFloat(stripeFee)
+	order.Total = db.CurrencyFromFloat(float64(ticketTotal) + order.ProcessingFee.ToFloat() + float64(order.Donation))
 
 	return order, nil
 }
@@ -136,7 +136,7 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 
 	// Create a PaymentIntent with amount and currency
 	params := &stripe.PaymentIntentParams{
-		Amount:   stripe.Int64(int64(order.Total) * 100),
+		Amount:   stripe.Int64(order.Total.ToCurrencyInt()),
 		Currency: stripe.String(string(stripe.CurrencyUSD)),
 		AutomaticPaymentMethods: &stripe.PaymentIntentAutomaticPaymentMethodsParams{
 			Enabled: stripe.Bool(true),
@@ -183,11 +183,11 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	*/
 
 	writeJSON(w, struct {
-		ClientSecret string `json:"clientSecret"`
-		Total        int    `json:"total"`
+		ClientSecret string 	`json:"clientSecret"`
+		Total        float64	`json:"total"`
 	}{
 		ClientSecret: pi.ClientSecret,
-		Total:        order.Total,
+		Total:        order.Total.ToFloat(),
 	})
 }
 

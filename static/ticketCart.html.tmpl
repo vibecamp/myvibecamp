@@ -37,11 +37,11 @@
         ticketTotal += Number(document.getElementById("child-tickets").value) * 70;
       }
 
-      const processingFee = Math.round(ticketTotal * 0.03 / 100) * 100;
+      const processingFee = Math.round(ticketTotal * 0.03 * 100) / 100; 
       const total = donationAmt + ticketTotal + processingFee;
 
-      document.getElementById("order-total").value = "$" + total.toString();
-      document.getElementById("processing-fee").value = "$" + processingFee.toString();
+      document.getElementById("order-total").value = "$" + total.toFixed(2);
+      document.getElementById("processing-fee").value = "$" + processingFee.toFixed(2);
     }
 </script>
 

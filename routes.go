@@ -134,6 +134,15 @@ func TicketCartHandler(c *gin.Context) {
 	}
 
 	totalTix := adultTix + childTix + toddlerTix
+	dbTicketType := ""
+
+	if adultTix > 0 {
+		dbTicketType = "adult"
+	} else if childTix > 0 {
+		dbTicketType = "child"
+	} else if toddlerTix > 0 {
+		dbTicketType = "toddler"
+	}
 
 	// check if they hit any caps here
 	// e.g. cabin cap
@@ -208,6 +217,7 @@ func TicketCartHandler(c *gin.Context) {
 		Name:              user.Name,
 		Email:             user.Email,
 		AdmissionLevel:    admissionLevel,
+		TicketType:		   dbTicketType,
 		CheckedIn:         false,
 		Barcode:           "",
 		OrderNotes:        "",

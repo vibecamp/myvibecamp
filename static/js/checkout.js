@@ -54,7 +54,7 @@ async function initialize() {
   };
   elements = stripe.elements({ appearance, clientSecret });
 
-  document.querySelector("#order-total").value = `$${total.toString()}.00`;
+  document.querySelector("#order-total").value = `$${total.toFixed(2)}`;
   document.querySelector("#total-div").classList.remove("hidden");
   const paymentElement = elements.create("payment");
   paymentElement.mount("#payment-element");
