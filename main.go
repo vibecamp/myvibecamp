@@ -93,9 +93,8 @@ func main() {
 
 	db.Init(os.Getenv("AIRTABLE_API_KEY"), os.Getenv("AIRTABLE_BASE_ID"), os.Getenv("AIRTABLE_TABLE_NAME"), c)
 
-	// devSecret := "whsec_accf21614aa842e5fc86edbcb06352e28cdd2c9d04c429a100f4ac52dee77e19"
 	if localDevMode {
-		stripe.Init("sk_test_4eC39HqLyjWDarjtT1zdp7dc", "whsec_accf21614aa842e5fc86edbcb06352e28cdd2c9d04c429a100f4ac52dee77e19")
+		stripe.Init("sk_test_4eC39HqLyjWDarjtT1zdp7dc", "")
 	} else {
 		stripe.Init(stripeApiKey, stripeWebhookSecret)
 	}
