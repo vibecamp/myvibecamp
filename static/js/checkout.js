@@ -120,7 +120,7 @@ async function checkStatus() {
         setTimeout(function () {
           console.log(window.host);
           window.location.replace("/checkout-complete?payment_intent=" + piId);
-        }, 4000);
+        }, 3000);
       }
       break;
     case "processing":

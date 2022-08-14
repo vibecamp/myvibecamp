@@ -110,8 +110,13 @@ func TicketCartHandler(c *gin.Context) {
 
 	attendee, err := db.GetUser(session.UserName)
 	if err == nil && attendee != nil {
-		c.Redirect(http.StatusFound, "/checkout-complete")
-		return
+		if attendee.OrderID != "" {
+			order, err := db.GetOrder(attendee.OrderID)
+			if err == nil && order != nil && order.PaymentStatus != "" {
+				c.Redirect(http.StatusFound, "/checkout-complete")
+				return
+			}
+		}
 	}
 
 	if c.Request.Method == http.MethodGet {
@@ -137,11 +142,11 @@ func TicketCartHandler(c *gin.Context) {
 	dbTicketType := ""
 
 	if adultTix > 0 {
-		dbTicketType = "adult"
+		dbTicketType = "Adult"
 	} else if childTix > 0 {
-		dbTicketType = "child"
+		dbTicketType = "Child"
 	} else if toddlerTix > 0 {
-		dbTicketType = "toddler"
+		dbTicketType = "Toddler"
 	}
 
 	// check if they hit any caps here
@@ -217,7 +222,7 @@ func TicketCartHandler(c *gin.Context) {
 		Name:              user.Name,
 		Email:             user.Email,
 		AdmissionLevel:    admissionLevel,
-		TicketType:		   dbTicketType,
+		TicketType:        dbTicketType,
 		CheckedIn:         false,
 		Barcode:           "",
 		OrderNotes:        "",
@@ -230,10 +235,19 @@ func TicketCartHandler(c *gin.Context) {
 		FoodComments:      c.PostForm("comments"),
 	}
 
-	err = newUser.CreateUser()
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
+	if attendee != nil {
+		newUser.AirtableID = attendee.AirtableID
+		err = newUser.UpdateUser()
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+	} else {
+		err = newUser.CreateUser()
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
 	}
 
 	params := url.Values{}
@@ -287,7 +301,6 @@ func SoftLaunchSignIn(c *gin.Context) {
 	SaveSession(c, session)
 
 	c.HTML(http.StatusOK, "softLaunchSignIn.html.tmpl", user)
-	return
 }
 
 func StripeCheckoutHandler(c *gin.Context) {
@@ -367,6 +380,14 @@ func PurchaseCompleteHandler(c *gin.Context) {
 		return
 	}
 
+	if order.PaymentStatus == "" {
+		err = order.UpdateOrderStatus("pending")
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+	}
+
 	c.HTML(http.StatusOK, "purchaseComplete.html.tmpl", gin.H{
 		"User":  user,
 		"Order": order,
@@ -416,7 +437,6 @@ func Logistics2023Handler(c *gin.Context) {
 	SuccessFlash(c, "Saved!")
 
 	c.Redirect(http.StatusFound, "/2023-logistics")
-	return
 }
 
 func TicketHandler(c *gin.Context) {
@@ -655,7 +675,6 @@ func FoodHandler(c *gin.Context) {
 	SuccessFlash(c, "Saved!")
 
 	c.Redirect(http.StatusFound, "/food")
-	return
 }
 
 func CabinListHandler(c *gin.Context) {

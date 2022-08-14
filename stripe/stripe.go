@@ -29,9 +29,11 @@ type Item struct {
 // this could be put in the DB but should it be? hmm
 var ticketPrices = map[string]int{"adult-cabin": 590, "adult-tent": 420, "adult-sat": 140, "child-cabin": 380, "child-tent": 210, "child-sat": 70, "toddler-cabin": 0, "toddler-tent": 0, "toddler-sat": 0}
 var stripeFeePercent float64 = 0.03
+var webhookSecret = ""
 
-func Init(key string) {
+func Init(key string, secret string) {
 	stripe.Key = key
+	webhookSecret = secret
 }
 
 func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
@@ -183,8 +185,8 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	*/
 
 	writeJSON(w, struct {
-		ClientSecret string 	`json:"clientSecret"`
-		Total        float64	`json:"total"`
+		ClientSecret string  `json:"clientSecret"`
+		Total        float64 `json:"total"`
 	}{
 		ClientSecret: pi.ClientSecret,
 		Total:        order.Total.ToFloat(),
@@ -229,9 +231,8 @@ func HandleStripeWebhook(c *gin.Context) {
 	// If you are testing with the CLI, find the secret by running 'stripe listen'
 	// If you are using an endpoint defined with the API or dashboard, look in your webhook settings
 	// at https://dashboard.stripe.com/webhooks
-	endpointSecret := "whsec_..."
 	signatureHeader := req.Header.Get("Stripe-Signature")
-	event, err = webhook.ConstructEvent(payload, signatureHeader, endpointSecret)
+	event, err = webhook.ConstructEvent(payload, signatureHeader, webhookSecret)
 	if err != nil {
 		log.Errorf("⚠️  Webhook signature verification failed. %v\n", err)
 		w.WriteHeader(http.StatusBadRequest) // Return a 400 error on a bad signature
@@ -259,19 +260,23 @@ func HandleStripeWebhook(c *gin.Context) {
 			return
 		}
 
-		err = order.UpdateOrderStatus("success")
-		if err != nil {
-			log.Errorf("error updating order payment status: %v\n", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		if order.PaymentStatus != "success" {
+			err = order.UpdateOrderStatus("success")
+			if err != nil {
+				log.Errorf("error updating order payment status: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 
-		// update aggregations
-		err = db.UpdateAggregations(order)
-		if err != nil {
-			log.Errorf("error updating aggregations %v\n", err)
-			w.WriteHeader((http.StatusInternalServerError))
-			return
+			// update aggregations
+			err = db.UpdateAggregations(order)
+			if err != nil {
+				log.Errorf("error updating aggregations %v\n", err)
+				w.WriteHeader((http.StatusInternalServerError))
+				return
+			}
+		} else {
+			log.Debugf("Order %v already marked successful", order.OrderID)
 		}
 		/*
 			if order.TotalTickets > 0 {

@@ -55,6 +55,7 @@ func main() {
 		apiSecret            = os.Getenv("TWITTER_API_SECRET")
 		stripeApiKey         = os.Getenv("STRIPE_API_KEY")
 		stripePublishableKey = os.Getenv("STRIPE_PUBLISHABLE_KEY")
+		stripeWebhookSecret  = os.Getenv("STRIPE_WEBHOOK_SECRET")
 	)
 
 	localDevMode = os.Getenv("DEV") == "true"
@@ -92,10 +93,11 @@ func main() {
 
 	db.Init(os.Getenv("AIRTABLE_API_KEY"), os.Getenv("AIRTABLE_BASE_ID"), os.Getenv("AIRTABLE_TABLE_NAME"), c)
 
+	// devSecret := "whsec_accf21614aa842e5fc86edbcb06352e28cdd2c9d04c429a100f4ac52dee77e19"
 	if localDevMode {
-		stripe.Init("sk_test_4eC39HqLyjWDarjtT1zdp7dc")
+		stripe.Init("sk_test_4eC39HqLyjWDarjtT1zdp7dc", "whsec_accf21614aa842e5fc86edbcb06352e28cdd2c9d04c429a100f4ac52dee77e19")
 	} else {
-		stripe.Init(stripeApiKey)
+		stripe.Init(stripeApiKey, stripeWebhookSecret)
 	}
 
 	callbackUrl := fmt.Sprintf("%s/callback", externalURL)
