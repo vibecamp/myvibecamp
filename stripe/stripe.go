@@ -81,7 +81,6 @@ func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 		}
 	}
 
-	// this needs to be rounded off correctly
 	var stripeFee float64 = float64(ticketTotal) * stripeFeePercent
 	order.ProcessingFee = db.CurrencyFromFloat(stripeFee)
 	order.Total = db.CurrencyFromFloat(float64(ticketTotal) + order.ProcessingFee.ToFloat() + float64(order.Donation))
@@ -119,9 +118,6 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-
-	// ticketLimit := user.ticketLimit or something
-	// then loop through items to find adult tickets & make sure they're within allotment
 
 	// need to store this for it to work correctly
 	// think it should only be stored after succesful api call i think

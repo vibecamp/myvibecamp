@@ -38,7 +38,6 @@ func (o *Order) CreateOrder() error {
 		err := errors.New("Order already exists")
 		return err
 	}
-	log.Debugf("%v", o.ProcessingFee.ToString())
 
 	recordsToSend := &airtable.Records{
 		Records: []*airtable.Record{

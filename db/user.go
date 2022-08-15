@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/cockroachdb/errors"
-	"github.com/google/uuid"
 	"github.com/mehanizm/airtable"
 	"github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
@@ -71,7 +70,7 @@ type User struct {
 	Name              string
 	Email             string
 	AdmissionLevel    string
-	TicketType		  string
+	TicketType        string
 	Barcode           string
 	OrderNotes        string
 	OrderID           string
@@ -92,15 +91,59 @@ func init() {
 	gob.Register(Order{})
 }
 
+func (u *User) UpdateUser() error {
+	if u.AirtableID == "" {
+		err := errors.New("No airtable ID")
+		return err
+	}
+
+	r := &airtable.Records{
+		Records: []*airtable.Record{{
+			ID: u.AirtableID,
+			Fields: map[string]interface{}{
+				fields.UserName:          u.UserName,
+				fields.TwitterName:       u.TwitterName,
+				fields.Name:              u.Name,
+				fields.Email:             u.Email,
+				fields.AdmissionLevel:    u.AdmissionLevel,
+				fields.TicketType:        u.TicketType,
+				fields.Barcode:           u.Barcode,
+				fields.OrderNotes:        u.OrderNotes,
+				fields.OrderID:           u.OrderID,
+				fields.CheckedIn:         u.CheckedIn,
+				fields.Badge:             u.Badge,
+				fields.Vegetarian:        u.Vegetarian,
+				fields.GlutenFree:        u.GlutenFree,
+				fields.LactoseIntolerant: u.LactoseIntolerant,
+				fields.FoodComments:      u.FoodComments,
+				fields.TicketID:          "",
+			},
+		}},
+	}
+
+	recvRecords, err := attendeesTable.UpdateRecordsPartial(r)
+	if err != nil {
+		return errors.Wrap(err, "updating attendee record")
+	}
+
+	if recvRecords == nil || len(recvRecords.Records) == 0 {
+		return errors.Wrap(ErrNoRecords, "")
+	} else if len(recvRecords.Records) != 1 {
+		return errors.Wrap(ErrManyRecords, "")
+	}
+
+	return nil
+}
+
 func (u *User) CreateUser() error {
 	if u.AirtableID != "" {
 		err := errors.New("User already exists")
 		return err
 	}
 
-	log.Debugf("%v", u)
+	// log.Debugf("%v", u)
 
-	recordsToSend := &airtable.Records{
+	r := &airtable.Records{
 		Records: []*airtable.Record{
 			{
 				Fields: map[string]interface{}{
@@ -109,7 +152,7 @@ func (u *User) CreateUser() error {
 					fields.Name:              u.Name,
 					fields.Email:             u.Email,
 					fields.AdmissionLevel:    u.AdmissionLevel,
-					fields.TicketType:		  u.TicketType,
+					fields.TicketType:        u.TicketType,
 					fields.Barcode:           u.Barcode,
 					fields.OrderNotes:        u.OrderNotes,
 					fields.OrderID:           u.OrderID,
@@ -119,13 +162,13 @@ func (u *User) CreateUser() error {
 					fields.GlutenFree:        u.GlutenFree,
 					fields.LactoseIntolerant: u.LactoseIntolerant,
 					fields.FoodComments:      u.FoodComments,
-					fields.TicketID:          uuid.NewString(),
+					fields.TicketID:          "",
 				},
 			},
 		},
 	}
 
-	recvRecords, err := attendeesTable.AddRecords(recordsToSend)
+	recvRecords, err := attendeesTable.AddRecords(r)
 	if err != nil {
 		return errors.Wrap(err, "creating attendee record")
 	}
@@ -193,7 +236,7 @@ func getUserByField(field, value string) (*User, error) {
 		TwitterName:       toStr(rec.Fields[fields.TwitterName]),
 		Name:              toStr(rec.Fields[fields.Name]),
 		Email:             toStr(rec.Fields[fields.Email]),
-		TicketType:		   toStr(rec.Fields[fields.TicketType]),
+		TicketType:        toStr(rec.Fields[fields.TicketType]),
 		AdmissionLevel:    toStr(rec.Fields[fields.AdmissionLevel]),
 		CheckedIn:         rec.Fields[fields.CheckedIn] == checked,
 		Barcode:           toStr(rec.Fields[fields.Barcode]),
