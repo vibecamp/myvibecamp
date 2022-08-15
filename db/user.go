@@ -458,6 +458,30 @@ func (u *User) UpdateOrderID(orderId string) error {
 	return nil
 }
 
+func (u *User) UpdateTicketId(ticketId string) error {
+	u.TicketID = ticketId
+
+	r := &airtable.Records{
+		Records: []*airtable.Record{{
+			ID: u.AirtableID,
+			Fields: map[string]interface{}{
+				fields.TicketID: u.TicketID,
+			},
+		}},
+	}
+
+	_, err := attendeesTable.UpdateRecordsPartial(r)
+	if err != nil {
+		return errors.Wrap(err, "setting ticket id")
+	}
+
+	if defaultCache != nil {
+		defaultCache.Delete(u.cacheKey())
+	}
+
+	return nil
+}
+
 func (u *User) SetCheckedIn() error {
 	u.CheckedIn = true
 

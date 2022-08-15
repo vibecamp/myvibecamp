@@ -330,6 +330,20 @@ func HandleStripeWebhook(c *gin.Context) {
 				w.WriteHeader((http.StatusInternalServerError))
 				return
 			}
+
+			user, err := db.GetUser(order.UserName)
+			if err != nil {
+				log.Errorf("error getting user %v\n", err)
+				w.WriteHeader((http.StatusInternalServerError))
+				return
+			}
+
+			err = user.UpdateTicketId(uuid.NewString())
+			if err != nil {
+				log.Errorf("error updating user ticket id %v\n", err)
+				w.WriteHeader((http.StatusInternalServerError))
+				return
+			}
 		} else {
 			log.Debugf("Order %v already marked successful", order.OrderID)
 		}
