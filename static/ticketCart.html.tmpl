@@ -13,7 +13,7 @@
             document.getElementById("adult-price-tag").innerText = "$590";
             document.getElementById("child-price-tag").innerText = "$380";
         } else if (ticketType === "tent") {
-            document.getElementById("adult-price-tag").innerText = "$420";
+            document.getElementById("adult-price-tag").innerText = "$420.69";
             document.getElementById("child-price-tag").innerText = "$210";
         } else if (ticketType === "sat") {
             document.getElementById("adult-price-tag").innerText = "$140";
@@ -22,6 +22,10 @@
     }
 
     function onCartInputChange(event) {
+      const donationVal = document.getElementById("donation-amount").value;
+      if (donationVal.includes(".")) {
+        document.getElementById("donation-amount").value = donationVal.slice(0,donationVal.indexOf("."));
+      }
       const donationAmt = Number(document.getElementById("donation-amount").value);
       const ticketType = document.getElementById("ticket-type").value;
       
@@ -30,7 +34,7 @@
         ticketTotal += Number(document.getElementById("adult-tickets").value) * 590;
         ticketTotal += Number(document.getElementById("child-tickets").value) * 380;
       } else if (ticketType === "tent") {
-        ticketTotal += Number(document.getElementById("adult-tickets").value) * 420;
+        ticketTotal += Number(document.getElementById("adult-tickets").value) * 420.69;
         ticketTotal += Number(document.getElementById("child-tickets").value) * 210;
       } else if (ticketType === "sat") {
         ticketTotal += Number(document.getElementById("adult-tickets").value) * 140;
@@ -146,7 +150,7 @@
                 <div class="input-group-prepend">
                   <div class="input-group-text">$</div>
                 </div>
-                <input type="number" class="form-control" name="donation-amount" id="donation-amount" min="0" style="text-align: right;" onChange="onCartInputChange()"/>
+                <input type="number" class="form-control" name="donation-amount" id="donation-amount" min="0" style="text-align: right;" onChange="onCartInputChange()" step="1"/>
               </div>
             </div>
           </div>

@@ -148,6 +148,7 @@ func main() {
 	r.GET("/vc2-sl", SoftLaunchSignIn)
 	r.POST("/vc2-sl", SoftLaunchSignIn)
 	r.POST("/stripe-webhook", stripe.HandleStripeWebhook)
+	r.POST("/checkout-complete", stripe.HandlePaymentSent)
 	r.GET("/checkout-complete", PurchaseCompleteHandler)
 	r.GET("/2023-logistics", Logistics2023Handler)
 	r.POST("/2023-logistics", Logistics2023Handler)

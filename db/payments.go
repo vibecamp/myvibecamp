@@ -144,6 +144,7 @@ func getOrderByField(field, value string) (*Order, error) {
 		OrderID:       toStr(rec.Fields[fields.OrderID]),
 		Total:         CurrencyFromAirtableString(toStr(rec.Fields[fields.Total])),
 		ProcessingFee: CurrencyFromAirtableString(toStr(rec.Fields[fields.ProcessingFee])),
+		Donation:      CurrencyFromAirtableString(toStr(rec.Fields[fields.Donation])).Dollars,
 		TotalTickets:  toInt(rec.Fields[fields.TotalTickets]),
 		AdultCabin:    toInt(rec.Fields[fields.AdultCabin]),
 		AdultTent:     toInt(rec.Fields[fields.AdultTent]),
@@ -154,7 +155,6 @@ func getOrderByField(field, value string) (*Order, error) {
 		ToddlerCabin:  toInt(rec.Fields[fields.ToddlerCabin]),
 		ToddlerTent:   toInt(rec.Fields[fields.ToddlerTent]),
 		ToddlerSat:    toInt(rec.Fields[fields.ToddlerSat]),
-		Donation:      toInt(rec.Fields[fields.Donation]),
 		StripeID:      toStr(rec.Fields[fields.PaymentID]),
 		PaymentStatus: toStr(rec.Fields[fields.PaymentStatus]),
 	}

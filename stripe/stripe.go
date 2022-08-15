@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -44,7 +43,7 @@ func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 	order.StripeID = ""
 	order.PaymentStatus = ""
 	order.AirtableID = ""
-	var ticketTotal = 0
+	var ticketTotal float64 = 0
 	for _, element := range items {
 		if element.Id == "donation" && element.Quantity > 0 && element.Amount > 0 {
 			order.Donation = element.Amount
@@ -55,7 +54,11 @@ func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 
 			price, ok1 := ticketPrices[element.Id]
 			if ok1 {
-				ticketTotal += (price * element.Quantity)
+				if element.Id == "adult-tent" {
+					ticketTotal += (float64(element.Quantity) * float64(420.69))
+				} else {
+					ticketTotal += float64(price * element.Quantity)
+				}
 				order.TotalTickets += element.Quantity
 
 				if element.Id == "adult-cabin" {
@@ -81,9 +84,12 @@ func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 		}
 	}
 
-	var stripeFee float64 = float64(ticketTotal) * stripeFeePercent
+	var stripeFee float64 = ticketTotal * stripeFeePercent
 	order.ProcessingFee = db.CurrencyFromFloat(stripeFee)
 	order.Total = db.CurrencyFromFloat(float64(ticketTotal) + order.ProcessingFee.ToFloat() + float64(order.Donation))
+	log.Debugf("%f", order.Total.ToFloat())
+	log.Debugf("%f", stripeFee)
+	log.Debugf("%v", order.Donation)
 
 	return order, nil
 }
@@ -103,19 +109,19 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Printf("json.NewDecoder.Decode: %v", err)
+		log.Errorf("json.NewDecoder.Decode: %v", err)
 		return
 	}
 
 	user, err := db.GetSoftLaunchUser(req.UserName)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	newUser, err := db.GetUser(req.UserName)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -125,7 +131,7 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 
 	order, err := calculateCartInfo(req.Items, user.TicketLimit)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -147,27 +153,27 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	params.AddMetadata("orderId", order.OrderID)
 
 	pi, err := paymentintent.New(params)
-	log.Printf("pi.New: %v", pi.ClientSecret)
+	log.Debugf("pi.New: %v", pi.ClientSecret)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Printf("pi.New: %v", err)
+		log.Errorf("pi.New: %v", err)
 		return
 	}
 
 	order.StripeID = pi.ID
 
-	err = order.CreateOrder()
+	/* err = order.CreateOrder()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("order.CreateOrder: %v", err)
 		return
-	}
+	} */
 
 	err = newUser.UpdateOrderID(order.OrderID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Printf("user.UpdateOrderID: %v", err)
+		log.Errorf("user.UpdateOrderID: %v", err)
 		return
 	}
 
@@ -183,9 +189,62 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	writeJSON(w, struct {
 		ClientSecret string  `json:"clientSecret"`
 		Total        float64 `json:"total"`
+		IntentId     string  `json:"intentId"`
 	}{
 		ClientSecret: pi.ClientSecret,
 		Total:        order.Total.ToFloat(),
+		IntentId:     pi.ID,
+	})
+}
+
+func HandlePaymentSent(c *gin.Context) {
+	var w http.ResponseWriter = c.Writer
+	var r *http.Request = c.Request
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Items    []Item `json:"items"`
+		UserName string `json:"username"`
+		IntentId string `json:"id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Errorf("json.NewDecoder.Decode: %v", err)
+		return
+	}
+
+	order, err := calculateCartInfo(req.Items, 10)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	user, err := db.GetUser(req.UserName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	order.UserName = user.UserName
+	order.OrderID = user.OrderID
+	order.StripeID = req.IntentId
+	order.PaymentStatus = "pending"
+
+	err = order.CreateOrder()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("order.CreateOrder: %v", err)
+		return
+	}
+
+	writeJSON(w, struct {
+		OrderId string `json:"orderId"`
+	}{
+		OrderId: order.OrderID,
 	})
 }
 
@@ -208,7 +267,7 @@ func HandleStripeWebhook(c *gin.Context) {
 	var req *http.Request = c.Request
 	const MaxBodyBytes = int64(65536)
 	req.Body = http.MaxBytesReader(w, req.Body, MaxBodyBytes)
-	payload, err := ioutil.ReadAll(req.Body)
+	payload, err := io.ReadAll(req.Body)
 	if err != nil {
 		log.Errorf("Error reading request body: %v\n", err)
 		w.WriteHeader(http.StatusServiceUnavailable)

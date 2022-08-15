@@ -359,13 +359,13 @@ func (a *Aggregation) MakeUpdatedRecord(order *Order) *airtable.Record {
 		a.Revenue += ((order.AdultCabin * 590) + (order.ChildCabin * 380)) * 100
 	} else if a.Name == fields.TentSold {
 		a.Quantity += order.AdultTent + order.ChildTent + order.ToddlerTent
-		a.Revenue += ((order.AdultTent * 420) + (order.ChildTent * 210)) * 100
+		a.Revenue += (order.AdultTent * 42069) + (order.ChildTent*210)*100
 	} else if a.Name == fields.SatSold {
 		a.Quantity += order.AdultSat + order.ChildSat + order.ToddlerSat
 		a.Revenue += ((order.AdultSat * 140) + (order.ChildSat * 70)) * 100
 	} else if a.Name == fields.AdultSold {
 		a.Quantity += order.AdultCabin + order.AdultTent + order.AdultSat
-		a.Revenue += ((order.AdultCabin * 590) + (order.AdultTent * 420) + (order.AdultSat * 140)) * 100
+		a.Revenue += ((order.AdultCabin*590)+(order.AdultSat*140))*100 + (order.AdultTent * 42069)
 	} else if a.Name == fields.ChildSold {
 		a.Quantity += order.ChildCabin + order.ChildTent + order.ChildSat
 		a.Revenue += ((order.ChildCabin * 380) + (order.ChildTent * 210) + (order.ChildSat * 70)) * 100
@@ -374,11 +374,12 @@ func (a *Aggregation) MakeUpdatedRecord(order *Order) *airtable.Record {
 	} else if a.Name == fields.DonationsRecv {
 		if order.Donation > 0 {
 			a.Quantity += 1
-			a.Revenue += (order.Donation*100 - donationFee)
+			newRev := (order.Donation*100 - donationFee)
+			a.Revenue += newRev
 		}
 	} else if a.Name == fields.FullSold {
 		a.Quantity += order.AdultCabin + order.AdultTent + order.ChildCabin + order.ChildTent + order.ToddlerCabin + order.ToddlerTent
-		a.Revenue += ticketTotal
+		a.Revenue += order.AdultTent*42069 + (order.AdultCabin*590+order.ChildCabin*380+order.ChildTent*210)*100
 	}
 
 	cents := a.Revenue % 100

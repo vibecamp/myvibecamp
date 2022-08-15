@@ -11,6 +11,7 @@ let elements;
 
 let items = [];
 let username = "";
+let paymentIntentId = "";
 const ticketCart = document.querySelector("#ticket-cart");
 if (ticketCart.hasAttribute("cartData")) {
   items = JSON.parse(ticketCart.getAttribute("cartData")).items;
@@ -47,7 +48,8 @@ async function initialize() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ items, username }),
   });
-  const { clientSecret, total } = await response.json();
+  const { clientSecret, total, intentId } = await response.json();
+  paymentIntentId = intentId;
 
   const appearance = {
     theme: "stripe",
@@ -65,23 +67,35 @@ async function handleSubmit(e) {
   e.preventDefault();
   setLoading(true);
 
+  const response = await fetch("/checkout-complete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      items,
+      username,
+      id: paymentIntentId,
+    }),
+  });
+
+  if (response.status !== 200) {
+    showMessage("An unknown error occurred");
+    setLoading(false);
+    return;
+  }
+
+  const { orderId } = await response.json();
+
   const { error } = await stripe.confirmPayment({
     elements,
     confirmParams: {
-      // Make sure to change this to your payment completion page
       return_url:
         (window.location.host.startsWith("127") ? "http://" : "https://") +
         window.location.host +
-        "/checkout",
-      // "http://127.0.0.1.nip.io:8080/checkout",
+        "/checkout-complete?order_id=" +
+        orderId,
     },
   });
 
-  // This point will only be reached if there is an immediate error when
-  // confirming the payment. Otherwise, your customer will be redirected to
-  // your `return_url`. For some payment methods like iDEAL, your customer will
-  // be redirected to an intermediate site first to authorize the payment, then
-  // redirected to the `return_url`.
   if (error.type === "card_error" || error.type === "validation_error") {
     showMessage(error.message);
   } else {
@@ -108,20 +122,7 @@ async function checkStatus() {
   switch (paymentIntent.status) {
     case "succeeded":
       showMessage("Payment succeeded!");
-      // redirect to checkout complete where
-      // it can get order with the pi in the query params?
-      const piId = new URLSearchParams(window.location.search).get(
-        "payment_intent"
-      );
-      if (!paymentIntent) {
-        // idk
-        return;
-      } else {
-        setTimeout(function () {
-          console.log(window.host);
-          window.location.replace("/checkout-complete?payment_intent=" + piId);
-        }, 3000);
-      }
+      window.location.replace("/checkout-complete");
       break;
     case "processing":
       showMessage("Your payment is processing.");

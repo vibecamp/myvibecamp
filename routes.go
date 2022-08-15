@@ -372,8 +372,6 @@ func PurchaseCompleteHandler(c *gin.Context) {
 		return
 	}
 
-	log.Debugf("%v", user)
-
 	order, err := db.GetOrder(user.OrderID)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
