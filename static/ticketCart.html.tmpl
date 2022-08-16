@@ -60,16 +60,29 @@
   </nav>
   {{ template "flashes" .flashes }}
 
-  <h2>Buy Your Tickets</h2>
+  <h2>Purchase your vibecamp tickets here!</h2>
 
   <p>
     Each adult who attended the first vibecamp is eligible to buy one adult ticket and tickets for any attending children.
   </p>
 
   <p>
-    Base entry is $420 (children 8 & under half off, children under 2 free) with an additional $170 for indoor cabin placement 
-    for adults and children over 2. If you're planning to stay offsite, please purchase a tent ticket for entry. We are also offering
-    Saturday Night tickets, with entry & overnight access from Saturday to Sunday, for $140.
+    The next vibecamp will be taking place from June 15th-18th in 2023 at Camp Ramblewood in Maryland. We have a few different ticket tiers.
+  </p>
+
+  <h4>Adults:</h4>
+  <p>
+    $420.69 is the base entry price for adults and children 9 and older. This ticket tier grants you access to the entire event, two meals a day 
+    (plus whatever snacks/breakfast food we add), and the option to sleep onsite in a tent/car/hammock.
+  </p>
+  <p>
+    $590 is the cabin ticket tier for adults and children 9 and older. This gets you a guaranteed spot in a cabin with tempurpedic mattresses - and adult-sized beds! 
+    We will be facilitating cabin sorting closer to the event through our <a href="https://discord.gg/btzNabV3VD">discord server</a>.
+  </p>
+
+  <h4>Children:</h4>
+  <p>
+    Children under the age of 2 get in free. Event access for children ages 3-8 is $210. Cabin placement for children between those ages is $380.
   </p>
 
     <form method="post" action="">
@@ -83,7 +96,7 @@
             <select name="ticket-type" id="ticket-type" class="form-select" onChange="onTicketTypeChange(this.value)" value="none" required style="text-align: right;">
                 <option value="none" selected hidden></option>
                 <option value="cabin">Cabin</option>
-                <option value="tent">Tent</option>
+                <option value="tent">Admission</option>
                 <option value="sat">Saturday Night</option>
             </select>
             </div>
