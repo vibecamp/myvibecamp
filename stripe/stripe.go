@@ -270,7 +270,14 @@ func writeJSON(w http.ResponseWriter, v interface{}) {
 func AddToKlaviyo(email string, admissionLevel string, donation string) error {
 	klaviyoUrl := "https://a.klaviyo.com/api/v2/list/" + klaviyoListId + "/members?api_key=" + klaviyoKey
 
-	payload := strings.NewReader("{\"profiles\":[{\"email\":\"" + email + "\",\"Admission Level 2023\":\"" + admissionLevel + "\",\"2023 Donor\":\"" + donation + "\"}]}")
+	admLvl := admissionLevel
+	if admLvl == "Tent" {
+		admLvl = "Basic"
+	} else if admLvl == "Saturday Night" {
+		admLvl = "Saturday"
+	}
+
+	payload := strings.NewReader("{\"profiles\":[{\"email\":\"" + email + "\",\"Admission Level 2023\":\"" + admLvl + "\",\"2023 Donor\":\"" + donation + "\"}]}")
 
 	req, _ := http.NewRequest("POST", klaviyoUrl, payload)
 
