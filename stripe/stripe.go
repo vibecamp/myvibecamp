@@ -272,9 +272,11 @@ func AddToKlaviyo(email string, admissionLevel string, donation string) error {
 
 	admLvl := admissionLevel
 	if admLvl == "Tent" {
-		admLvl = "Basic"
+		admLvl = "basic"
 	} else if admLvl == "Saturday Night" {
-		admLvl = "Saturday"
+		admLvl = "saturday"
+	} else if admLvl == "Cabin" {
+		admLvl = "cabin"
 	}
 
 	payload := strings.NewReader("{\"profiles\":[{\"email\":\"" + email + "\",\"Admission Level 2023\":\"" + admLvl + "\",\"2023 Donor\":\"" + donation + "\"}]}")
