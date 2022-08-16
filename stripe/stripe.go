@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/vibecamp/myvibecamp/db"
@@ -29,10 +30,14 @@ type Item struct {
 var ticketPrices = map[string]int{"adult-cabin": 590, "adult-tent": 420, "adult-sat": 140, "child-cabin": 380, "child-tent": 210, "child-sat": 70, "toddler-cabin": 0, "toddler-tent": 0, "toddler-sat": 0}
 var stripeFeePercent float64 = 0.03
 var webhookSecret = ""
+var klaviyoKey = ""
+var klaviyoListId = ""
 
-func Init(key string, secret string) {
+func Init(key string, secret string, klaviyo string, klaviyoList string) {
 	stripe.Key = key
 	webhookSecret = secret
+	klaviyoKey = klaviyo
+	klaviyoListId = klaviyoList
 }
 
 func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
@@ -262,6 +267,33 @@ func writeJSON(w http.ResponseWriter, v interface{}) {
 	}
 }
 
+func AddToKlaviyo(email string, admissionLevel string, donation string) error {
+	klaviyoUrl := "https://a.klaviyo.com/api/v2/list/" + klaviyoListId + "/members?api_key=" + klaviyoKey
+
+	payload := strings.NewReader("{\"profiles\":[{\"email\":\"" + email + "\",\"Admission Level 2023\":\"" + admissionLevel + "\",\"2023 Donor\":\"" + donation + "\"}]}")
+
+	req, _ := http.NewRequest("POST", klaviyoUrl, payload)
+
+	req.Header.Add("Accept", "application/json")
+
+	req.Header.Add("Content-Type", "application/json")
+
+	_, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		log.Errorf("Error adding email to klaviyo list %v %v", email, err)
+		return err
+	}
+
+	// defer res.Body.Close()
+
+	// body, _ := ioutil.ReadAll(res.Body)
+
+	// fmt.Println(res)
+	// fmt.Println(string(body))
+	return nil
+}
+
 func HandleStripeWebhook(c *gin.Context) {
 	var w http.ResponseWriter = c.Writer
 	var req *http.Request = c.Request
@@ -343,6 +375,15 @@ func HandleStripeWebhook(c *gin.Context) {
 				log.Errorf("error updating user ticket id %v\n", err)
 				w.WriteHeader((http.StatusInternalServerError))
 				return
+			}
+
+			if user.Email != "" {
+				err = AddToKlaviyo(user.Email, user.AdmissionLevel, "$"+strconv.Itoa(order.Donation))
+				if err != nil {
+					log.Errorf("Error adding user to klaviyo %v\n", err)
+				}
+			} else {
+				log.Debugf("User does not have an associated email")
 			}
 		} else {
 			log.Debugf("Order %v already marked successful", order.OrderID)
