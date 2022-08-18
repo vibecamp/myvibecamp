@@ -48,6 +48,7 @@ const (
 	// orders
 	Total         = "Total"
 	TotalTickets  = "Total Tickets"
+	ProcessingFee = "Processing Fee"
 	AdultCabin    = "Adult Cabin"
 	AdultTent     = "Adult Tent"
 	AdultSat      = "Adult Saturday Night"

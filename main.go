@@ -55,6 +55,9 @@ func main() {
 		apiSecret            = os.Getenv("TWITTER_API_SECRET")
 		stripeApiKey         = os.Getenv("STRIPE_API_KEY")
 		stripePublishableKey = os.Getenv("STRIPE_PUBLISHABLE_KEY")
+		stripeWebhookSecret  = os.Getenv("STRIPE_WEBHOOK_SECRET")
+		klaviyoKey           = os.Getenv("KLAVIYO_API_KEY")
+		klaviyoListId        = os.Getenv("KLAVIYO_LIST_ID")
 	)
 
 	localDevMode = os.Getenv("DEV") == "true"
@@ -93,9 +96,9 @@ func main() {
 	db.Init(os.Getenv("AIRTABLE_API_KEY"), os.Getenv("AIRTABLE_BASE_ID"), os.Getenv("AIRTABLE_TABLE_NAME"), c)
 
 	if localDevMode {
-		stripe.Init("sk_test_4eC39HqLyjWDarjtT1zdp7dc")
+		stripe.Init("sk_test_4eC39HqLyjWDarjtT1zdp7dc", "", klaviyoKey, klaviyoListId)
 	} else {
-		stripe.Init(stripeApiKey)
+		stripe.Init(stripeApiKey, stripeWebhookSecret, klaviyoKey, klaviyoListId)
 	}
 
 	callbackUrl := fmt.Sprintf("%s/callback", externalURL)
@@ -147,6 +150,7 @@ func main() {
 	r.GET("/vc2-sl", SoftLaunchSignIn)
 	r.POST("/vc2-sl", SoftLaunchSignIn)
 	r.POST("/stripe-webhook", stripe.HandleStripeWebhook)
+	r.POST("/checkout-complete", stripe.HandlePaymentSent)
 	r.GET("/checkout-complete", PurchaseCompleteHandler)
 	r.GET("/2023-logistics", Logistics2023Handler)
 	r.POST("/2023-logistics", Logistics2023Handler)

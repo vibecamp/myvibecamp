@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/vibecamp/myvibecamp/db"
@@ -28,23 +28,29 @@ type Item struct {
 
 // this could be put in the DB but should it be? hmm
 var ticketPrices = map[string]int{"adult-cabin": 590, "adult-tent": 420, "adult-sat": 140, "child-cabin": 380, "child-tent": 210, "child-sat": 70, "toddler-cabin": 0, "toddler-tent": 0, "toddler-sat": 0}
+var stripeFeePercent float64 = 0.03
+var webhookSecret = ""
+var klaviyoKey = ""
+var klaviyoListId = ""
 
-func Init(key string) {
+func Init(key string, secret string, klaviyo string, klaviyoList string) {
 	stripe.Key = key
+	webhookSecret = secret
+	klaviyoKey = klaviyo
+	klaviyoListId = klaviyoList
 }
 
 func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 	order := &db.Order{}
-	order.Total = 0
 	order.TotalTickets = 0
 	order.OrderID = ""
 	order.UserName = ""
 	order.StripeID = ""
 	order.PaymentStatus = ""
 	order.AirtableID = ""
+	var ticketTotal float64 = 0
 	for _, element := range items {
 		if element.Id == "donation" && element.Quantity > 0 && element.Amount > 0 {
-			order.Total += element.Amount
 			order.Donation = element.Amount
 		} else if element.Quantity > 0 {
 			if element.Quantity > ticketLimit && strings.HasPrefix(element.Id, "adult") {
@@ -53,7 +59,11 @@ func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 
 			price, ok1 := ticketPrices[element.Id]
 			if ok1 {
-				order.Total += (price * element.Quantity)
+				if element.Id == "adult-tent" {
+					ticketTotal += (float64(element.Quantity) * float64(420.69))
+				} else {
+					ticketTotal += float64(price * element.Quantity)
+				}
 				order.TotalTickets += element.Quantity
 
 				if element.Id == "adult-cabin" {
@@ -79,6 +89,13 @@ func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
 		}
 	}
 
+	var stripeFee float64 = ticketTotal * stripeFeePercent
+	order.ProcessingFee = db.CurrencyFromFloat(stripeFee)
+	order.Total = db.CurrencyFromFloat(float64(ticketTotal) + order.ProcessingFee.ToFloat() + float64(order.Donation))
+	log.Debugf("%f", order.Total.ToFloat())
+	log.Debugf("%f", stripeFee)
+	log.Debugf("%v", order.Donation)
+
 	return order, nil
 }
 
@@ -97,24 +114,21 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Printf("json.NewDecoder.Decode: %v", err)
+		log.Errorf("json.NewDecoder.Decode: %v", err)
 		return
 	}
 
 	user, err := db.GetSoftLaunchUser(req.UserName)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	newUser, err := db.GetUser(req.UserName)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	// ticketLimit := user.ticketLimit or something
-	// then loop through items to find adult tickets & make sure they're within allotment
 
 	// need to store this for it to work correctly
 	// think it should only be stored after succesful api call i think
@@ -122,7 +136,7 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 
 	order, err := calculateCartInfo(req.Items, user.TicketLimit)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -131,8 +145,8 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 
 	// Create a PaymentIntent with amount and currency
 	params := &stripe.PaymentIntentParams{
-		Amount:   stripe.Int64(int64(order.Total) * 100),
-		Currency: stripe.String(string(stripe.CurrencyEUR)),
+		Amount:   stripe.Int64(order.Total.ToCurrencyInt()),
+		Currency: stripe.String(string(stripe.CurrencyUSD)),
 		AutomaticPaymentMethods: &stripe.PaymentIntentAutomaticPaymentMethodsParams{
 			Enabled: stripe.Bool(true),
 		},
@@ -144,27 +158,27 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	params.AddMetadata("orderId", order.OrderID)
 
 	pi, err := paymentintent.New(params)
-	log.Printf("pi.New: %v", pi.ClientSecret)
+	log.Debugf("pi.New: %v", pi.ClientSecret)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Printf("pi.New: %v", err)
+		log.Errorf("pi.New: %v", err)
 		return
 	}
 
 	order.StripeID = pi.ID
 
-	err = order.CreateOrder()
+	/* err = order.CreateOrder()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("order.CreateOrder: %v", err)
 		return
-	}
+	} */
 
 	err = newUser.UpdateOrderID(order.OrderID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Printf("user.UpdateOrderID: %v", err)
+		log.Errorf("user.UpdateOrderID: %v", err)
 		return
 	}
 
@@ -178,11 +192,64 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	*/
 
 	writeJSON(w, struct {
-		ClientSecret string `json:"clientSecret"`
-		Total        int    `json:"total"`
+		ClientSecret string  `json:"clientSecret"`
+		Total        float64 `json:"total"`
+		IntentId     string  `json:"intentId"`
 	}{
 		ClientSecret: pi.ClientSecret,
-		Total:        order.Total,
+		Total:        order.Total.ToFloat(),
+		IntentId:     pi.ID,
+	})
+}
+
+func HandlePaymentSent(c *gin.Context) {
+	var w http.ResponseWriter = c.Writer
+	var r *http.Request = c.Request
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Items    []Item `json:"items"`
+		UserName string `json:"username"`
+		IntentId string `json:"id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Errorf("json.NewDecoder.Decode: %v", err)
+		return
+	}
+
+	order, err := calculateCartInfo(req.Items, 10)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	user, err := db.GetUser(req.UserName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	order.UserName = user.UserName
+	order.OrderID = user.OrderID
+	order.StripeID = req.IntentId
+	order.PaymentStatus = "pending"
+
+	err = order.CreateOrder()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("order.CreateOrder: %v", err)
+		return
+	}
+
+	writeJSON(w, struct {
+		OrderId string `json:"orderId"`
+	}{
+		OrderId: order.OrderID,
 	})
 }
 
@@ -200,12 +267,48 @@ func writeJSON(w http.ResponseWriter, v interface{}) {
 	}
 }
 
+func AddToKlaviyo(email string, admissionLevel string, donation string) error {
+	klaviyoUrl := "https://a.klaviyo.com/api/v2/list/" + klaviyoListId + "/members?api_key=" + klaviyoKey
+
+	admLvl := admissionLevel
+	if admLvl == "Tent" {
+		admLvl = "basic"
+	} else if admLvl == "Saturday Night" {
+		admLvl = "saturday"
+	} else if admLvl == "Cabin" {
+		admLvl = "cabin"
+	}
+
+	payload := strings.NewReader("{\"profiles\":[{\"email\":\"" + email + "\",\"Admission Level 2023\":\"" + admLvl + "\",\"2023 Donor\":\"" + donation + "\"}]}")
+
+	req, _ := http.NewRequest("POST", klaviyoUrl, payload)
+
+	req.Header.Add("Accept", "application/json")
+
+	req.Header.Add("Content-Type", "application/json")
+
+	_, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		log.Errorf("Error adding email to klaviyo list %v %v", email, err)
+		return err
+	}
+
+	// defer res.Body.Close()
+
+	// body, _ := ioutil.ReadAll(res.Body)
+
+	// fmt.Println(res)
+	// fmt.Println(string(body))
+	return nil
+}
+
 func HandleStripeWebhook(c *gin.Context) {
 	var w http.ResponseWriter = c.Writer
 	var req *http.Request = c.Request
 	const MaxBodyBytes = int64(65536)
 	req.Body = http.MaxBytesReader(w, req.Body, MaxBodyBytes)
-	payload, err := ioutil.ReadAll(req.Body)
+	payload, err := io.ReadAll(req.Body)
 	if err != nil {
 		log.Errorf("Error reading request body: %v\n", err)
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -224,9 +327,8 @@ func HandleStripeWebhook(c *gin.Context) {
 	// If you are testing with the CLI, find the secret by running 'stripe listen'
 	// If you are using an endpoint defined with the API or dashboard, look in your webhook settings
 	// at https://dashboard.stripe.com/webhooks
-	endpointSecret := "whsec_..."
 	signatureHeader := req.Header.Get("Stripe-Signature")
-	event, err = webhook.ConstructEvent(payload, signatureHeader, endpointSecret)
+	event, err = webhook.ConstructEvent(payload, signatureHeader, webhookSecret)
 	if err != nil {
 		log.Errorf("⚠️  Webhook signature verification failed. %v\n", err)
 		w.WriteHeader(http.StatusBadRequest) // Return a 400 error on a bad signature
@@ -254,19 +356,46 @@ func HandleStripeWebhook(c *gin.Context) {
 			return
 		}
 
-		err = order.UpdateOrderStatus("success")
-		if err != nil {
-			log.Errorf("error updating order payment status: %v\n", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		if order.PaymentStatus != "success" {
+			err = order.UpdateOrderStatus("success")
+			if err != nil {
+				log.Errorf("error updating order payment status: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 
-		// update aggregations
-		err = db.UpdateAggregations(order)
-		if err != nil {
-			log.Errorf("error updating aggregations %v\n", err)
-			w.WriteHeader((http.StatusInternalServerError))
-			return
+			// update aggregations
+			err = db.UpdateAggregations(order)
+			if err != nil {
+				log.Errorf("error updating aggregations %v\n", err)
+				w.WriteHeader((http.StatusInternalServerError))
+				return
+			}
+
+			user, err := db.GetUser(order.UserName)
+			if err != nil {
+				log.Errorf("error getting user %v\n", err)
+				w.WriteHeader((http.StatusInternalServerError))
+				return
+			}
+
+			err = user.UpdateTicketId(uuid.NewString())
+			if err != nil {
+				log.Errorf("error updating user ticket id %v\n", err)
+				w.WriteHeader((http.StatusInternalServerError))
+				return
+			}
+
+			if user.Email != "" {
+				err = AddToKlaviyo(user.Email, user.AdmissionLevel, "$"+strconv.Itoa(order.Donation))
+				if err != nil {
+					log.Errorf("Error adding user to klaviyo %v\n", err)
+				}
+			} else {
+				log.Debugf("User does not have an associated email")
+			}
+		} else {
+			log.Debugf("Order %v already marked successful", order.OrderID)
 		}
 		/*
 			if order.TotalTickets > 0 {

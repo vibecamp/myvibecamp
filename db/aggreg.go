@@ -3,6 +3,7 @@ package db
 import (
 	"bytes"
 	"encoding/gob"
+	"math"
 	"strconv"
 	"strings"
 
@@ -11,6 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vibecamp/myvibecamp/fields"
 )
+
+var stripeFee float64 = 0.03
 
 type Constant struct {
 	Name  string
@@ -25,6 +28,63 @@ type Aggregation struct {
 	Revenue  int
 
 	AirtableID string
+}
+
+type Currency struct {
+	Dollars int
+	Cents   int
+}
+
+func CurrencyFromAirtableString(str string) *Currency {
+	revenueStr := strings.Replace(str[1:], ",", "", -1)
+	currencyInts, _ := strconv.Atoi(revenueStr[:len(revenueStr)-3])
+	currencyCents, _ := strconv.Atoi(revenueStr[len(revenueStr)-2:])
+	c := &Currency{
+		Dollars: currencyInts,
+		Cents:   currencyCents,
+	}
+	return c
+}
+
+func (c *Currency) ToString() string {
+	centsStr := "00"
+	if c.Cents > 9 {
+		centsStr = strconv.Itoa(c.Cents)
+	} else {
+		centsStr = "0" + strconv.Itoa(c.Cents)
+	}
+	revenueStr := "$" + strconv.Itoa(c.Dollars) + "." + centsStr
+	return revenueStr
+}
+
+func (c *Currency) ToAirtableString() string {
+	centsStr := "00"
+	if c.Cents > 9 {
+		centsStr = strconv.Itoa(c.Cents)
+	} else {
+		centsStr = "0" + strconv.Itoa(c.Cents)
+	}
+	revenueStr := strconv.Itoa(c.Dollars) + "." + centsStr
+	return revenueStr
+}
+
+func CurrencyFromFloat(curr float64) *Currency {
+	c := &Currency{
+		Dollars: int(curr),
+		Cents:   int((curr-math.Floor(curr))*100 + 0.5),
+	}
+	return c
+}
+
+func (c *Currency) ToFloat() float64 {
+	var curr float64 = float64(c.Dollars)
+	curr += (float64(c.Cents) / 100)
+	return curr
+}
+
+func (c *Currency) ToCurrencyInt() int64 {
+	var curr int64 = int64(c.ToFloat() * 100)
+	return curr
 }
 
 func GetConstant(constantName string) (*Constant, error) {
@@ -239,7 +299,7 @@ func (a *Aggregation) UpdateAggregation(quantity int, revenue int) error {
 func (a *Aggregation) UpdateAggregationFromOrder(order *Order) error {
 	if a.Name == fields.TotalTicketsSold || a.Name == fields.SoftLaunchSold {
 		a.Quantity += order.TotalTickets
-		a.Revenue += order.Total - order.Donation
+		a.Revenue += int(order.Total.ToFloat()) - order.Donation
 	} else if a.Name == fields.CabinSold {
 		a.Quantity += order.AdultCabin + order.ChildCabin + order.ToddlerCabin
 		a.Revenue += (order.AdultCabin * 590) + (order.ChildCabin * 380)
@@ -289,32 +349,37 @@ func (a *Aggregation) UpdateAggregationFromOrder(order *Order) error {
 }
 
 func (a *Aggregation) MakeUpdatedRecord(order *Order) *airtable.Record {
+	ticketTotal := int((order.Total.ToFloat()-order.ProcessingFee.ToFloat()-float64(order.Donation))*100 + 0.5)
+	donationFee := int(float64(order.Donation)*stripeFee*100 + 0.5)
 	if a.Name == fields.TotalTicketsSold || a.Name == fields.SoftLaunchSold {
 		a.Quantity += order.TotalTickets
-		a.Revenue += (order.Total - order.Donation) * 100
+		a.Revenue += ticketTotal
 	} else if a.Name == fields.CabinSold {
 		a.Quantity += order.AdultCabin + order.ChildCabin + order.ToddlerCabin
 		a.Revenue += ((order.AdultCabin * 590) + (order.ChildCabin * 380)) * 100
 	} else if a.Name == fields.TentSold {
 		a.Quantity += order.AdultTent + order.ChildTent + order.ToddlerTent
-		a.Revenue += ((order.AdultTent * 420) + (order.ChildTent * 210)) * 100
+		a.Revenue += (order.AdultTent * 42069) + (order.ChildTent*210)*100
 	} else if a.Name == fields.SatSold {
 		a.Quantity += order.AdultSat + order.ChildSat + order.ToddlerSat
 		a.Revenue += ((order.AdultSat * 140) + (order.ChildSat * 70)) * 100
 	} else if a.Name == fields.AdultSold {
 		a.Quantity += order.AdultCabin + order.AdultTent + order.AdultSat
-		a.Revenue += ((order.AdultCabin * 590) + (order.AdultTent * 420) + (order.AdultSat * 140)) * 100
+		a.Revenue += ((order.AdultCabin*590)+(order.AdultSat*140))*100 + (order.AdultTent * 42069)
 	} else if a.Name == fields.ChildSold {
 		a.Quantity += order.ChildCabin + order.ChildTent + order.ChildSat
 		a.Revenue += ((order.ChildCabin * 380) + (order.ChildTent * 210) + (order.ChildSat * 70)) * 100
+	} else if a.Name == fields.ToddlerSold {
+		a.Quantity += order.ToddlerCabin + order.ToddlerTent + order.ToddlerSat
 	} else if a.Name == fields.DonationsRecv {
 		if order.Donation > 0 {
 			a.Quantity += 1
-			a.Revenue += order.Donation * 100
+			newRev := (order.Donation*100 - donationFee)
+			a.Revenue += newRev
 		}
 	} else if a.Name == fields.FullSold {
 		a.Quantity += order.AdultCabin + order.AdultTent + order.ChildCabin + order.ChildTent + order.ToddlerCabin + order.ToddlerTent
-		a.Revenue += ((order.AdultCabin * 590) + (order.AdultTent * 420) + (order.ChildCabin * 380) + (order.ChildTent * 210)) * 100
+		a.Revenue += order.AdultTent*42069 + (order.AdultCabin*590+order.ChildCabin*380+order.ChildTent*210)*100
 	}
 
 	cents := a.Revenue % 100
@@ -362,6 +427,7 @@ func UpdateAggregations(order *Order) error {
 		Records: records,
 	}
 
+	log.Debugf("%v", r)
 	_, err = aggregationsTable.UpdateRecordsPartial(r)
 	if err != nil {
 		return errors.Wrap(err, "updating aggregations")

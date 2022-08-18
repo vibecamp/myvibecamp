@@ -13,7 +13,7 @@
             document.getElementById("adult-price-tag").innerText = "$590";
             document.getElementById("child-price-tag").innerText = "$380";
         } else if (ticketType === "tent") {
-            document.getElementById("adult-price-tag").innerText = "$420";
+            document.getElementById("adult-price-tag").innerText = "$420.69";
             document.getElementById("child-price-tag").innerText = "$210";
         } else if (ticketType === "sat") {
             document.getElementById("adult-price-tag").innerText = "$140";
@@ -22,21 +22,30 @@
     }
 
     function onCartInputChange(event) {
-      let total = Number(document.getElementById("donation-amount").value);
+      const donationVal = document.getElementById("donation-amount").value;
+      if (donationVal.includes(".")) {
+        document.getElementById("donation-amount").value = donationVal.slice(0,donationVal.indexOf("."));
+      }
+      const donationAmt = Number(document.getElementById("donation-amount").value);
       const ticketType = document.getElementById("ticket-type").value;
       
+      let ticketTotal = 0;
       if (ticketType === "cabin") {
-        total += Number(document.getElementById("adult-tickets").value) * 590;
-        total += Number(document.getElementById("child-tickets").value) * 380;
+        ticketTotal += Number(document.getElementById("adult-tickets").value) * 590;
+        ticketTotal += Number(document.getElementById("child-tickets").value) * 380;
       } else if (ticketType === "tent") {
-        total += Number(document.getElementById("adult-tickets").value) * 420;
-        total += Number(document.getElementById("child-tickets").value) * 210;
+        ticketTotal += Number(document.getElementById("adult-tickets").value) * 420.69;
+        ticketTotal += Number(document.getElementById("child-tickets").value) * 210;
       } else if (ticketType === "sat") {
-        total += Number(document.getElementById("adult-tickets").value) * 140;
-        total += Number(document.getElementById("child-tickets").value) * 70;
+        ticketTotal += Number(document.getElementById("adult-tickets").value) * 140;
+        ticketTotal += Number(document.getElementById("child-tickets").value) * 70;
       }
 
-      document.getElementById("order-total").value = "$" + total.toString();
+      const processingFee = Math.round(ticketTotal * 0.03 * 100) / 100; 
+      const total = donationAmt + ticketTotal + processingFee;
+
+      document.getElementById("order-total").value = "$" + total.toFixed(2);
+      document.getElementById("processing-fee").value = "$" + processingFee.toFixed(2);
     }
 </script>
 
@@ -51,16 +60,35 @@
   </nav>
   {{ template "flashes" .flashes }}
 
-  <h2>Buy Your Tickets</h2>
+  <h2>Purchase your vibecamp tickets here!</h2>
 
   <p>
-    Each adult who attended the first vibecamp is eligible to buy one adult ticket and tickets for any attending children.
+    The next vibecamp will be taking place from June 15th-18th in 2023 at Camp Ramblewood in Maryland. We have a few different ticket tiers.
   </p>
 
+  <h4>Adults:</h4>
   <p>
-    Base entry is $420 (children 8 & under half off, children under 2 free) with an additional $170 for indoor cabin placement 
-    for adults and children over 2. If you're planning to stay offsite, please purchase a tent ticket for entry. We are also offering
-    Saturday Night tickets, with entry & overnight access from Saturday to Sunday, for $140.
+    $420.69 is the base entry price for adults and children 9 and older. This ticket tier grants you access to the entire event, two meals a day 
+    (plus whatever snacks/breakfast food we add), and the option to sleep onsite in a tent/car/hammock.
+  </p>
+  <p>
+    $590 is the cabin ticket tier for adults and children 9 and older. This gets you a guaranteed spot in a cabin with tempurpedic mattresses - and adult-sized beds! 
+    We will be facilitating cabin sorting closer to the event through our <a href="https://discord.gg/btzNabV3VD">discord server</a>.
+  </p>
+
+  <h4>Children:</h4>
+  <p>
+    Children under the age of 3 get in free. Event access for children ages 3-8 is $210. Cabin placement for children between those ages is $380.
+  </p>
+
+  <h4>Final Night Celebration:</h4>
+  <p>
+    This tier allows you access to the last night of the event- arrival in the afternoon of the 17th and access until everyone leaves on 
+    Sunday afternoon (exact times TBD). 
+  </p>
+  <p>
+    Pricing for this tier is $140 for adults and $70 for children 3-8 (children under 3 still free!). 
+    Unfortunately, we cannot offer cabin placement for this ticketing tier- but you are welcome to put up a tent and we will feed you 😊
   </p>
 
     <form method="post" action="">
@@ -74,7 +102,7 @@
             <select name="ticket-type" id="ticket-type" class="form-select" onChange="onTicketTypeChange(this.value)" value="none" required style="text-align: right;">
                 <option value="none" selected hidden></option>
                 <option value="cabin">Cabin</option>
-                <option value="tent">Tent</option>
+                <option value="tent">GA</option>
                 <option value="sat">Saturday Night</option>
             </select>
             </div>
@@ -82,10 +110,11 @@
         <br/>
 
         <div class="form-group row">
-            <label class="col-sm-8 col-form-label" for="adult-tickets" id="adult-ticket-label">
-                Adult Tickets (9 years old and older)
+            <label class="col-sm-5 col-form-label" for="adult-tickets" id="adult-ticket-label">
+                Adult Tickets (9+)
             </label>
             <span class="col-sm-1 col-form-label" id="adult-price-tag"></span>
+            <div class="col-sm-3"></div>
             <div class="col-sm-3">
             <select name="adult-tickets" id="adult-tickets" class="form-select" disabled style="text-align: right;" onChange="onCartInputChange()">
                 <option value=0>0</option>
@@ -99,10 +128,11 @@
         <br/>
 
         <div class="form-group row">
-            <label class="col-sm-8 col-form-label" for="child-tickets" id="child-ticket-label">
+            <label class="col-sm-5 col-form-label" for="child-tickets" id="child-ticket-label">
                 Children Tickets (3-8 years old)
             </label>
             <span class="col-sm-1 col-form-label" id="child-price-tag"></span>
+            <div class="col-sm-3"></div>
             <div class="col-sm-3">
             <select name="child-tickets" id="child-tickets" class="form-select" disabled style="text-align: right;" onChange="onCartInputChange()">
                 <option value=0>0</option>
@@ -116,10 +146,11 @@
         <br/>
 
         <div class="form-group row">
-            <label class="col-sm-8 col-form-label" for="toddler-tickets" id="toddler-ticket-label">
+            <label class="col-sm-5 col-form-label" for="toddler-tickets" id="toddler-ticket-label">
                 Toddler Tickets (0-2 years old)
             </label>
             <span class="col-sm-1 col-form-label" id="toddler-price-tag">$0</span>
+            <div class="col-sm-3"></div>
             <div class="col-sm-3">
             <select name="toddler-tickets" id="toddler-tickets" class="form-select" disabled style="text-align: right;" onChange="onCartInputChange()">
                 <option value=0>0</option>
@@ -141,11 +172,17 @@
                 <div class="input-group-prepend">
                   <div class="input-group-text">$</div>
                 </div>
-                <input type="number" class="form-control" name="donation-amount" id="donation-amount" min="0" style="text-align: right;" onChange="onCartInputChange()"/>
+                <input type="number" class="form-control" name="donation-amount" id="donation-amount" min="0" style="text-align: right;" onChange="onCartInputChange()" step="1"/>
               </div>
             </div>
           </div>
         </fieldset>
+        <br/>
+
+        <div class="row">
+          <span class="col-sm-9 col-form-label">Processing Fee</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="$0"/>
+        </div>
         <br/>
 
         <div class="row">
@@ -161,8 +198,10 @@
           <label class="form-check-label" for="badge-checkbox">
             Would you like a badge at vibecamp 2023?
           </label>
+          <br/>
         </div>
         </fieldset>
+        <p>Badge creation will happen through the app, we'll announce when it's ready to use!</p>
         <br/>
 
         <fieldset>
