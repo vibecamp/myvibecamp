@@ -40,7 +40,7 @@ func IndexHandler(c *gin.Context) {
 			return
 		}
 
-		c.Redirect(http.StatusFound, "/ticket-cart")
+		c.Redirect(http.StatusFound, "/vc2-sl")
 		return
 	}
 
@@ -275,7 +275,6 @@ func SoftLaunchSignIn(c *gin.Context) {
 			return
 		}
 
-		// redirect to cart?
 		c.HTML(http.StatusOK, "softLaunchSignIn.html.tmpl", user)
 		return
 	}
@@ -314,6 +313,16 @@ func StripeCheckoutHandler(c *gin.Context) {
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
+	}
+
+	if user.OrderID != "" {
+		if user.OrderID != "" {
+			order, err := db.GetOrder(user.OrderID)
+			if err == nil && order != nil && order.PaymentStatus != "" {
+				c.Redirect(http.StatusFound, "/checkout-complete")
+				return
+			}
+		}
 	}
 
 	ticketIds := []string{"adult", "child", "toddler", "donation"}

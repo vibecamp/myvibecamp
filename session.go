@@ -13,7 +13,7 @@ import (
 )
 
 type Session struct {
-	UserName	string
+	UserName    string
 	TwitterName string
 	TwitterID   string
 	Oauth       *oauth1a.UserConfig
@@ -159,5 +159,5 @@ func CallbackHandler(c *gin.Context) {
 	}
 
 	SaveSession(c, session)
-	c.Redirect(http.StatusFound, "/")
+	c.Redirect(http.StatusFound, "/vc2-sl")
 }
