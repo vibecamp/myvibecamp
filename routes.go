@@ -16,7 +16,6 @@ import (
 
 	"github.com/vibecamp/myvibecamp/db"
 	"github.com/vibecamp/myvibecamp/fields"
-	"github.com/vibecamp/myvibecamp/stripe"
 
 	"github.com/cockroachdb/errors"
 	"github.com/gin-gonic/gin"
@@ -112,7 +111,7 @@ func TicketCartHandler(c *gin.Context) {
 	if err == nil && attendee != nil {
 		if attendee.OrderID != "" {
 			order, err := db.GetOrder(attendee.OrderID)
-			if err == nil && order != nil && order.PaymentStatus != "" {
+			if err == nil && order != nil && order.PaymentStatus == "success" {
 				c.Redirect(http.StatusFound, "/checkout-complete")
 				return
 			}
@@ -148,9 +147,6 @@ func TicketCartHandler(c *gin.Context) {
 	} else if toddlerTix > 0 {
 		dbTicketType = "Toddler"
 	}
-
-	// check if they hit any caps here
-	// e.g. cabin cap
 
 	var admissionLevel string
 	if ticketType == "cabin" {
@@ -236,6 +232,7 @@ func TicketCartHandler(c *gin.Context) {
 	}
 
 	if attendee != nil {
+		newUser.OrderID = attendee.OrderID
 		newUser.AirtableID = attendee.AirtableID
 		err = newUser.UpdateUser()
 		if err != nil {
@@ -315,30 +312,20 @@ func StripeCheckoutHandler(c *gin.Context) {
 		return
 	}
 
-	if user.OrderID != "" {
-		if user.OrderID != "" {
-			order, err := db.GetOrder(user.OrderID)
-			if err == nil && order != nil && order.PaymentStatus != "" {
-				c.Redirect(http.StatusFound, "/checkout-complete")
-				return
-			}
-		}
-	}
-
 	ticketIds := []string{"adult", "child", "toddler", "donation"}
 	ticketType := c.Query("ticketType")
-	var items []stripe.Item
+	var items []db.Item
 	for ind, element := range ticketIds {
 		amt, _ := strconv.Atoi(c.Query(element))
 		if amt > 0 {
 			if ind < 3 {
-				items = append(items, stripe.Item{
+				items = append(items, db.Item{
 					Id:       element + "-" + ticketType,
 					Quantity: amt,
 					Amount:   0,
 				})
 			} else {
-				items = append(items, stripe.Item{
+				items = append(items, db.Item{
 					Id:       ticketIds[ind],
 					Quantity: 1,
 					Amount:   amt,
@@ -349,7 +336,7 @@ func StripeCheckoutHandler(c *gin.Context) {
 
 	// log.Debugf("%v", items)
 	itemMap := struct {
-		Items []stripe.Item `json:"items"`
+		Items []db.Item `json:"items"`
 	}{
 		Items: items,
 	}
@@ -387,7 +374,7 @@ func PurchaseCompleteHandler(c *gin.Context) {
 		return
 	}
 
-	if order.PaymentStatus == "" {
+	if order.PaymentStatus != "success" {
 		err = order.UpdateOrderStatus("pending")
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)

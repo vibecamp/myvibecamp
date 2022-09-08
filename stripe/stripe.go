@@ -20,12 +20,6 @@ import (
 	"github.com/stripe/stripe-go/v72/webhook"
 )
 
-type Item struct {
-	Id       string `json:"id"`
-	Quantity int    `json:"quantity"`
-	Amount   int    `json:"amount"`
-}
-
 // this could be put in the DB but should it be? hmm
 var ticketPrices = map[string]int{"adult-cabin": 590, "adult-tent": 420, "adult-sat": 140, "child-cabin": 380, "child-tent": 210, "child-sat": 70, "toddler-cabin": 0, "toddler-tent": 0, "toddler-sat": 0}
 var stripeFeePercent float64 = 0.03
@@ -40,7 +34,7 @@ func Init(key string, secret string, klaviyo string, klaviyoList string) {
 	klaviyoListId = klaviyoList
 }
 
-func calculateCartInfo(items []Item, ticketLimit int) (*db.Order, error) {
+func calculateCartInfo(items []db.Item, ticketLimit int) (*db.Order, error) {
 	order := &db.Order{}
 	order.TotalTickets = 0
 	order.OrderID = ""
@@ -108,8 +102,8 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	}
 
 	var req struct {
-		Items    []Item `json:"items"`
-		UserName string `json:"username"`
+		Items    []db.Item `json:"items"`
+		UserName string    `json:"username"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -130,10 +124,6 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 		return
 	}
 
-	// need to store this for it to work correctly
-	// think it should only be stored after succesful api call i think
-	// idempotencyKey := uuid.NewString()
-
 	order, err := calculateCartInfo(req.Items, user.TicketLimit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -141,8 +131,94 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	}
 
 	order.UserName = user.UserName
-	order.OrderID = uuid.NewString()
 
+	var pi *stripe.PaymentIntent
+	if newUser.OrderID != "" {
+		dbOrder, err := db.GetOrder(newUser.OrderID)
+
+		if err != nil && err != db.ErrNoRecords {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if dbOrder != nil {
+			// if it's successful redirect
+			if dbOrder.PaymentStatus == "success" {
+				c.Redirect(http.StatusFound, "/checkout-complete")
+				return
+			}
+
+			pi, err = handleDbOrder(dbOrder, order, newUser)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		} else {
+			pi, err = handleNewOrder(order, newUser)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+	} else {
+		pi, err = handleNewOrder(order, newUser)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	writeJSON(w, struct {
+		ClientSecret string  `json:"clientSecret"`
+		Total        float64 `json:"total"`
+		IntentId     string  `json:"intentId"`
+	}{
+		ClientSecret: pi.ClientSecret,
+		Total:        order.Total.ToFloat(),
+		IntentId:     pi.ID,
+	})
+}
+
+func handleDbOrder(dbOrder *db.Order, order *db.Order, newUser *db.User) (*stripe.PaymentIntent, error) {
+	pi, err := paymentintent.Get(dbOrder.StripeID, nil)
+	if err != nil {
+		log.Errorf("pi.Get %v", err)
+		return nil, err
+	}
+
+	if pi.Status == "succeeded" {
+		log.Errorf("pi already successful %v", pi.ID)
+		return nil, errors.New("Payment already succeeded")
+	}
+
+	if dbOrder.IsEqual(order) {
+		return pi, nil
+	}
+
+	err = dbOrder.ReplaceCart(order)
+	if err != nil {
+		log.Errorf("Error updating cart %v", err)
+		return nil, err
+	}
+
+	log.Debugf("old order %+v", dbOrder)
+	log.Debugf("new order %+v", order)
+	params := &stripe.PaymentIntentParams{
+		Amount:      stripe.Int64(order.Total.ToCurrencyInt()),
+		Description: stripe.String(fmt.Sprintf("%d tickets to vibecamp", order.TotalTickets)),
+	}
+	pi, err = paymentintent.Update(order.StripeID, params)
+	if err != nil {
+		log.Errorf("pi.Update %v", err)
+		return nil, err
+	}
+
+	return pi, nil
+}
+
+func handleNewOrder(order *db.Order, newUser *db.User) (*stripe.PaymentIntent, error) {
+	order.OrderID = uuid.NewString()
 	// Create a PaymentIntent with amount and currency
 	params := &stripe.PaymentIntentParams{
 		Amount:   stripe.Int64(order.Total.ToCurrencyInt()),
@@ -156,101 +232,32 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	}
 
 	params.AddMetadata("orderId", order.OrderID)
+	// use order id as idempotency key
+	params.SetIdempotencyKey(order.OrderID)
 
 	pi, err := paymentintent.New(params)
 	log.Debugf("pi.New: %v", pi.ClientSecret)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Errorf("pi.New: %v", err)
-		return
+		return nil, err
 	}
 
 	order.StripeID = pi.ID
 
-	/* err = order.CreateOrder()
+	err = order.CreateOrder()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("order.CreateOrder: %v", err)
-		return
-	} */
+		return nil, err
+	}
 
 	err = newUser.UpdateOrderID(order.OrderID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Errorf("user.UpdateOrderID: %v", err)
-		return
+		return nil, err
 	}
 
-	/** for testing aggregation updates without active webhook
-	err = db.UpdateAggregations(order)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Printf("UpdateAggregations: %v", err)
-		return
-	}
-	*/
-
-	writeJSON(w, struct {
-		ClientSecret string  `json:"clientSecret"`
-		Total        float64 `json:"total"`
-		IntentId     string  `json:"intentId"`
-	}{
-		ClientSecret: pi.ClientSecret,
-		Total:        order.Total.ToFloat(),
-		IntentId:     pi.ID,
-	})
-}
-
-func HandlePaymentSent(c *gin.Context) {
-	var w http.ResponseWriter = c.Writer
-	var r *http.Request = c.Request
-	if r.Method != "POST" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
-	}
-
-	var req struct {
-		Items    []Item `json:"items"`
-		UserName string `json:"username"`
-		IntentId string `json:"id"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Errorf("json.NewDecoder.Decode: %v", err)
-		return
-	}
-
-	order, err := calculateCartInfo(req.Items, 10)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	user, err := db.GetUser(req.UserName)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	order.UserName = user.UserName
-	order.OrderID = user.OrderID
-	order.StripeID = req.IntentId
-	order.PaymentStatus = "pending"
-
-	err = order.CreateOrder()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Printf("order.CreateOrder: %v", err)
-		return
-	}
-
-	writeJSON(w, struct {
-		OrderId string `json:"orderId"`
-	}{
-		OrderId: order.OrderID,
-	})
+	return pi, nil
 }
 
 func writeJSON(w http.ResponseWriter, v interface{}) {

@@ -67,32 +67,14 @@ async function handleSubmit(e) {
   e.preventDefault();
   setLoading(true);
 
-  const response = await fetch("/checkout-complete", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      items,
-      username,
-      id: paymentIntentId,
-    }),
-  });
-
-  if (response.status !== 200) {
-    showMessage("An unknown error occurred");
-    setLoading(false);
-    return;
-  }
-
-  const { orderId } = await response.json();
-
   const { error } = await stripe.confirmPayment({
     elements,
     confirmParams: {
       return_url:
         (window.location.host.startsWith("127") ? "http://" : "https://") +
         window.location.host +
-        "/checkout-complete?order_id=" +
-        orderId,
+        "/checkout-complete?payment_id=" +
+        paymentIntentId,
     },
   });
 
@@ -122,7 +104,9 @@ async function checkStatus() {
   switch (paymentIntent.status) {
     case "succeeded":
       showMessage("Payment succeeded!");
-      window.location.replace("/checkout-complete");
+      window.location.replace(
+        "/checkout-complete?payment_id=" + paymentIntentId
+      );
       break;
     case "processing":
       showMessage("Your payment is processing.");

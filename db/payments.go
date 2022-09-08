@@ -11,6 +11,12 @@ import (
 	"github.com/vibecamp/myvibecamp/fields"
 )
 
+type Item struct {
+	Id       string `json:"id"`
+	Quantity int    `json:"quantity"`
+	Amount   int    `json:"amount"`
+}
+
 type Order struct {
 	OrderID       string
 	UserName      string
@@ -31,6 +37,19 @@ type Order struct {
 	PaymentStatus string
 
 	AirtableID string
+}
+
+var CartFields = map[string]string{
+	fields.AdultCabin:   "adult-cabin",
+	fields.AdultTent:    "adult-tent",
+	fields.AdultSat:     "adult-sat",
+	fields.ChildCabin:   "child-cabin",
+	fields.ChildTent:    "child-tent",
+	fields.ChildSat:     "child-sat",
+	fields.ToddlerCabin: "toddler-cabin",
+	fields.ToddlerTent:  "toddler-tent",
+	fields.ToddlerSat:   "toddler-sat",
+	fields.Donation:     "donation",
 }
 
 func (o *Order) CreateOrder() error {
@@ -193,6 +212,77 @@ func (o *Order) UpdateOrderStatus(paymentStatus string) error {
 	}
 
 	return nil
+}
+
+func (o *Order) ReplaceCart(a *Order) error {
+	a.AirtableID = o.AirtableID
+	a.StripeID = o.StripeID
+	a.OrderID = o.OrderID
+	a.UserName = o.UserName
+	r := &airtable.Records{
+		Records: []*airtable.Record{
+			{
+				ID: a.AirtableID,
+				Fields: map[string]interface{}{
+					fields.Total:         a.Total.ToFloat(),
+					fields.ProcessingFee: a.ProcessingFee.ToFloat(),
+					fields.TotalTickets:  a.TotalTickets,
+					fields.AdultCabin:    a.AdultCabin,
+					fields.AdultTent:     a.AdultTent,
+					fields.AdultSat:      a.AdultSat,
+					fields.ChildCabin:    a.ChildCabin,
+					fields.ChildTent:     a.ChildTent,
+					fields.ChildSat:      a.ChildSat,
+					fields.ToddlerCabin:  a.ToddlerCabin,
+					fields.ToddlerTent:   a.ToddlerTent,
+					fields.ToddlerSat:    a.ToddlerSat,
+					fields.Donation:      a.Donation,
+				},
+			},
+		},
+	}
+
+	_, err := ordersTable.UpdateRecordsPartial(r)
+	if err != nil {
+		return errors.Wrap(err, "Error updating order info - contact @orb_net if this persists")
+	}
+
+	if defaultCache != nil {
+		defaultCache.Delete(o.cacheKey())
+	}
+	return nil
+}
+
+func (o *Order) IsEqual(a *Order) bool {
+	if o.Total.ToString() != a.Total.ToString() {
+		return false
+	}
+
+	oCart := o.toCart()
+	aCart := a.toCart()
+
+	for item := range CartFields {
+		if oCart[item] != aCart[item] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (o *Order) toCart() map[string]int {
+	return map[string]int{
+		"adult-cabin":   o.AdultCabin,
+		"adult-tent":    o.AdultTent,
+		"adult-sat":     o.AdultSat,
+		"child-cabin":   o.ChildCabin,
+		"child-tent":    o.ChildTent,
+		"child-sat":     o.ChildSat,
+		"toddler-cabin": o.ToddlerCabin,
+		"toddler-tent":  o.ToddlerTent,
+		"toddler-sat":   o.ToddlerSat,
+		"donation":      o.Donation,
+	}
 }
 
 func toInt(i interface{}) int {
