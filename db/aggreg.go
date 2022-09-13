@@ -407,7 +407,7 @@ func (a *Aggregation) MakeUpdatedRecord(order *Order) *airtable.Record {
 	return r
 }
 
-func UpdateAggregations(order *Order) error {
+func UpdateAggregations(order *Order, sl bool) error {
 	aggregations, err := GetAggregations()
 	if err != nil {
 		return err
@@ -419,7 +419,13 @@ func UpdateAggregations(order *Order) error {
 		if order.Donation > 0 && element.Name == fields.DonationsRecv {
 			records = append(records, element.MakeUpdatedRecord(order))
 		} else if order.TotalTickets > 0 {
-			records = append(records, element.MakeUpdatedRecord(order))
+			if element.Name == fields.SoftLaunchSold {
+				if sl {
+					records = append(records, element.MakeUpdatedRecord(order))
+				}
+			} else {
+				records = append(records, element.MakeUpdatedRecord(order))
+			}
 		}
 	}
 

@@ -389,17 +389,17 @@ func HandleStripeWebhook(c *gin.Context) {
 				return
 			}
 
-			// update aggregations
-			err = db.UpdateAggregations(order)
+			user, err := db.GetUser(order.UserName)
 			if err != nil {
-				log.Errorf("error updating aggregations %v\n", err)
+				log.Errorf("error getting user %v\n", err)
 				w.WriteHeader((http.StatusInternalServerError))
 				return
 			}
 
-			user, err := db.GetUser(order.UserName)
+			// update aggregations
+			err = db.UpdateAggregations(order, user.TicketPath == "2022 Attendee")
 			if err != nil {
-				log.Errorf("error getting user %v\n", err)
+				log.Errorf("error updating aggregations %v\n", err)
 				w.WriteHeader((http.StatusInternalServerError))
 				return
 			}
