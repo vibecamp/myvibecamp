@@ -4,12 +4,12 @@
 <script src="https://js.stripe.com/v3/"></script>
 <script src="js/checkout.js" defer></script>
 
-{{ template "nav" "softlaunch" }}
+{{ template "nav" }}
 
 <div class="container">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/vc2-sl">Soft Launch Welcome</a></li>
+            <li class="breadcrumb-item"><a href="/signin-redirect">Welcome</a></li>
             <li class="breadcrumb-item"><a href="/ticket-cart">Tickets</a></li>
             <li class="breadcrumb-item active" aria-current="page">Checkout</li>
         </ol>
@@ -28,7 +28,7 @@
             <span id="button-text">Pay now</span>
         </button>
         <div id="payment-message" class="hidden"></div>
-        <div id="ticket-cart" class="hidden" cartData={{ .Items }} username={{ .User.UserName }}></div>
+        <div id="ticket-cart" class="hidden" cartData={{ .Items }} username={{ .User.UserName }} usertype={{ if eq .User.TicketPath "2022 Attendee" }}"2022"{{ else }}"chaos"{{ end }} ></div>
     </form>
 </div>
 

@@ -122,7 +122,7 @@ func SignOutHandler(c *gin.Context) {
 }
 
 func CallbackHandler(c *gin.Context) {
-	log.Tracef("Callback hit") //. %v current sessions.\n", len(sessions))
+	log.Debugf("Callback hit") //. %v current sessions.\n", len(sessions))
 
 	session := GetSession(c)
 	if session.Oauth == nil || session.Oauth.RequestTokenKey == "" {
@@ -154,10 +154,10 @@ func CallbackHandler(c *gin.Context) {
 	session.Oauth = nil
 
 	if localDevMode {
-		session.TwitterName = "GRINTESTING" // login as this user, for dev
+		// session.TwitterName = "GRINTESTING" // login as this user, for dev
 		session.UserName = strings.ToLower(session.TwitterName)
 	}
 
 	SaveSession(c, session)
-	c.Redirect(http.StatusFound, "/vc2-sl")
+	c.Redirect(http.StatusFound, "/signin-redirect")
 }

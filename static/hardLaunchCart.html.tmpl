@@ -49,12 +49,12 @@
     }
 </script>
 
-{{ template "nav" "softlaunch" }}
+{{ template "nav" "chaosmode" }}
 
 <div class="container">
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="/vc2-sl">Soft Launch Welcome</a></li>
+      <li class="breadcrumb-item"><a href="/chaos-mode">Chaos Mode Welcome</a></li>
       <li class="breadcrumb-item active" aria-current="page">Tickets</li>
     </ol>
   </nav>
@@ -206,13 +206,11 @@
 
         <fieldset>
         <legend>Discord</legend>
-        <div class="form-check">
           <label class="form-check-label" for="discord-name">
-            Add your full discord handle to automatically receive the 2023 Attendee role in the vibecamp server.
+            Add your full discord handle to receive the 2023 Attendee role in the vibecamp server.
           </label>
           <input type="text" class="form-control" name="discord-name" id="discord-name" />
           <br/>
-        </div>
         </fieldset>
 
         <fieldset>
@@ -222,21 +220,21 @@
         </p>
 
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="vegetarian" id="veg" {{if .User.Vegetarian}}checked{{end}}>
+          <input class="form-check-input" type="checkbox" name="vegetarian" id="veg">
           <label class="form-check-label" for="veg">
             Vegetarian
           </label>
         </div>
 
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="glutenfree" id="gf" {{if .User.GlutenFree}}checked{{end}}>
+          <input class="form-check-input" type="checkbox" name="glutenfree" id="gf">
           <label class="form-check-label" for="gf">
             Gluten free
           </label>
         </div>
 
         <div class="form-check mb-4">
-          <input class="form-check-input" type="checkbox" name="lactose" id="lactose" {{if .User.LactoseIntolerant}}checked{{end}}>
+          <input class="form-check-input" type="checkbox" name="lactose" id="lactose">
           <label class="form-check-label" for="lactose">
             Lactose intolerant
           </label>

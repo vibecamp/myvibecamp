@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/vibecamp/myvibecamp/db"
 
@@ -90,6 +91,8 @@ func calculateCartInfo(items []db.Item, ticketLimit int) (*db.Order, error) {
 	log.Debugf("%f", stripeFee)
 	log.Debugf("%v", order.Donation)
 
+	order.Date = time.Now().UTC().Format("2006-01-02 15:04")
+	log.Debugf("%v", order.Date)
 	return order, nil
 }
 
@@ -104,6 +107,7 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	var req struct {
 		Items    []db.Item `json:"items"`
 		UserName string    `json:"username"`
+		UserType string    `json:"usertype"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -112,33 +116,52 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 		return
 	}
 
-	user, err := db.GetSoftLaunchUser(req.UserName)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	var ticketLimit int = 1
+	if req.UserType == "chaos" {
+		chaosUser, err := db.GetChaosUser(req.UserName)
+		if err != nil {
+			log.Errorf("db.GetChaosUser: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		ticketLimit = chaosUser.TicketLimit
+	} else {
+		user, err := db.GetSoftLaunchUser(req.UserName)
+		if err != nil {
+			log.Errorf("db.GetSoftLaunchUser: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		ticketLimit = user.TicketLimit
 	}
 
 	newUser, err := db.GetUser(req.UserName)
 	if err != nil {
+		log.Errorf("db.GetUser: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	order, err := calculateCartInfo(req.Items, user.TicketLimit)
+	order, err := calculateCartInfo(req.Items, ticketLimit)
 	if err != nil {
+		log.Errorf("stripe.calculateCartInfo: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	order.UserName = user.UserName
+	order.UserName = newUser.UserName
 
 	var pi *stripe.PaymentIntent
 	if newUser.OrderID != "" {
 		dbOrder, err := db.GetOrder(newUser.OrderID)
 
-		if err != nil && err != db.ErrNoRecords {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+		if err != nil {
+			order.OrderID = newUser.OrderID
+			pi, err = handleNewOrder(order, newUser)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		}
 
 		if dbOrder != nil {
@@ -149,12 +172,6 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 			}
 
 			pi, err = handleDbOrder(dbOrder, order, newUser)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-		} else {
-			pi, err = handleNewOrder(order, newUser)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -218,7 +235,9 @@ func handleDbOrder(dbOrder *db.Order, order *db.Order, newUser *db.User) (*strip
 }
 
 func handleNewOrder(order *db.Order, newUser *db.User) (*stripe.PaymentIntent, error) {
-	order.OrderID = uuid.NewString()
+	if order.OrderID == "" {
+		order.OrderID = uuid.NewString()
+	}
 	// Create a PaymentIntent with amount and currency
 	params := &stripe.PaymentIntentParams{
 		Amount:   stripe.Int64(order.Total.ToCurrencyInt()),
@@ -236,7 +255,6 @@ func handleNewOrder(order *db.Order, newUser *db.User) (*stripe.PaymentIntent, e
 	params.SetIdempotencyKey(order.OrderID)
 
 	pi, err := paymentintent.New(params)
-	log.Debugf("pi.New: %v", pi.ClientSecret)
 
 	if err != nil {
 		log.Errorf("pi.New: %v", err)
@@ -247,7 +265,7 @@ func handleNewOrder(order *db.Order, newUser *db.User) (*stripe.PaymentIntent, e
 
 	err = order.CreateOrder()
 	if err != nil {
-		log.Printf("order.CreateOrder: %v", err)
+		log.Errorf("order.CreateOrder: %v", err)
 		return nil, err
 	}
 

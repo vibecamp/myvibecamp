@@ -35,6 +35,7 @@ type Order struct {
 	Donation      int
 	StripeID      string
 	PaymentStatus string
+	Date          string
 
 	AirtableID string
 }
@@ -79,6 +80,7 @@ func (o *Order) CreateOrder() error {
 					fields.Donation:      o.Donation,
 					fields.PaymentID:     o.StripeID,
 					fields.PaymentStatus: o.PaymentStatus,
+					fields.Date:          o.Date,
 				},
 			},
 		},
@@ -176,6 +178,7 @@ func getOrderByField(field, value string) (*Order, error) {
 		ToddlerSat:    toInt(rec.Fields[fields.ToddlerSat]),
 		StripeID:      toStr(rec.Fields[fields.PaymentID]),
 		PaymentStatus: toStr(rec.Fields[fields.PaymentStatus]),
+		Date:          toStr(rec.Fields[fields.Date]),
 	}
 
 	if defaultCache != nil {

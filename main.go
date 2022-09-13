@@ -130,6 +130,7 @@ func main() {
 	r.GET("/signin", SignInHandler)
 	r.GET("/signout", SignOutHandler)
 	r.GET("/callback", CallbackHandler)
+	r.GET("/signin-redirect", SignInRedirect)
 	r.GET("/calendar", CalendarHandler)
 	r.GET("/team", TeamHandler)
 	r.GET("/contact-us", ContactUsHandler)
@@ -153,6 +154,10 @@ func main() {
 	r.GET("/checkout-complete", PurchaseCompleteHandler)
 	r.GET("/2023-logistics", Logistics2023Handler)
 	r.POST("/2023-logistics", Logistics2023Handler)
+	r.GET("/chaos-mode", ChaosModeSignIn)
+	r.POST("/chaos-mode", ChaosModeSignIn)
+	r.GET("/chaos-cart", ChaosModeCartHandler)
+	r.POST("/chaos-cart", ChaosModeCartHandler)
 
 	r.GET("/", IndexHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))

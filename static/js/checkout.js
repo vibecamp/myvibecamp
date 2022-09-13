@@ -11,11 +11,13 @@ let elements;
 
 let items = [];
 let username = "";
+let usertype = "";
 let paymentIntentId = "";
 const ticketCart = document.querySelector("#ticket-cart");
 if (ticketCart.hasAttribute("cartData")) {
   items = JSON.parse(ticketCart.getAttribute("cartData")).items;
   username = ticketCart.getAttribute("username");
+  usertype = ticketCart.getAttribute("usertype");
 }
 
 initialize();
@@ -46,7 +48,7 @@ async function initialize() {
   const response = await fetch("/create-payment-intent", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ items, username }),
+    body: JSON.stringify({ items, username, usertype }),
   });
   const { clientSecret, total, intentId } = await response.json();
   paymentIntentId = intentId;

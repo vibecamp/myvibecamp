@@ -36,14 +36,22 @@ const (
 	POAP              = "POAP"
 
 	// UserName is new ones for 2023. for attendees & soft launch
-	UserName = "Username"
+	UserName    = "Username"
+	DiscordName = "Discord Name"
+
+	// Ticket Path indicates how an attendee got on the list (prev attendee, FCFS, etc)
+	TicketPath = "Ticket Path"
 
 	// TicketLimit is for soft launch users table
 	TicketLimit = "Ticket Limit"
 
+	// ChaosMode users have Phase, indicating which phase of chaos mode they got in
+	Phase = "Phase"
+
 	// TicketType is for attendees (adult, child, or toddler)
 	TicketType = "Ticket Type"
 	OrderID    = "OrderID"
+	Date       = "Date"
 
 	// orders
 	Total         = "Total"

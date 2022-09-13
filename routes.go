@@ -229,6 +229,8 @@ func TicketCartHandler(c *gin.Context) {
 		GlutenFree:        c.PostForm("glutenfree") == "on",
 		LactoseIntolerant: c.PostForm("lactose") == "on",
 		FoodComments:      c.PostForm("comments"),
+		DiscordName:       c.PostForm("discord-name"),
+		TicketPath:        "2022 Attendee",
 	}
 
 	if attendee != nil {
@@ -297,6 +299,239 @@ func SoftLaunchSignIn(c *gin.Context) {
 	SaveSession(c, session)
 
 	c.HTML(http.StatusOK, "softLaunchSignIn.html.tmpl", user)
+}
+
+func ChaosModeSignIn(c *gin.Context) {
+	session := GetSession(c)
+
+	if c.Request.Method == http.MethodGet {
+		if !session.SignedIn() {
+			c.HTML(http.StatusOK, "chaosSignIn.html.tmpl", nil)
+			return
+		}
+
+		user, err := db.GetChaosUser(session.UserName)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+
+		c.HTML(http.StatusOK, "chaosSignIn.html.tmpl", user)
+		return
+	}
+
+	emailAddr := c.PostForm("email-address")
+	// get user by email somehow
+	user, err := db.GetChaosUser(emailAddr)
+	// then return the same page
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	session.UserName = user.UserName
+	session.TwitterName = user.UserName
+	session.TwitterID = user.AirtableID
+	session.Oauth = nil
+	SaveSession(c, session)
+
+	c.HTML(http.StatusOK, "chaosSignIn.html.tmpl", user)
+}
+
+func ChaosModeCartHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	user, err := db.GetChaosUser(session.UserName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	attendee, err := db.GetUser(session.UserName)
+	if err == nil && attendee != nil {
+		if attendee.OrderID != "" {
+			order, err := db.GetOrder(attendee.OrderID)
+			if err == nil && order != nil && order.PaymentStatus == "success" {
+				c.Redirect(http.StatusFound, "/checkout-complete")
+				return
+			}
+		}
+	}
+
+	if c.Request.Method == http.MethodGet {
+		c.HTML(http.StatusOK, "hardLaunchCart.html.tmpl", gin.H{
+			"flashes": GetFlashes(c),
+			"User":    user,
+		})
+		return
+	}
+
+	ticketType := c.PostForm("ticket-type")
+	adultTix, _ := strconv.Atoi(c.PostForm("adult-tickets"))
+	childTix, _ := strconv.Atoi(c.PostForm("child-tickets"))
+	toddlerTix, _ := strconv.Atoi(c.PostForm("toddler-tickets"))
+	donationAmount, _ := strconv.Atoi(c.PostForm("donation-amount"))
+
+	if adultTix > user.TicketLimit {
+		log.Errorf("user ticket limit exceeded %d", adultTix)
+		ErrorFlash(c, fmt.Sprintf("You're limited to %d adult tickets", user.TicketLimit))
+		return
+	}
+
+	totalTix := adultTix + childTix + toddlerTix
+	dbTicketType := ""
+
+	if adultTix > 0 {
+		dbTicketType = "Adult"
+	} else if childTix > 0 {
+		dbTicketType = "Child"
+	} else if toddlerTix > 0 {
+		dbTicketType = "Toddler"
+	}
+
+	var admissionLevel string
+	if ticketType == "cabin" {
+		admissionLevel = "Cabin"
+		cabinCap, err := db.GetConstant(fields.CabinCap)
+
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		cabinSold, err := db.GetAggregation(fields.CabinSold)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		if totalTix+cabinSold.Quantity > cabinCap.Value {
+			log.Errorf("cabin ticket limit exceeded %d", totalTix+cabinSold.Quantity)
+			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many cabin tickets exceeds our cap! %d cabin tickets left.", cabinCap.Value-cabinSold.Quantity))
+			return
+		}
+
+	} else if ticketType == "tent" {
+		admissionLevel = "Tent"
+	} else if ticketType == "sat" {
+		admissionLevel = "Saturday Night"
+	}
+
+	if ticketType != "sat" {
+		salesCap, err := db.GetConstant(fields.SalesCap)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		fullTixSold, err := db.GetAggregation(fields.FullSold)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		if totalTix+fullTixSold.Quantity > salesCap.Value {
+			log.Errorf("total ticket limit exceeded %d", totalTix+fullTixSold.Quantity)
+			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many tickets exceeds our cap! %d tickets left.", salesCap.Value-fullTixSold.Quantity))
+			return
+		}
+	} else {
+		satCap, err := db.GetConstant(fields.SatCap)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		satSold, err := db.GetAggregation(fields.SatSold)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		if totalTix+satSold.Quantity > satCap.Value {
+			log.Errorf("saturday ticket limit exceeded %d", totalTix+satSold.Quantity)
+			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many tickets exceeds our Saturday night cap! %d Saturday tickets left.", satCap.Value-satSold.Quantity))
+			return
+		}
+	}
+
+	newUser := &db.User{
+		AirtableID:        "",
+		UserName:          user.UserName,
+		TwitterName:       user.TwitterName,
+		Name:              user.Name,
+		Email:             user.Email,
+		AdmissionLevel:    admissionLevel,
+		TicketType:        dbTicketType,
+		CheckedIn:         false,
+		Barcode:           "",
+		OrderNotes:        "",
+		OrderID:           "",
+		TicketID:          "",
+		Badge:             c.PostForm("badge-checkbox") == "on",
+		Vegetarian:        c.PostForm("vegetarian") == "on",
+		GlutenFree:        c.PostForm("glutenfree") == "on",
+		LactoseIntolerant: c.PostForm("lactose") == "on",
+		FoodComments:      c.PostForm("comments"),
+		DiscordName:       c.PostForm("discord-name"),
+		TicketPath:        user.Phase,
+	}
+
+	if attendee != nil {
+		newUser.OrderID = attendee.OrderID
+		newUser.AirtableID = attendee.AirtableID
+		err = newUser.UpdateUser()
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+	} else {
+		err = newUser.CreateUser()
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+	}
+
+	params := url.Values{}
+	params.Set("ticketType", ticketType)
+	params.Set("adult", strconv.Itoa(adultTix))
+	params.Set("child", strconv.Itoa(childTix))
+	params.Set("toddler", strconv.Itoa(toddlerTix))
+	params.Set("donation", strconv.Itoa(donationAmount))
+
+	c.Redirect(http.StatusFound, "/checkout"+"?"+params.Encode())
+}
+
+func SignInRedirect(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	user, err := db.GetChaosUser(session.UserName)
+	if user != nil && err == nil {
+		c.Redirect(http.StatusFound, "/chaos-mode")
+		return
+	}
+
+	sluser, err := db.GetSoftLaunchUser(session.UserName)
+	if sluser != nil && err == nil {
+		c.Redirect(http.StatusFound, "/vc2-sl")
+		return
+	}
+
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/")
 }
 
 func StripeCheckoutHandler(c *gin.Context) {
