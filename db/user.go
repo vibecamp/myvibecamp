@@ -489,12 +489,13 @@ func (u *User) SetFood(veg, gf, lact bool, comments string) error {
 	return nil
 }
 
-func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments string) error {
+func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments string, discordName string) error {
 	u.Badge = badge
 	u.Vegetarian = veg
 	u.GlutenFree = gf
 	u.LactoseIntolerant = lact
 	u.FoodComments = comments
+	u.DiscordName = discordName
 
 	r := &airtable.Records{
 		Records: []*airtable.Record{{
@@ -505,6 +506,7 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments string) erro
 				fields.LactoseIntolerant: u.LactoseIntolerant,
 				fields.FoodComments:      comments,
 				fields.Badge:             u.Badge,
+				fields.DiscordName:       u.DiscordName,
 			},
 		}},
 	}

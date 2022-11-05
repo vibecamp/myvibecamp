@@ -656,8 +656,9 @@ func Logistics2023Handler(c *gin.Context) {
 	glutenFree := c.PostForm("glutenfree") == "on"
 	lactoseIntolerant := c.PostForm("lactose") == "on"
 	foodComments := c.PostForm("comments")
+	discordName := c.PostForm("discord-name")
 
-	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments)
+	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments, discordName)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
