@@ -956,7 +956,6 @@ func DiscordAuthenticator(c *gin.Context) {
 	}
 
 	h := sha256.Sum256([]byte(hmacSecret))
-	log.Printf("%v", hex.EncodeToString(h[:]))
 	if subtle.ConstantTimeCompare([]byte(hex.EncodeToString(h[:])), []byte(authToken)) != 1 {
 		c.AbortWithError(http.StatusForbidden, errors.New("invalid auth_token"))
 		return
