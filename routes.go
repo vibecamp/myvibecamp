@@ -935,3 +935,41 @@ func CabinListHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, cabins)
 }
+
+type DiscordResponse struct {
+	UserFound bool `json:"user_found"`
+}
+
+func DiscordAuthenticator(c *gin.Context) {
+	authToken := c.Query("auth_token")
+	discordName := c.Query("discord_name")
+
+	if authToken == "" {
+		c.AbortWithError(http.StatusUnauthorized, errors.New("auth_token required"))
+		return
+	}
+
+	hmacSecret := os.Getenv("HMAC_SECRET")
+	if hmacSecret == "" {
+		c.AbortWithError(http.StatusForbidden, errors.New("route disabled"))
+		return
+	}
+
+	h := sha256.Sum256([]byte(hmacSecret))
+	log.Printf("%v", hex.EncodeToString(h[:]))
+	if subtle.ConstantTimeCompare([]byte(hex.EncodeToString(h[:])), []byte(authToken)) != 1 {
+		c.AbortWithError(http.StatusForbidden, errors.New("invalid auth_token"))
+		return
+	}
+
+	user, err := db.GetUserByDiscord(discordName)
+	log.Printf("%v", user)
+	if err != nil {
+		// c.AbortWithError(http.StatusInternalServerError, err)
+		c.JSON(http.StatusOK, DiscordResponse{UserFound: false})
+	} else if user != nil {
+		c.JSON(http.StatusOK, DiscordResponse{UserFound: true})
+	} else {
+		c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
+	}
+}

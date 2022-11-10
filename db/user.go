@@ -595,6 +595,22 @@ func (u *User) SetCheckedIn() error {
 	return nil
 }
 
+func GetUserByDiscord(discordName string) (*User, error) {
+	user, err := getUserByField(fields.DiscordName, discordName)
+	if err != nil {
+		if errors.Is(err, ErrNoRecords) {
+			err = errors.New("user not found")
+		} else if errors.Is(err, ErrManyRecords) {
+			err = errors.New("too many users")
+		}
+		return nil, err
+	} else if user == nil {
+		return nil, errors.New("no user found, but no error from db 🤔")
+	}
+
+	return user, nil
+}
+
 /*
 func (u *User) GetCabinMates() ([]string, error) {
 	if u.Cabin == "" {
