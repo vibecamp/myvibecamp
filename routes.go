@@ -962,7 +962,6 @@ func DiscordAuthenticator(c *gin.Context) {
 	}
 
 	user, err := db.GetUserByDiscord(discordName)
-	log.Printf("%v", user)
 	if err != nil {
 		// c.AbortWithError(http.StatusInternalServerError, err)
 		c.JSON(http.StatusOK, DiscordResponse{UserFound: false})
