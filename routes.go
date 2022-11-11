@@ -971,3 +971,46 @@ func DiscordAuthenticator(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
 	}
 }
+
+type AppEndpointResponse struct {
+	TwitterName      string `json:"twitter_name"`
+	DiscordName      string `json:"discord_name"`
+	TicketStatus     string `json:"ticket_status"`
+	TicketType       string `json:"ticket_type"`
+	TicketID         string `json:"ticket_id"`
+	AccomodationType string `json:"accomodation_type"`
+}
+
+func AppEndpoint(c *gin.Context) {
+	authToken := c.Query("auth_token")
+	twitterName := c.Query("twitter_name")
+
+	if authToken == "" {
+		c.AbortWithError(http.StatusUnauthorized, errors.New("auth_token required"))
+		return
+	}
+
+	hmacSecret := os.Getenv("HMAC_SECRET")
+	if hmacSecret == "" {
+		c.AbortWithError(http.StatusForbidden, errors.New("route disabled"))
+		return
+	}
+
+	h := sha256.Sum256([]byte(hmacSecret))
+	if subtle.ConstantTimeCompare([]byte(hex.EncodeToString(h[:])), []byte(authToken)) != 1 {
+		c.AbortWithError(http.StatusForbidden, errors.New("invalid auth_token"))
+		return
+	}
+
+	log.Printf("%v", twitterName)
+	user, err := db.GetUser(twitterName)
+	log.Printf("%v", user)
+	if err != nil {
+		// c.AbortWithError(http.StatusInternalServerError, err)
+		c.JSON(http.StatusNotFound, nil)
+	} else if user != nil {
+		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel})
+	} else {
+		c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
+	}
+}

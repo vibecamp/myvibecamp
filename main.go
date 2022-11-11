@@ -159,6 +159,7 @@ func main() {
 	r.GET("/chaos-cart", ChaosModeCartHandler)
 	r.POST("/chaos-cart", ChaosModeCartHandler)
 	r.GET("/auth-discord", DiscordAuthenticator)
+	r.GET("/app-user", AppEndpoint)
 
 	r.GET("/", IndexHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))
