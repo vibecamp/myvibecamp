@@ -1002,9 +1002,7 @@ func AppEndpoint(c *gin.Context) {
 		return
 	}
 
-	log.Printf("%v", twitterName)
 	user, err := db.GetUser(twitterName)
-	log.Printf("%v", user)
 	if err != nil {
 		// c.AbortWithError(http.StatusInternalServerError, err)
 		c.JSON(http.StatusNotFound, nil)
