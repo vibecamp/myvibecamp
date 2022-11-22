@@ -514,6 +514,13 @@ func SignInRedirect(c *gin.Context) {
 		return
 	}
 
+	attendee, err := db.GetUser(session.UserName)
+	if attendee != nil && err == nil {
+		c.Redirect(http.StatusFound, "/2023-logistics")
+		return
+	}
+	log.Error(err)
+
 	user, err := db.GetChaosUser(session.UserName)
 	if user != nil && err == nil {
 		c.Redirect(http.StatusFound, "/chaos-mode")
