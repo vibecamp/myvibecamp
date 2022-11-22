@@ -688,7 +688,7 @@ func CacheWarmup() {
 	offset := ""
 
 	for {
-		response, err := defaultTable.GetRecords().
+		response, err := attendeesTable.GetRecords().
 			WithOffset(offset).
 			ReturnFields(fields.UserName).
 			InStringFormat("US/Eastern", "en").
