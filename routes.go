@@ -283,17 +283,19 @@ func SponsorshipCartHandler(c *gin.Context) {
 		}
 	}
 
-	totalFloat := float64(420.69) - user.Discount.ToFloat()
-	feeFloat := totalFloat * float64(0.03)
-	total := db.CurrencyFromFloat(totalFloat + feeFloat)
+	subtotalFloat := float64(420.69) - user.Discount.ToFloat()
+	feeFloat := subtotalFloat * float64(0.03)
+	subtotal := db.CurrencyFromFloat(subtotalFloat)
+	total := db.CurrencyFromFloat(subtotalFloat + feeFloat)
 	fee := db.CurrencyFromFloat(feeFloat)
 
 	if c.Request.Method == http.MethodGet {
 		c.HTML(http.StatusOK, "sponsorshipCart.html.tmpl", gin.H{
-			"flashes": GetFlashes(c),
-			"User":    user,
-			"Total":   total,
-			"Fee":     fee,
+			"flashes":  GetFlashes(c),
+			"User":     user,
+			"Total":    total,
+			"Fee":      fee,
+			"Subtotal": subtotal,
 		})
 		return
 	}

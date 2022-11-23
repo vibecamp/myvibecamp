@@ -22,12 +22,17 @@
       <fieldset>
         <div class="row">
           <span class="col-sm-9 col-form-label">Ticket Price</span>
-          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="$420.69"/>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="ticket-price" style="text-align: right; padding-right: 2em;" value="$420.69"/>
         </div>
         <br/>
         <div class="row">
           <span class="col-sm-9 col-form-label">Your Discount</span>
-          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="${{ .User.Discount.Dollars }}.{{.User.Discount.Cents}}"/>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="sponsorship-discount" style="text-align: right; padding-right: 2em;" value="${{ .User.Discount.Dollars }}.{{.User.Discount.Cents}}"/>
+        </div>
+        <br/>
+        <div class="row">
+          <span class="col-sm-9 col-form-label">Subtotal</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="subtotal" style="text-align: right; padding-right: 2em;" value="${{ .Subtotal.Dollars }}.{{.Subtotal.Cents}}"/>
         </div>
         <br/>
         <div class="row">

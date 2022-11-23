@@ -495,8 +495,9 @@ func HandleStripeWebhook(c *gin.Context) {
 
 func makeSponsoredOrder(user db.SponsorshipUser) *db.Order {
 	price := float64(420.69)
-	total := price - user.Discount.ToFloat()
-	fee := total * stripeFeePercent
+	subtotal := price - user.Discount.ToFloat()
+	fee := subtotal * stripeFeePercent
+	total := subtotal + fee
 	order := &db.Order{
 		OrderID:       "",
 		UserName:      user.UserName,
