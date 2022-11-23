@@ -466,7 +466,7 @@ func GetSponsorshipUser(userName string) (*SponsorshipUser, error) {
 }
 
 func getSponsorshipUserByField(field, value string) (*SponsorshipUser, error) {
-	response, err := query(chaosModeTable, field, value) // get all fields
+	response, err := query(sponsorshipTable, field, value) // get all fields
 	if err != nil {
 		return nil, err
 	}

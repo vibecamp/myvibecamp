@@ -283,10 +283,17 @@ func SponsorshipCartHandler(c *gin.Context) {
 		}
 	}
 
+	totalFloat := float64(420.69) - user.Discount.ToFloat()
+	feeFloat := totalFloat * float64(0.03)
+	total := db.CurrencyFromFloat(totalFloat + feeFloat)
+	fee := db.CurrencyFromFloat(feeFloat)
+
 	if c.Request.Method == http.MethodGet {
 		c.HTML(http.StatusOK, "sponsorshipCart.html.tmpl", gin.H{
 			"flashes": GetFlashes(c),
 			"User":    user,
+			"Total":   total,
+			"Fee":     fee,
 		})
 		return
 	}
@@ -300,7 +307,7 @@ func SponsorshipCartHandler(c *gin.Context) {
 		return
 	}
 
-	var admissionLevel string = "tent"
+	var admissionLevel string = "Tent"
 
 	salesCap, err := db.GetConstant(fields.SalesCap)
 	if err != nil {
@@ -338,7 +345,7 @@ func SponsorshipCartHandler(c *gin.Context) {
 		LactoseIntolerant: c.PostForm("lactose") == "on",
 		FoodComments:      c.PostForm("comments"),
 		DiscordName:       c.PostForm("discord-name"),
-		TicketPath:        "2022 Attendee",
+		TicketPath:        "Sponsorship",
 	}
 
 	if attendee != nil {
@@ -627,7 +634,6 @@ func SignInRedirect(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/2023-logistics")
 		return
 	}
-	log.Error(err)
 
 	user, err := db.GetChaosUser(session.UserName)
 	if user != nil && err == nil {
@@ -641,7 +647,15 @@ func SignInRedirect(c *gin.Context) {
 		return
 	}
 
+	spuser, err := db.GetSponsorshipUser(session.UserName)
+	if spuser != nil && err == nil {
+		c.Redirect(http.StatusFound, "/sponsorship-cart")
+		return
+	}
+
 	if err != nil {
+		log.Error(session.UserName)
+		log.Error(err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -754,7 +768,7 @@ func Logistics2023Handler(c *gin.Context) {
 	}
 
 	order, err := db.GetOrder(user.OrderID)
-	if err != nil && user.AdmissionLevel != "Staff" && user.AdmissionLevel != "Sponsorship" {
+	if err != nil && user.AdmissionLevel != "Staff" && user.TicketPath != "Sponsorship" {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}

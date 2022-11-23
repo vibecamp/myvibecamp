@@ -1,25 +1,5 @@
 {{ template "header" }}
 
-<script type="text/javascript">
-    function onCartInputChange(event) {
-      // ticketType always adult-tent
-      const ticketType = document.getElementById("ticket-type").value;
-      
-      let ticketTotal = 0;
-      if (ticketType === "tent") {
-        ticketTotal += Number(document.getElementById("adult-tickets").value) * 420.69;
-        ticketTotal += Number(document.getElementById("child-tickets").value) * 210;
-      } 
-
-      // should we charge processing fee?
-      const processingFee = Math.round(ticketTotal * 0.03 * 100) / 100; 
-      const total = donationAmt + ticketTotal + processingFee;
-
-      document.getElementById("order-total").value = "$" + total.toFixed(2);
-      document.getElementById("processing-fee").value = "$" + processingFee.toFixed(2);
-    }
-</script>
-
 {{ template "nav" "softlaunch" }}
 
 <div class="container">
@@ -41,14 +21,24 @@
     <form method="post" action="">
       <fieldset>
         <div class="row">
+          <span class="col-sm-9 col-form-label">Ticket Price</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="$420.69"/>
+        </div>
+        <br/>
+        <div class="row">
+          <span class="col-sm-9 col-form-label">Your Discount</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="${{ .User.Discount.Dollars }}.{{.User.Discount.Cents}}"/>
+        </div>
+        <br/>
+        <div class="row">
           <span class="col-sm-9 col-form-label">Processing Fee</span>
-          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="$0"/>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="${{ .Fee.Dollars }}.{{.Fee.Cents}}"/>
         </div>
         <br/>
 
         <div class="row">
           <span class="col-sm-9 col-form-label">Your Total</span>
-          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;" value="$0"/>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;" value="${{.Total.Dollars}}.{{.Total.Cents}}"/>
         </div>
         <br/>
 
@@ -83,21 +73,21 @@
         </p>
 
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="vegetarian" id="veg" {{if .User.Vegetarian}}checked{{end}}>
+          <input class="form-check-input" type="checkbox" name="vegetarian" id="veg">
           <label class="form-check-label" for="veg">
             Vegetarian
           </label>
         </div>
 
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="glutenfree" id="gf" {{if .User.GlutenFree}}checked{{end}}>
+          <input class="form-check-input" type="checkbox" name="glutenfree" id="gf">
           <label class="form-check-label" for="gf">
             Gluten free
           </label>
         </div>
 
         <div class="form-check mb-4">
-          <input class="form-check-input" type="checkbox" name="lactose" id="lactose" {{if .User.LactoseIntolerant}}checked{{end}}>
+          <input class="form-check-input" type="checkbox" name="lactose" id="lactose">
           <label class="form-check-label" for="lactose">
             Lactose intolerant
           </label>
