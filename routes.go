@@ -656,7 +656,6 @@ func SignInRedirect(c *gin.Context) {
 	}
 
 	if err != nil {
-		log.Error(session.UserName)
 		log.Error(err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return

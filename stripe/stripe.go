@@ -87,12 +87,7 @@ func calculateCartInfo(items []db.Item, ticketLimit int) (*db.Order, error) {
 	var stripeFee float64 = ticketTotal * stripeFeePercent
 	order.ProcessingFee = db.CurrencyFromFloat(stripeFee)
 	order.Total = db.CurrencyFromFloat(float64(ticketTotal) + order.ProcessingFee.ToFloat() + float64(order.Donation))
-	log.Debugf("%f", order.Total.ToFloat())
-	log.Debugf("%f", stripeFee)
-	log.Debugf("%v", order.Donation)
-
 	order.Date = time.Now().UTC().Format("2006-01-02 15:04")
-	log.Debugf("%v", order.Date)
 	return order, nil
 }
 
