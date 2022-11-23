@@ -31,62 +31,10 @@
 
     <form method="post" action="">
       <fieldset>
-        <fieldset>
-        <legend>Badges</legend>
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="badge-checkbox" id="badge-checkbox" {{if .User.Badge}}checked{{end}}>
-          <label class="form-check-label" for="badge-checkbox">
-            Would you like a badge at vibecamp 2023?
-          </label>
-        </div>
-        <br/>
-        </fieldset>
+        
+        {{template "logistics-form" .User }}
 
-        <fieldset>
-        <legend>Discord</legend>
-        <div class="form-check">
-          <label class="form-check-label" for="discord-name">
-            Add your full discord name to automatically receive the 2023 Attendee role in the vibecamp server.
-          </label>
-          <input type="text" class="form-control" name="discord-name" id="discord-name" value="{{ .User.DiscordName }}" />
-          <br/>
-        </div>
-        </fieldset>
-
-        <fieldset>
-        <legend>Dietary Restrictions</legend>
-        <p>
-          Check all that apply:
-        </p>
-
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="vegetarian" id="veg" {{if .User.Vegetarian}}checked{{end}}>
-          <label class="form-check-label" for="veg">
-            Vegetarian
-          </label>
-        </div>
-
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="glutenfree" id="gf" {{if .User.GlutenFree}}checked{{end}}>
-          <label class="form-check-label" for="gf">
-            Gluten free
-          </label>
-        </div>
-
-        <div class="form-check mb-4">
-          <input class="form-check-input" type="checkbox" name="lactose" id="lactose" {{if .User.LactoseIntolerant}}checked{{end}}>
-          <label class="form-check-label" for="lactose">
-            Lactose intolerant
-          </label>
-        </div>
-
-        <div class="mb-3">
-          <label for="comments" class="form-label">Other considerations (e.g. allergies)</label>
-          <textarea class="form-control" id="comments" name="comments" rows="3">{{.User.FoodComments}}</textarea>
-        </div>
-      </fieldset>
-
-      <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-primary">Submit</button>
 
       </fieldset>
     </form>
