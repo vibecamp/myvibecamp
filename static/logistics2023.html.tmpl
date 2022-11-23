@@ -18,6 +18,7 @@
     information from you, you will be able to edit it here. 
   </p>
 
+  {{ if .Order }}
   <h3>You Purchased</h3>
 
   {{ if gt .Order.AdultCabin 0 }}<p>{{.Order.AdultCabin}} adult cabin ticket{{if gt .Order.AdultCabin 1}}s{{end}}</p>{{end}}
@@ -26,6 +27,7 @@
   {{ if gt .Order.ChildTent 0 }}<p>{{.Order.ChildTent}} child tent ticket{{if gt .Order.ChildTent 1}}s{{end}}</p>{{end}}
   {{ if gt .Order.ToddlerCabin 0 }}<p>{{.Order.ToddlerCabin}} toddler cabin ticket{{if gt .Order.ToddlerCabin 1}}s{{end}}</p>{{end}}
   {{ if gt .Order.ToddlerTent 0 }}<p>{{.Order.ToddlerTent}} toddler tent ticket{{if gt .Order.ToddlerTent 1}}s{{end}}</p>{{end}}
+  {{ end }}
 
     <form method="post" action="">
       <fieldset>
@@ -37,6 +39,7 @@
             Would you like a badge at vibecamp 2023?
           </label>
         </div>
+        <br/>
         </fieldset>
 
         <fieldset>
@@ -45,7 +48,7 @@
           <label class="form-check-label" for="discord-name">
             Add your full discord name to automatically receive the 2023 Attendee role in the vibecamp server.
           </label>
-          <input type="text" class="form-control" name="discord-name" id="discord-name" value={{ .User.DiscordName }} />
+          <input type="text" class="form-control" name="discord-name" id="discord-name" value="{{ .User.DiscordName }}" />
           <br/>
         </div>
         </fieldset>

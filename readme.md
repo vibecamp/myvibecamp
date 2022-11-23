@@ -35,12 +35,4 @@ cp env.example env
 - Create a new table with [these fields](https://github.com/vibecamp/myvibecamp/blob/master/fields/fields.go) in it.
 - Use the first part of the URL (starts with `app`) as your `AIRTABLE_BASE_ID`
 - Use the second part of the URL (starts with `tbl`) as your `AIRTABLE_TABLE_NAME`
-- For each user you want to test with, you need to add a new row. It must at least have at least their lowercased twitter handle (without the `@`) in the `twitter clean` column.
-
-## Deploy
-
-```
-./dockerpush.sh
-```
-
-Pushing to Docker Hub will automatically deploy the image to production.
+- For each user you want to test with, you need to add a new row. It must at least have at least their lowercased twitter handle (without the `@`) in the `Username` column.

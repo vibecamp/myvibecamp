@@ -18,6 +18,7 @@ if (ticketCart.hasAttribute("cartData")) {
   items = JSON.parse(ticketCart.getAttribute("cartData")).items;
   username = ticketCart.getAttribute("username");
   usertype = ticketCart.getAttribute("usertype");
+  ordertype = ticketCart.getAttribute("ordertype");
 }
 
 initialize();
@@ -48,7 +49,7 @@ async function initialize() {
   const response = await fetch("/create-payment-intent", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ items, username, usertype }),
+    body: JSON.stringify({ items, username, usertype, ordertype }),
   });
   const { clientSecret, total, intentId } = await response.json();
   paymentIntentId = intentId;

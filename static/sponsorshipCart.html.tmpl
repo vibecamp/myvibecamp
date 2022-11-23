@@ -1,0 +1,119 @@
+{{ template "header" }}
+
+<script type="text/javascript">
+    function onCartInputChange(event) {
+      // ticketType always adult-tent
+      const ticketType = document.getElementById("ticket-type").value;
+      
+      let ticketTotal = 0;
+      if (ticketType === "tent") {
+        ticketTotal += Number(document.getElementById("adult-tickets").value) * 420.69;
+        ticketTotal += Number(document.getElementById("child-tickets").value) * 210;
+      } 
+
+      // should we charge processing fee?
+      const processingFee = Math.round(ticketTotal * 0.03 * 100) / 100; 
+      const total = donationAmt + ticketTotal + processingFee;
+
+      document.getElementById("order-total").value = "$" + total.toFixed(2);
+      document.getElementById("processing-fee").value = "$" + processingFee.toFixed(2);
+    }
+</script>
+
+{{ template "nav" "softlaunch" }}
+
+<div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/vc-sl">Sponsorship Welcome</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Tickets</li>
+    </ol>
+  </nav>
+  {{ template "flashes" .flashes }}
+
+  <h2>Purchase your vibecamp tickets here!</h2>
+
+  <p>
+    The next vibecamp will be taking place from June 15th-18th in 2023 at Camp Ramblewood in Maryland and you've landed a sponsorship spot! 
+    Answer some additional questions here and get your ticket on the next page!
+  </p>
+
+    <form method="post" action="">
+      <fieldset>
+        <div class="row">
+          <span class="col-sm-9 col-form-label">Processing Fee</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="$0"/>
+        </div>
+        <br/>
+
+        <div class="row">
+          <span class="col-sm-9 col-form-label">Your Total</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;" value="$0"/>
+        </div>
+        <br/>
+
+        <fieldset>
+        <legend>Badges</legend>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="badge-checkbox" id="badge-checkbox" checked>
+          <label class="form-check-label" for="badge-checkbox">
+            Would you like a badge at vibecamp 2023?
+          </label>
+          <br/>
+        </div>
+        </fieldset>
+        <p>Badge creation will happen through the app, we'll announce when it's ready to use!</p>
+        <br/>
+
+        <fieldset>
+        <legend>Discord</legend>
+        <div class="form-check">
+          <label class="form-check-label" for="discord-name">
+            Add your discord handle (including #) to receive the 2023 Attendee role in the vibecamp server.
+          </label>
+          <input type="text" class="form-control" name="discord-name" id="discord-name" />
+          <br/>
+        </div>
+        </fieldset>
+
+        <fieldset>
+        <legend>Dietary Restrictions</legend>
+        <p>
+          Check all that apply:
+        </p>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="vegetarian" id="veg" {{if .User.Vegetarian}}checked{{end}}>
+          <label class="form-check-label" for="veg">
+            Vegetarian
+          </label>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="glutenfree" id="gf" {{if .User.GlutenFree}}checked{{end}}>
+          <label class="form-check-label" for="gf">
+            Gluten free
+          </label>
+        </div>
+
+        <div class="form-check mb-4">
+          <input class="form-check-input" type="checkbox" name="lactose" id="lactose" {{if .User.LactoseIntolerant}}checked{{end}}>
+          <label class="form-check-label" for="lactose">
+            Lactose intolerant
+          </label>
+        </div>
+
+        <div class="mb-3">
+          <label for="comments" class="form-label">Other considerations (e.g. allergies)</label>
+          <textarea class="form-control" id="comments" name="comments" rows="3"></textarea>
+        </div>
+      </fieldset>
+      <br/>
+
+      <button type="submit" class="btn btn-primary">Checkout</button>
+    </form>
+
+
+</div>
+
+{{ template "footer" }}

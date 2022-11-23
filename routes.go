@@ -259,6 +259,114 @@ func TicketCartHandler(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/checkout"+"?"+params.Encode())
 }
 
+func SponsorshipCartHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	user, err := db.GetSponsorshipUser(session.UserName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	attendee, err := db.GetUser(session.UserName)
+	if err == nil && attendee != nil {
+		if attendee.OrderID != "" {
+			order, err := db.GetOrder(attendee.OrderID)
+			if err == nil && order != nil && order.PaymentStatus == "success" {
+				c.Redirect(http.StatusFound, "/checkout-complete")
+				return
+			}
+		}
+	}
+
+	if c.Request.Method == http.MethodGet {
+		c.HTML(http.StatusOK, "sponsorshipCart.html.tmpl", gin.H{
+			"flashes": GetFlashes(c),
+			"User":    user,
+		})
+		return
+	}
+
+	ticketType := "tent"
+	adultTix := 1
+	dbTicketType := "Adult"
+
+	if adultTix > user.TicketLimit {
+		ErrorFlash(c, fmt.Sprintf("You're limited to %d ticket in the soft launch", user.TicketLimit))
+		return
+	}
+
+	var admissionLevel string = "tent"
+
+	salesCap, err := db.GetConstant(fields.SalesCap)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	fullTixSold, err := db.GetAggregation(fields.FullSold)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	if adultTix+fullTixSold.Quantity > salesCap.Value {
+		ErrorFlash(c, fmt.Sprintf("Sorry, buying that many tickets exceeds our cap! %d tickets left.", salesCap.Value-fullTixSold.Quantity))
+		return
+	}
+
+	newUser := &db.User{
+		AirtableID:        "",
+		UserName:          user.UserName,
+		TwitterName:       user.TwitterName,
+		Name:              user.Name,
+		Email:             user.Email,
+		AdmissionLevel:    admissionLevel,
+		TicketType:        dbTicketType,
+		CheckedIn:         false,
+		Barcode:           "",
+		OrderNotes:        "",
+		OrderID:           "",
+		TicketID:          "",
+		Badge:             c.PostForm("badge-checkbox") == "on",
+		Vegetarian:        c.PostForm("vegetarian") == "on",
+		GlutenFree:        c.PostForm("glutenfree") == "on",
+		LactoseIntolerant: c.PostForm("lactose") == "on",
+		FoodComments:      c.PostForm("comments"),
+		DiscordName:       c.PostForm("discord-name"),
+		TicketPath:        "2022 Attendee",
+	}
+
+	if attendee != nil {
+		newUser.OrderID = attendee.OrderID
+		newUser.AirtableID = attendee.AirtableID
+		err = newUser.UpdateUser()
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+	} else {
+		err = newUser.CreateUser()
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+	}
+
+	params := url.Values{}
+	params.Set("ticketType", ticketType)
+	params.Set("adult", strconv.Itoa(adultTix))
+	params.Set("child", "0")
+	params.Set("toddler", "0")
+	params.Set("donation", "0")
+
+	c.Redirect(http.StatusFound, "/checkout"+"?"+params.Encode())
+}
+
 func SoftLaunchSignIn(c *gin.Context) {
 	session := GetSession(c)
 
@@ -592,8 +700,10 @@ func StripeCheckoutHandler(c *gin.Context) {
 	// log.Debugf(string(itemJson))
 
 	c.HTML(http.StatusOK, "checkout.html.tmpl", gin.H{
-		"User":  user,
-		"Items": string(itemJson),
+		"User":      user,
+		"Items":     string(itemJson),
+		"OrderType": "Purchase",
+		"UserType":  user.TicketPath,
 	})
 }
 
@@ -644,10 +754,11 @@ func Logistics2023Handler(c *gin.Context) {
 	}
 
 	order, err := db.GetOrder(user.OrderID)
-	if err != nil {
+	if err != nil && user.AdmissionLevel != "Staff" && user.AdmissionLevel != "Sponsorship" {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+	log.Debug(user.DiscordName)
 
 	if c.Request.Method == http.MethodGet {
 		c.HTML(http.StatusOK, "logistics2023.html.tmpl", gin.H{
