@@ -1,0 +1,61 @@
+{{ template "header" }}
+
+<script type="text/javascript">
+    function onCartInputChange(event) {
+      const donationVal = document.getElementById("donation-amount").value;
+      if (donationVal.includes(".")) {
+        document.getElementById("donation-amount").value = donationVal.slice(0,donationVal.indexOf("."));
+      }
+      const donationAmt = Number(document.getElementById("donation-amount").value);
+      document.getElementById("order-total").value = "$" + donationAmt.toString();
+    }
+</script>
+
+{{ template "nav" "donate" }}
+
+<div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item active" aria-current="page">Donate</li>
+    </ol>
+  </nav>
+  {{ template "flashes" .flashes }}
+
+  <h2>Donate to vibecamp here!</h2>
+
+    <form method="post" action="">
+        <fieldset>
+          <legend>Donate</legend>
+          <div class="form-group row">
+            <label for="donation-amount" class="col-sm-9 col-form-label">Every $420 means one more low-income person can come!</label>
+            <div class="col-sm-3">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">$</div>
+                </div>
+                <input type="number" class="form-control" name="donation-amount" id="donation-amount" min="0" style="text-align: right;" onChange="onCartInputChange()" step="1"/>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+        <br/>
+
+        <div class="row">
+          <span class="col-sm-9 col-form-label">Your Total</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;" value="$0"/>
+        </div>
+        <br/>
+
+        <fieldset>
+        <legend>Discord</legend>
+          <label class="form-check-label" for="discord-name">
+            Add your twitter handle or name if you'd like your donation to be public!
+          </label>
+          <input type="text" class="form-control" name="donation-name" id="donation-name" />
+          <br/>
+        </fieldset>
+      <button type="submit" class="btn btn-primary">Checkout</button>
+    </form>
+</div>
+
+{{ template "footer" }}

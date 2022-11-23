@@ -1,0 +1,98 @@
+{{ template "header" }}
+
+<script type="text/javascript">
+    function onTicketTypeChange(ticketType) {
+        if (ticketType === "cabin") {
+            document.getElementById("adult-price-tag").innerText = "$590";
+            document.getElementById("child-price-tag").innerText = "$380";
+        } else if (ticketType === "tent") {
+            document.getElementById("adult-price-tag").innerText = "$420.69";
+            document.getElementById("child-price-tag").innerText = "$210";
+        } else if (ticketType === "sat") {
+            document.getElementById("adult-price-tag").innerText = "$140";
+            document.getElementById("child-price-tag").innerText = "$70";
+        }
+    }
+
+    function onCartInputChange(event) {
+      const processingFee = Math.round(ticketTotal * 0.03 * 100) / 100; 
+      const total = ticketTotal + processingFee;
+
+      document.getElementById("order-total").value = "$" + total.toFixed(2);
+      document.getElementById("processing-fee").value = "$" + processingFee.toFixed(2);
+    }
+</script>
+
+{{ template "nav" "chaosmode" }}
+
+<div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/chaos-mode">Chaos Mode Welcome</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Tickets</li>
+    </ol>
+  </nav>
+  {{ template "flashes" .flashes }}
+
+  <h2>Upgrade your vibecamp tickets here!</h2>
+
+  <h4>Adults:</h4>
+  <p>
+    $420.69 is the base entry price for adults and children 9 and older. This ticket tier grants you access to the entire event, two meals a day 
+    (plus whatever snacks/breakfast food we add), and the option to sleep onsite in a tent/car/hammock.
+  </p>
+  <p>
+    $590 is the cabin ticket tier for adults and children 9 and older. This gets you a guaranteed spot in a cabin with tempurpedic mattresses - and adult-sized beds! 
+    We will be facilitating cabin sorting closer to the event through our <a href="https://discord.gg/btzNabV3VD">discord server</a>.
+  </p>
+
+  <h4>Children:</h4>
+  <p>
+    Children under the age of 3 get in free. Event access for children ages 3-8 is $210. Cabin placement for children between those ages is $380.
+  </p>
+
+  <h4>Final Night Celebration:</h4>
+  <p>
+    This tier allows you access to the last night of the event- arrival in the afternoon of the 17th and access until everyone leaves on 
+    Sunday afternoon (exact times TBD). 
+  </p>
+  <p>
+    Pricing for this tier is $140 for adults and $70 for children 3-8 (children under 3 still free!). 
+    Unfortunately, we cannot offer cabin placement for this ticketing tier- but you are welcome to put up a tent and we will feed you 😊
+  </p>
+
+    <form method="post" action="">
+      <fieldset>
+        <legend>Tickets</legend>
+        <div class="form-group row">
+            <label class="col-sm-9 col-form-label" for="ticket-type">
+                Upgrade Type
+            </label>
+            <div class="col-sm-3">
+            <select name="ticket-type" id="ticket-type" class="form-select" onChange="onTicketTypeChange(this.value)" value="none" required style="text-align: right;">
+                <option value="none" selected hidden></option>
+                <option value="cabin">Cabin</option>
+                <option value="tent">GA</option>
+            </select>
+            </div>
+        </div>
+        <br/>
+      </fieldset>
+      <br/>
+
+      <div class="row">
+        <span class="col-sm-9 col-form-label">Processing Fee</span>
+        <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="$0"/>
+      </div>
+      <br/>
+
+      <div class="row">
+        <span class="col-sm-9 col-form-label">Your Total</span>
+        <input readonly type="text" class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;" value="$0"/>
+      </div>
+      <br/>
+      <button type="submit" class="btn btn-primary">Checkout</button>
+    </form>
+</div>
+
+{{ template "footer" }}
