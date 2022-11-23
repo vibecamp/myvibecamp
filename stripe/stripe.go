@@ -87,12 +87,7 @@ func calculateCartInfo(items []db.Item, ticketLimit int) (*db.Order, error) {
 	var stripeFee float64 = ticketTotal * stripeFeePercent
 	order.ProcessingFee = db.CurrencyFromFloat(stripeFee)
 	order.Total = db.CurrencyFromFloat(float64(ticketTotal) + order.ProcessingFee.ToFloat() + float64(order.Donation))
-	log.Debugf("%f", order.Total.ToFloat())
-	log.Debugf("%f", stripeFee)
-	log.Debugf("%v", order.Donation)
-
 	order.Date = time.Now().UTC().Format("2006-01-02 15:04")
-	log.Debugf("%v", order.Date)
 	return order, nil
 }
 
@@ -105,9 +100,10 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	}
 
 	var req struct {
-		Items    []db.Item `json:"items"`
-		UserName string    `json:"username"`
-		UserType string    `json:"usertype"`
+		Items     []db.Item `json:"items"`
+		UserName  string    `json:"username"`
+		UserType  string    `json:"usertype"`
+		OrderType string    `json:"ordertype"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -117,6 +113,7 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 	}
 
 	var ticketLimit int = 1
+	var order *db.Order
 	if req.UserType == "chaos" {
 		chaosUser, err := db.GetChaosUser(req.UserName)
 		if err != nil {
@@ -125,7 +122,7 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 			return
 		}
 		ticketLimit = chaosUser.TicketLimit
-	} else {
+	} else if req.UserType == "2022" {
 		user, err := db.GetSoftLaunchUser(req.UserName)
 		if err != nil {
 			log.Errorf("db.GetSoftLaunchUser: %v", err)
@@ -133,6 +130,14 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 			return
 		}
 		ticketLimit = user.TicketLimit
+	} else {
+		sponsoredUser, err := db.GetSponsorshipUser(req.UserName)
+		if err != nil {
+			log.Errorf("db.GetSponsoredUser: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		order = makeSponsoredOrder(*sponsoredUser)
 	}
 
 	newUser, err := db.GetUser(req.UserName)
@@ -142,11 +147,13 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 		return
 	}
 
-	order, err := calculateCartInfo(req.Items, ticketLimit)
-	if err != nil {
-		log.Errorf("stripe.calculateCartInfo: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if order == nil {
+		order, err = calculateCartInfo(req.Items, ticketLimit)
+		if err != nil {
+			log.Errorf("stripe.calculateCartInfo: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	order.UserName = newUser.UserName
@@ -479,4 +486,34 @@ func HandleStripeWebhook(c *gin.Context) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func makeSponsoredOrder(user db.SponsorshipUser) *db.Order {
+	price := float64(420.69)
+	subtotal := price - user.Discount.ToFloat()
+	fee := subtotal * stripeFeePercent
+	total := subtotal + fee
+	order := &db.Order{
+		OrderID:       "",
+		UserName:      user.UserName,
+		Total:         db.CurrencyFromFloat(total),
+		ProcessingFee: db.CurrencyFromFloat(fee),
+		TotalTickets:  1,
+		AdultCabin:    0,
+		AdultTent:     1,
+		AdultSat:      0,
+		ChildCabin:    0,
+		ChildTent:     0,
+		ChildSat:      0,
+		ToddlerCabin:  0,
+		ToddlerTent:   0,
+		ToddlerSat:    0,
+		Donation:      0,
+		StripeID:      "",
+		PaymentStatus: "",
+		Date:          time.Now().UTC().Format("2006-01-02 15:04"),
+		AirtableID:    "",
+	}
+
+	return order
 }

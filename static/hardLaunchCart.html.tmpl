@@ -160,10 +160,10 @@
                 <option value=4>4</option>
             </select>
         </div>
-        </fieldset>
-        <br/>
+      </fieldset>
+      <br/>
         
-        <fieldset>
+      <fieldset>
           <legend>Donate</legend>
           <div class="form-group row">
             <label for="donation-amount" class="col-sm-9 col-form-label">Every $420 means one more low-income person can come!</label>
@@ -176,76 +176,22 @@
               </div>
             </div>
           </div>
-        </fieldset>
-        <br/>
-
-        <div class="row">
-          <span class="col-sm-9 col-form-label">Processing Fee</span>
-          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="$0"/>
-        </div>
-        <br/>
-
-        <div class="row">
-          <span class="col-sm-9 col-form-label">Your Total</span>
-          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;" value="$0"/>
-        </div>
-        <br/>
-
-        <fieldset>
-        <legend>Badges</legend>
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="badge-checkbox" id="badge-checkbox" checked>
-          <label class="form-check-label" for="badge-checkbox">
-            Would you like a badge at vibecamp 2023?
-          </label>
-          <br/>
-        </div>
-        </fieldset>
-        <p>Badge creation will happen through the app, we'll announce when it's ready to use!</p>
-        <br/>
-
-        <fieldset>
-        <legend>Discord</legend>
-          <label class="form-check-label" for="discord-name">
-            Add your discord handle (including #) to receive the 2023 Attendee role in the vibecamp server.
-          </label>
-          <input type="text" class="form-control" name="discord-name" id="discord-name" />
-          <br/>
-        </fieldset>
-
-        <fieldset>
-        <legend>Dietary Restrictions</legend>
-        <p>
-          Check all that apply:
-        </p>
-
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="vegetarian" id="veg">
-          <label class="form-check-label" for="veg">
-            Vegetarian
-          </label>
-        </div>
-
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="glutenfree" id="gf">
-          <label class="form-check-label" for="gf">
-            Gluten free
-          </label>
-        </div>
-
-        <div class="form-check mb-4">
-          <input class="form-check-input" type="checkbox" name="lactose" id="lactose">
-          <label class="form-check-label" for="lactose">
-            Lactose intolerant
-          </label>
-        </div>
-
-        <div class="mb-3">
-          <label for="comments" class="form-label">Other considerations (e.g. allergies)</label>
-          <textarea class="form-control" id="comments" name="comments" rows="3"></textarea>
-        </div>
       </fieldset>
       <br/>
+
+      <div class="row">
+        <span class="col-sm-9 col-form-label">Processing Fee</span>
+        <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="$0"/>
+      </div>
+      <br/>
+
+      <div class="row">
+        <span class="col-sm-9 col-form-label">Your Total</span>
+        <input readonly type="text" class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;" value="$0"/>
+      </div>
+      <br/>
+
+      {{ template "logistics-form" }}
 
       <button type="submit" class="btn btn-primary">Checkout</button>
     </form>

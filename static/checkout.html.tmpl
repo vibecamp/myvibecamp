@@ -28,7 +28,7 @@
             <span id="button-text">Pay now</span>
         </button>
         <div id="payment-message" class="hidden"></div>
-        <div id="ticket-cart" class="hidden" cartData={{ .Items }} username={{ .User.UserName }} usertype={{ if eq .User.TicketPath "2022 Attendee" }}"2022"{{ else }}"chaos"{{ end }} ></div>
+        <div id="ticket-cart" class="hidden" cartData={{ .Items }} username={{ .User.UserName }} usertype={{ if eq .User.TicketPath "2022 Attendee" }}"2022"{{ else if eq .User.TicketPath "Sponsorship" }}"sponsor"{{else}}"chaos"{{ end }} ordertype={{ .OrderType }}></div>
     </form>
 </div>
 

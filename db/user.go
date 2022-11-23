@@ -28,6 +28,10 @@ var ordersTable *airtable.Table
 var constantsTable *airtable.Table
 var aggregationsTable *airtable.Table
 var chaosModeTable *airtable.Table
+var sponsorshipTable *airtable.Table
+
+// var cabinTable *airtable.Table
+// var ticketTable *airtable.Table
 
 func Init(apiKey, baseID, tableName string, cache *cache.Cache) {
 	var (
@@ -46,6 +50,9 @@ func Init(apiKey, baseID, tableName string, cache *cache.Cache) {
 	constantsTable = client.GetTable(baseTwo, constTable)
 	aggregationsTable = client.GetTable(baseTwo, aggTable)
 	chaosModeTable = client.GetTable(baseTwo, "ChaosMode")
+	sponsorshipTable = client.GetTable(baseTwo, "Sponsorships")
+	// cabinTable = client.GetTable(baseTwo, "Cabins")
+	// ticketTable = client.GetTable(baseTwo, "Tickets")
 	defaultCache = cache
 }
 
@@ -96,6 +103,17 @@ type ChaosModeUser struct {
 	Email       string
 	TicketLimit int
 	Phase       string
+
+	AirtableID string
+}
+
+type SponsorshipUser struct {
+	UserName    string
+	Name        string
+	TwitterName string
+	Email       string
+	TicketLimit int
+	Discount    *Currency
 
 	AirtableID string
 }
@@ -285,7 +303,7 @@ func getUserByField(field, value string) (*User, error) {
 func GetSoftLaunchUser(userName string) (*SoftLaunchUser, error) {
 	cleanName := strings.ToLower(userName)
 	if defaultCache != nil {
-		if u, found := defaultCache.Get("sl" + cleanName); found {
+		if u, found := defaultCache.Get("sl-" + cleanName); found {
 			log.Trace("user cache hit")
 			var user SoftLaunchUser
 			err := gob.NewDecoder(bytes.NewBuffer(u.([]byte))).Decode(&user)
@@ -355,7 +373,7 @@ func getSoftLaunchUserByField(field, value string) (*SoftLaunchUser, error) {
 func GetChaosUser(userName string) (*ChaosModeUser, error) {
 	cleanName := strings.ToLower(userName)
 	if defaultCache != nil {
-		if u, found := defaultCache.Get("cm" + cleanName); found {
+		if u, found := defaultCache.Get("cm-" + cleanName); found {
 			log.Trace("user cache hit")
 			var user ChaosModeUser
 			err := gob.NewDecoder(bytes.NewBuffer(u.([]byte))).Decode(&user)
@@ -403,6 +421,72 @@ func getChaosUserByField(field, value string) (*ChaosModeUser, error) {
 		Name:        toStr(rec.Fields[fields.Name]),
 		Email:       toStr(rec.Fields[fields.Email]),
 		Phase:       toStr(rec.Fields[fields.Phase]),
+		TicketLimit: ticketLimit,
+	}
+
+	if defaultCache != nil {
+		var b bytes.Buffer
+		err := gob.NewEncoder(&b).Encode(*u)
+		if err != nil {
+			return nil, errors.Wrap(err, "cache save")
+		}
+		defaultCache.Set(u.cacheKey(), b.Bytes(), 0)
+	}
+
+	return u, nil
+}
+
+func GetSponsorshipUser(userName string) (*SponsorshipUser, error) {
+	cleanName := strings.ToLower(userName)
+	if defaultCache != nil {
+		if u, found := defaultCache.Get("sp-" + cleanName); found {
+			log.Trace("user cache hit")
+			var user SponsorshipUser
+			err := gob.NewDecoder(bytes.NewBuffer(u.([]byte))).Decode(&user)
+			if err != nil {
+				return nil, errors.Wrap(err, "cache hit")
+			}
+			return &user, nil
+		}
+	}
+
+	user, err := getSponsorshipUserByField(fields.UserName, cleanName)
+	if err != nil {
+		if errors.Is(err, ErrNoRecords) {
+			err = errors.New("You're not on the guest list! Most likely we spelled your Twitter handle wrong.")
+		} else if errors.Is(err, ErrManyRecords) {
+			err = errors.New("You're on the list multiple times. We probably screwed something up 😰")
+		}
+		return nil, err
+	} else if user == nil {
+		return nil, errors.New("no user found, but no error from db 🤔")
+	}
+
+	return user, nil
+}
+
+func getSponsorshipUserByField(field, value string) (*SponsorshipUser, error) {
+	response, err := query(sponsorshipTable, field, value) // get all fields
+	if err != nil {
+		return nil, err
+	}
+
+	if response == nil || len(response.Records) == 0 {
+		return nil, errors.Wrap(ErrNoRecords, "")
+	} else if len(response.Records) != 1 {
+		return nil, errors.Wrap(ErrManyRecords, "")
+	}
+
+	rec := response.Records[0]
+	ticketLimit, _ := strconv.Atoi(rec.Fields[fields.TicketLimit].(string))
+
+	u := &SponsorshipUser{
+		AirtableID:  rec.ID,
+		UserName:    toStr(rec.Fields[fields.UserName]),
+		TwitterName: toStr(rec.Fields[fields.TwitterName]),
+		Name:        toStr(rec.Fields[fields.Name]),
+		Email:       toStr(rec.Fields[fields.Email]),
+		Discount:    CurrencyFromAirtableString(toStr(rec.Fields[fields.Discount])),
 		TicketLimit: ticketLimit,
 	}
 
@@ -654,9 +738,10 @@ func (u *User) GetTicketGroup() ([]*User, error) {
 	return group, nil
 }
 
-func (u *User) cacheKey() string           { return u.UserName }
-func (u *SoftLaunchUser) cacheKey() string { return "sl" + u.UserName }
-func (u *ChaosModeUser) cacheKey() string  { return "cm" + u.UserName }
+func (u *User) cacheKey() string            { return u.UserName }
+func (u *SoftLaunchUser) cacheKey() string  { return "sl-" + u.UserName }
+func (u *ChaosModeUser) cacheKey() string   { return "cm-" + u.UserName }
+func (u *SponsorshipUser) cacheKey() string { return "sp-" + u.UserName }
 
 func (u *User) HasCheckinPermission() bool {
 	if u.AdmissionLevel == "Staff" {

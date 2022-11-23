@@ -1,0 +1,60 @@
+{{ template "header" }}
+
+{{ template "nav" "softlaunch" }}
+
+<div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/vc-sl">Sponsorship Welcome</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Tickets</li>
+    </ol>
+  </nav>
+  {{ template "flashes" .flashes }}
+
+  <h2>Purchase your vibecamp tickets here!</h2>
+
+  <p>
+    The next vibecamp will be taking place from June 15th-18th in 2023 at Camp Ramblewood in Maryland and you've landed a sponsorship spot! 
+    Answer some additional questions here and purchase your ticket on the next page!
+  </p>
+
+    <form method="post" action="">
+      <fieldset>
+        <div class="row">
+          <span class="col-sm-9 col-form-label">Ticket Price</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="ticket-price" style="text-align: right; padding-right: 2em;" value="$420.69"/>
+        </div>
+        <br/>
+        <div class="row">
+          <span class="col-sm-9 col-form-label">Your Discount</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="sponsorship-discount" style="text-align: right; padding-right: 2em;" value="${{ .User.Discount.Dollars }}.{{.User.Discount.Cents}}"/>
+        </div>
+        <br/>
+        <div class="row">
+          <span class="col-sm-9 col-form-label">Subtotal</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="subtotal" style="text-align: right; padding-right: 2em;" value="${{ .Subtotal.Dollars }}.{{.Subtotal.Cents}}"/>
+        </div>
+        <br/>
+        <div class="row">
+          <span class="col-sm-9 col-form-label">Processing Fee</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="${{ .Fee.Dollars }}.{{.Fee.Cents}}"/>
+        </div>
+        <br/>
+
+        <div class="row">
+          <span class="col-sm-9 col-form-label">Your Total</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;" value="${{.Total.Dollars}}.{{.Total.Cents}}"/>
+        </div>
+        <br/>
+
+        {{ template "logistics-form" }}        
+      </fieldset>
+      <br/>
+
+      <button type="submit" class="btn btn-primary">Checkout</button>
+    </form>
+
+
+</div>
+
+{{ template "footer" }}

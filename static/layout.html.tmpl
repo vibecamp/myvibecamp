@@ -64,3 +64,62 @@
     {{ end }}
   </div>
 {{ end }}
+
+{{ define "logistics-form" }}
+  <fieldset>
+    <legend>Badges</legend>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="badge-checkbox" id="badge-checkbox" {{if or (not .) (and . .Badge)}}checked{{end}}>
+      <label class="form-check-label" for="badge-checkbox">
+        Would you like a badge at vibecamp 2023?
+      </label>
+      <br/>
+    </div>
+  </fieldset>
+  <p>Badge creation will happen through the app, we'll announce when it's ready to use!</p>
+  <br/>
+
+  <fieldset>
+    <legend>Discord</legend>
+    <div class="form-check">
+      <label class="form-check-label" for="discord-name">
+        Add your discord handle (including #) to receive the 2023 Attendee role in the vibecamp server.
+      </label>
+      <input type="text" class="form-control" name="discord-name" id="discord-name" value="{{if .}}{{.DiscordName}}{{end}}"/>
+      <br/>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Dietary Restrictions</legend>
+    <p>
+      Check all that apply:
+    </p>
+
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="vegetarian" id="veg" {{if and . .Vegetarian }}checked{{end}}>
+      <label class="form-check-label" for="veg">
+        Vegetarian
+      </label>
+    </div>
+
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="glutenfree" id="gf" {{if and . .GlutenFree }}checked{{end}}>
+      <label class="form-check-label" for="gf">
+        Gluten free
+      </label>
+    </div>
+
+    <div class="form-check mb-4">
+      <input class="form-check-input" type="checkbox" name="lactose" id="lactose" {{ if and . .LactoseIntolerant }}checked{{end}}>
+      <label class="form-check-label" for="lactose">
+        Lactose intolerant
+      </label>
+    </div>
+
+    <div class="mb-3">
+      <label for="comments" class="form-label">Other considerations (e.g. allergies)</label>
+      <textarea class="form-control" id="comments" name="comments" rows="3">{{ if and . .FoodComments}}{{.FoodComments}}{{end}}</textarea>
+    </div>
+  </fieldset>
+{{ end }}

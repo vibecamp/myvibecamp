@@ -42,11 +42,14 @@ const (
 	// Ticket Path indicates how an attendee got on the list (prev attendee, FCFS, etc)
 	TicketPath = "Ticket Path"
 
-	// TicketLimit is for soft launch users table
+	// TicketLimit is for all pre-purchase users table
 	TicketLimit = "Ticket Limit"
 
 	// ChaosMode users have Phase, indicating which phase of chaos mode they got in
 	Phase = "Phase"
+
+	// Sponsorship users have a discount - 0 if it's a full discount
+	Discount = "Discount"
 
 	// TicketType is for attendees (adult, child, or toddler)
 	TicketType = "Ticket Type"

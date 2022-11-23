@@ -3,7 +3,9 @@ package db
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/cockroachdb/errors"
 	"github.com/mehanizm/airtable"
@@ -297,3 +299,103 @@ func toInt(i interface{}) int {
 }
 
 func (o *Order) cacheKey() string { return o.OrderID }
+
+type ItemType int64
+
+const (
+	Undefined ItemType = iota
+	AdultCabin
+	AdultTent
+	AdultSat
+	ChildCabin
+	ChildTent
+	ChildSat
+	ToddlerCabin
+	ToddlerTent
+	ToddlerSat
+	Donation
+	SatToTentUpgrade
+	TentToCabinUpgrade
+)
+
+func (i ItemType) String() string {
+	switch i {
+	case AdultCabin:
+		return "adult-cabin"
+	case AdultTent:
+		return "adult-tent"
+	case AdultSat:
+		return "adult-sat"
+	case ChildCabin:
+		return "child-cabin"
+	case ChildTent:
+		return "child-tent"
+	case ChildSat:
+		return "child-sat"
+	case ToddlerCabin:
+		return "toddler-cabin"
+	case ToddlerTent:
+		return "toddler-tent"
+	case ToddlerSat:
+		return "toddler-sat"
+	case Donation:
+		return "donation"
+	case SatToTentUpgrade:
+		return "sat-tent-upgrade"
+	case TentToCabinUpgrade:
+		return "tent-cabin-upgrade"
+	}
+
+	return "unknown"
+}
+
+func MakeStringCart(i []Item) string {
+	cart := ""
+	for idx, item := range i {
+		if idx != 0 {
+			cart += ","
+		}
+
+		if item.Id == Donation.String() && item.Amount > 0 && item.Quantity > 0 {
+			cart += fmt.Sprintf("%s %d", item.Id, item.Amount)
+		} else if item.Quantity > 0 {
+			cart += fmt.Sprintf("%s %d", item.Id, item.Quantity)
+		}
+	}
+	return cart
+}
+
+func StringCartToItem(cart string) []Item {
+	cartItems := strings.Split(cart, ",")
+	items := []Item{}
+
+	for _, item := range cartItems {
+		splitItem := strings.Split(item, " ")
+
+		if len(splitItem) == 1 {
+			break
+		}
+
+		numVal, err := strconv.Atoi(splitItem[1])
+
+		if err != nil {
+			log.Error("Atoi error: %v", err)
+		}
+
+		newItem := Item{
+			Id:       splitItem[0],
+			Quantity: 0,
+			Amount:   0,
+		}
+
+		if newItem.Id == Donation.String() {
+			newItem.Amount = numVal
+		} else {
+			newItem.Quantity = numVal
+		}
+
+		items = append(items, newItem)
+	}
+
+	return items
+}
