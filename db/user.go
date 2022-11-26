@@ -29,6 +29,7 @@ var constantsTable *airtable.Table
 var aggregationsTable *airtable.Table
 var chaosModeTable *airtable.Table
 var sponsorshipTable *airtable.Table
+var productsTable *airtable.Table
 
 // var cabinTable *airtable.Table
 // var ticketTable *airtable.Table
@@ -41,6 +42,7 @@ func Init(apiKey, baseID, tableName string, cache *cache.Cache) {
 		constTable    = os.Getenv("AIRTABLE_CONSTANTS_TABLE")
 		aggTable      = os.Getenv("AIRTABLE_AGG_TABLE")
 		orderTable    = os.Getenv("AIRTABLE_ORDER_TABLE")
+		productsTableName = os.Getenv("AIRTABLE_PRODUCTS_TABLE")
 	)
 	client = airtable.NewClient(apiKey)
 	defaultTable = client.GetTable(baseID, tableName)
@@ -53,6 +55,7 @@ func Init(apiKey, baseID, tableName string, cache *cache.Cache) {
 	sponsorshipTable = client.GetTable(baseTwo, "Sponsorships")
 	// cabinTable = client.GetTable(baseTwo, "Cabins")
 	// ticketTable = client.GetTable(baseTwo, "Tickets")
+	productsTable = client.GetTable(baseTwo, productsTableName)
 	defaultCache = cache
 }
 
