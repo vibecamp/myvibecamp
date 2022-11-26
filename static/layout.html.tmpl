@@ -85,7 +85,7 @@
       <label class="form-check-label" for="discord-name">
         Add your discord handle (including #) to receive the 2023 Attendee role in the vibecamp server.
       </label>
-      <input type="text" class="form-control" name="discord-name" id="discord-name" value="{{if .}}{{.DiscordName}}{{end}}"/>
+      <input type="text" class="form-control" name="discord-name" id="discord-name" value="{{if and . .DiscordName}}{{.DiscordName}}{{end}}"/>
       <br/>
     </div>
   </fieldset>
