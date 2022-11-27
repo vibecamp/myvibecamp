@@ -1145,3 +1145,50 @@ func AppEndpoint(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
 	}
 }
+
+func NewUpgradeHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	user, err := db.GetUser(session.UserName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	orders, err := db.GetOrders(user.UserID)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if c.Request.Method == http.MethodGet {
+		c.HTML(http.StatusOK, "upgrade.html.tmpl", gin.H{
+			"flashes": GetFlashes(c),
+			"User":    user,
+			"Orders":  orders,
+		})
+		return
+	}
+}
+
+func CreateUpgradeHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	_, err := db.GetUser(session.UserName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	SuccessFlash(c, "Saved!")
+
+	c.Redirect(http.StatusFound, "/upgrade")
+}

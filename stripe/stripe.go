@@ -87,7 +87,7 @@ func calculateCartInfo(items []db.Item, ticketLimit int) (*db.Order, error) {
 	var stripeFee float64 = ticketTotal * stripeFeePercent
 	order.ProcessingFee = db.CurrencyFromFloat(stripeFee)
 	order.Total = db.CurrencyFromFloat(float64(ticketTotal) + order.ProcessingFee.ToFloat() + float64(order.Donation))
-	order.Date = time.Now().UTC().Format("2006-01-02 15:04")
+	order.CreatedAt = time.Now().UTC().Format("2006-01-02 15:04")
 	return order, nil
 }
 
@@ -511,7 +511,7 @@ func makeSponsoredOrder(user db.SponsorshipUser) *db.Order {
 		Donation:      0,
 		StripeID:      "",
 		PaymentStatus: "",
-		Date:          time.Now().UTC().Format("2006-01-02 15:04"),
+		CreatedAt:     time.Now().UTC().Format("2006-01-02 15:04"),
 		AirtableID:    "",
 	}
 

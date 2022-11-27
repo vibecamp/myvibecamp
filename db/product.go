@@ -1,10 +1,7 @@
 package db
 
 import (
-	// "strconv"
-	// "github.com/mehanizm/airtable"
 	"github.com/cockroachdb/errors"
-	// "github.com/patrickmn/go-cache"
 	// log "github.com/sirupsen/logrus"
 )
 

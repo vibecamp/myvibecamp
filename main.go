@@ -23,7 +23,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/kurrik/oauth1a"
-	"github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -78,22 +77,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	if os.Getenv("AIRTABLE_API_KEY") == "" || os.Getenv("AIRTABLE_BASE_ID") == "" ||
-		os.Getenv("AIRTABLE_TABLE_NAME") == "" || os.Getenv("AIRTABLE_2023_BASE") == "" ||
-		os.Getenv("AIRTABLE_SL_TABLE") == "" || os.Getenv("AIRTABLE_ATTENDEE_TABLE") == "" ||
-		os.Getenv("AIRTABLE_CONSTANTS_TABLE") == "" || os.Getenv("AIRTABLE_AGG_TABLE") == "" ||
-		os.Getenv("AIRTABLE_ORDER_TABLE") == "" || os.Getenv("AIRTABLE_PRODUCTS_TABLE") == "" {
+	if os.Getenv("AIRTABLE_API_KEY") == "" || os.Getenv("AIRTABLE_BASE_ID_2022") == "" ||
+		os.Getenv("AIRTABLE_DEFAULT_TABLE") == "" || os.Getenv("AIRTABLE_BASE_ID_2023") == "" ||
+		os.Getenv("AIRTABLE_AGGREGATIONS_TABLE") == "" || os.Getenv("AIRTABLE_CHAOS_MODE_USERS_TABLE") == "" ||
+		os.Getenv("AIRTABLE_CONSTANTS_TABLE") == "" || os.Getenv("AIRTABLE_ORDERS_TABLE") == "" ||
+		os.Getenv("AIRTABLE_PRODUCTS_TABLE") == "" || os.Getenv("AIRTABLE_SOFT_LAUNCH_USERS_TABLE") == "" ||
+		os.Getenv("AIRTABLE_SPONSORSHIPS_TABLE") == "" || os.Getenv("AIRTABLE_USERS_TABLE") == "" {
 		log.Errorf("need all AIRTABLE_ env vars set")
 		os.Exit(1)
 	}
 
 	cacheTime := 24 * time.Hour
+
 	if localDevMode {
 		cacheTime = 1 * time.Second
 	}
-	c := cache.New(cacheTime, 1*time.Hour)
 
-	db.Init(os.Getenv("AIRTABLE_API_KEY"), os.Getenv("AIRTABLE_BASE_ID"), os.Getenv("AIRTABLE_TABLE_NAME"), c)
+	db.Init(cacheTime)
 
 	if localDevMode {
 		stripe.Init("sk_test_4eC39HqLyjWDarjtT1zdp7dc", "", klaviyoKey, klaviyoListId)
@@ -162,6 +162,8 @@ func main() {
 	r.GET("/app-user", AppEndpoint)
 	r.GET("/sponsorship-cart", SponsorshipCartHandler)
 	r.POST("/sponsorship-cart", SponsorshipCartHandler)
+	r.GET("/upgrade", NewUpgradeHandler)
+	r.POST("/upgrade", CreateUpgradeHandler)
 
 	r.GET("/", IndexHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))

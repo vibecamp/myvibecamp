@@ -3,7 +3,6 @@ package db
 import (
 	"bytes"
 	"encoding/gob"
-	"math"
 	"strconv"
 	"strings"
 
@@ -15,161 +14,12 @@ import (
 
 var stripeFee float64 = 0.03
 
-type Constant struct {
-	Name  string
-	Value int
-
-	AirtableID string
-}
-
 type Aggregation struct {
 	Name     string
 	Quantity int
 	Revenue  int
 
 	AirtableID string
-}
-
-type Currency struct {
-	Dollars int
-	Cents   int
-}
-
-func CurrencyFromAirtableString(str string) *Currency {
-	revenueStr := strings.Replace(str[1:], ",", "", -1)
-	currencyInts, _ := strconv.Atoi(revenueStr[:len(revenueStr)-3])
-	currencyCents, _ := strconv.Atoi(revenueStr[len(revenueStr)-2:])
-	c := &Currency{
-		Dollars: currencyInts,
-		Cents:   currencyCents,
-	}
-	return c
-}
-
-func (c *Currency) ToString() string {
-	centsStr := "00"
-	if c.Cents > 9 {
-		centsStr = strconv.Itoa(c.Cents)
-	} else {
-		centsStr = "0" + strconv.Itoa(c.Cents)
-	}
-	revenueStr := "$" + strconv.Itoa(c.Dollars) + "." + centsStr
-	return revenueStr
-}
-
-func (c *Currency) ToAirtableString() string {
-	centsStr := "00"
-	if c.Cents > 9 {
-		centsStr = strconv.Itoa(c.Cents)
-	} else {
-		centsStr = "0" + strconv.Itoa(c.Cents)
-	}
-	revenueStr := strconv.Itoa(c.Dollars) + "." + centsStr
-	return revenueStr
-}
-
-func CurrencyFromFloat(curr float64) *Currency {
-	c := &Currency{
-		Dollars: int(curr),
-		Cents:   int((curr-math.Floor(curr))*100 + 0.5),
-	}
-	return c
-}
-
-func (c *Currency) ToFloat() float64 {
-	var curr float64 = float64(c.Dollars)
-	curr += (float64(c.Cents) / 100)
-	return curr
-}
-
-func (c *Currency) ToCurrencyInt() int64 {
-	var curr int64 = int64(c.ToFloat() * 100)
-	return curr
-}
-
-func GetConstant(constantName string) (*Constant, error) {
-	if defaultCache != nil {
-		tempC := Constant{Name: constantName}
-		if c, found := defaultCache.Get(tempC.cacheKey()); found {
-			log.Trace("order cache hit")
-			var dbConst Constant
-			err := gob.NewDecoder(bytes.NewBuffer(c.([]byte))).Decode(&dbConst)
-			if err != nil {
-				return nil, errors.Wrap(err, "cache hit")
-			}
-			return &dbConst, nil
-		}
-	}
-
-	dbConst, err := getConstantByField(fields.Name, constantName)
-	if err != nil {
-		if errors.Is(err, ErrNoRecords) {
-			err = errors.New("No constant found! There may have been a mistake")
-		} else if errors.Is(err, ErrManyRecords) {
-			err = errors.New("Multiple constants found, looks like we may have had an issue")
-		}
-		return nil, err
-	} else if dbConst == nil {
-		return nil, errors.New("no constant found, but no error from db 🤔")
-	}
-
-	return dbConst, nil
-}
-
-func getConstantByField(field, value string) (*Constant, error) {
-	response, err := query(constantsTable, field, value) // get all fields
-	if err != nil {
-		return nil, err
-	}
-
-	if response == nil || len(response.Records) == 0 {
-		return nil, errors.Wrap(ErrNoRecords, "")
-	} else if len(response.Records) != 1 {
-		return nil, errors.Wrap(ErrManyRecords, "")
-	}
-
-	rec := response.Records[0]
-
-	c := &Constant{
-		AirtableID: rec.ID,
-		Name:       toStr(rec.Fields[fields.Name]),
-		Value:      toInt(rec.Fields[fields.Value]),
-	}
-
-	if defaultCache != nil {
-		var b bytes.Buffer
-		err := gob.NewEncoder(&b).Encode(*c)
-		if err != nil {
-			return nil, errors.Wrap(err, "cache save")
-		}
-		defaultCache.Set(c.cacheKey(), b.Bytes(), 0)
-	}
-
-	return c, nil
-}
-
-func (c *Constant) UpdateConstantValue(value int) error {
-	c.Value = value
-
-	r := &airtable.Records{
-		Records: []*airtable.Record{{
-			ID: c.AirtableID,
-			Fields: map[string]interface{}{
-				fields.Value: value,
-			},
-		}},
-	}
-
-	_, err := constantsTable.UpdateRecordsPartial(r)
-	if err != nil {
-		return errors.Wrap(err, "updating constant value")
-	}
-
-	if defaultCache != nil {
-		defaultCache.Delete(c.cacheKey())
-	}
-
-	return nil
 }
 
 func GetAggregation(aggName string) (*Aggregation, error) {
@@ -442,5 +292,4 @@ func UpdateAggregations(order *Order, sl bool) error {
 	return nil
 }
 
-func (c *Constant) cacheKey() string    { return "cons-" + c.Name }
 func (a *Aggregation) cacheKey() string { return "agg-" + a.Name }

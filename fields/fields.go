@@ -36,6 +36,7 @@ const (
 	POAP              = "POAP"
 
 	// UserName is new ones for 2023. for attendees & soft launch
+	UserID      = "User ID"
 	UserName    = "Username"
 	DiscordName = "Discord Name"
 
@@ -53,8 +54,9 @@ const (
 
 	// TicketType is for attendees (adult, child, or toddler)
 	TicketType = "Ticket Type"
-	OrderID    = "OrderID"
+	OrderID    = "Order ID"
 	Date       = "Date"
+	CreatedAt  = "Created At"
 
 	// orders
 	Total         = "Total"
@@ -69,8 +71,8 @@ const (
 	ToddlerCabin  = "Toddler Cabin"
 	ToddlerTent   = "Toddler Tent"
 	ToddlerSat    = "Toddler Saturday Night"
-	Donation      = "Donation Amount"
-	PaymentID     = "PaymentIntentID"
+	Donation      = "Donation"
+	PaymentID     = "Payment Intent ID"
 	PaymentStatus = "Payment Status"
 
 	// payments

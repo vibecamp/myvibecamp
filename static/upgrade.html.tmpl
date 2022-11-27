@@ -1,0 +1,14 @@
+{{ template "header" }}
+
+{{ template "nav" "ticket" }}
+
+<h2>Upgrade Your Ticket(s)</h2>
+
+<ul>
+  {{ range .Orders }}
+    <li>{{ .OrderID }} - {{ .Total }} ({{ .CreatedAt }})</li>
+  {{ end }}
+</ul>
+
+
+{{ template "footer" }}
