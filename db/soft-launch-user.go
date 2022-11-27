@@ -19,6 +19,8 @@ type SoftLaunchUser struct {
 	TicketLimit       int
 	Badge             bool
 	POAP              string
+	DiscordName       string
+	FoodComments      string
 	Vegetarian        bool
 	GlutenFree        bool
 	LactoseIntolerant bool
@@ -81,6 +83,8 @@ func getSoftLaunchUserByField(field, value string) (*SoftLaunchUser, error) {
 		Vegetarian:        rec.Fields[fields.Vegetarian] == checked,
 		GlutenFree:        rec.Fields[fields.GlutenFree] == checked,
 		LactoseIntolerant: rec.Fields[fields.LactoseIntolerant] == checked,
+		DiscordName:       "",
+		FoodComments:      "",
 	}
 
 	if defaultCache != nil {
