@@ -1165,14 +1165,25 @@ func NewUpgradeHandler(c *gin.Context) {
 		return
 	}
 
-	if c.Request.Method == http.MethodGet {
-		c.HTML(http.StatusOK, "upgrade.html.tmpl", gin.H{
-			"flashes": GetFlashes(c),
-			"User":    user,
-			"Orders":  orders,
-		})
-		return
+	tickets := []*db.Ticket{}
+
+	for _, order := range orders {
+		t, err := db.GetTicketsForOrder(order.OrderID)
+
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+
+		tickets = append(tickets, t...)
 	}
+
+	c.HTML(http.StatusOK, "upgrade.html.tmpl", gin.H{
+		"flashes": GetFlashes(c),
+		"User":   user,
+		"Orders": orders,
+		"ticket": tickets,
+	})
 }
 
 func CreateUpgradeHandler(c *gin.Context) {

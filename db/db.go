@@ -28,6 +28,7 @@ var ordersTable *airtable.Table
 var productsTable *airtable.Table
 var softLaunchUsersTable *airtable.Table
 var sponsorshipTable *airtable.Table
+var ticketsTable *airtable.Table
 var usersTable *airtable.Table
 
 var defaultCache *cache.Cache
@@ -47,7 +48,8 @@ func Init(cacheTime time.Duration) {
 		ordersTableName          = os.Getenv("AIRTABLE_ORDERS_TABLE")
 		productsTableName        = os.Getenv("AIRTABLE_PRODUCTS_TABLE")
 		softLaunchUsersTableName = os.Getenv("AIRTABLE_SOFT_LAUNCH_USERS_TABLE")
-		sponsorshipsTableName    = os.Getenv("AIRTABKE_SPONSORSHIPS_TABLE")
+		sponsorshipsTableName    = os.Getenv("AIRTABLE_SPONSORSHIPS_TABLE")
+		ticketsTableName         = os.Getenv("AIRTABLE_TICKETS_TABKE")
 		usersTableName           = os.Getenv("AIRTABLE_USERS_TABLE")
 	)
 
@@ -62,6 +64,7 @@ func Init(cacheTime time.Duration) {
 	productsTable        = client.GetTable(airtableBaseID2023, productsTableName)
 	softLaunchUsersTable = client.GetTable(airtableBaseID2023, softLaunchUsersTableName)
 	sponsorshipTable     = client.GetTable(airtableBaseID2023, sponsorshipsTableName)
+	ticketsTable         = client.GetTable(airtableBaseID2023, ticketsTableName)
 	usersTable           = client.GetTable(airtableBaseID2023, usersTableName)
 
 	defaultCache = cache.New(cacheTime, 1 * time.Hour)

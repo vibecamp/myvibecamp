@@ -74,9 +74,8 @@ func GetOrders(userID string) ([]*Order, error) {
 
 	orders := []*Order{};
 
-	for _, r := range response.Records {
-		log.Debugf("record = %v", r)
-		orders = append(orders, buildOrderFromAirtableRecord(r))
+	for _, record := range response.Records {
+		orders = append(orders, buildOrderFromAirtableRecord(record))
 	}
 
 	return orders, nil;

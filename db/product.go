@@ -6,16 +6,17 @@ import (
 )
 
 type Product struct {
-	AirtableID  string
 	ProductID   string
 	Name        string
 	ProductType string
 	Price       *Currency
 	Enabled     bool
+
+	AirtableID  string
 }
 
-func GetProduct(productId string) (*Product, error) {
-	product, err := getProductById(productId)
+func GetProduct(productID string) (*Product, error) {
+	product, err := getProductByID(productID)
 	if err != nil {
 		if errors.Is(err, ErrNoRecords) {
 			err = errors.New("Product not found.")
@@ -29,8 +30,8 @@ func GetProduct(productId string) (*Product, error) {
 	return product, nil
 }
 
-func getProductById(productId string) (*Product, error) {
-	response, err := query(productsTable, "Product Id", productId)
+func getProductByID(productID string) (*Product, error) {
+	response, err := query(productsTable, "Product Id", productID)
 	if err != nil {
 		return nil, err
 	}
