@@ -3,79 +3,18 @@ package db
 import (
 	"bytes"
 	"encoding/gob"
-	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/cockroachdb/errors"
 	"github.com/mehanizm/airtable"
-	"github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
 	"github.com/vibecamp/myvibecamp/fields"
 )
 
-const checked = "checked"
-
-var client *airtable.Client
-var defaultTable *airtable.Table
-var defaultCache *cache.Cache
-
-var softLaunchTable *airtable.Table
-var attendeesTable *airtable.Table
-var ordersTable *airtable.Table
-var constantsTable *airtable.Table
-var aggregationsTable *airtable.Table
-var chaosModeTable *airtable.Table
-var sponsorshipTable *airtable.Table
-
-// var cabinTable *airtable.Table
-// var ticketTable *airtable.Table
-
-func Init(apiKey, baseID, tableName string, cache *cache.Cache) {
-	var (
-		baseTwo       = os.Getenv("AIRTABLE_2023_BASE")
-		slTable       = os.Getenv("AIRTABLE_SL_TABLE")
-		attendeeTable = os.Getenv("AIRTABLE_ATTENDEE_TABLE")
-		constTable    = os.Getenv("AIRTABLE_CONSTANTS_TABLE")
-		aggTable      = os.Getenv("AIRTABLE_AGG_TABLE")
-		orderTable    = os.Getenv("AIRTABLE_ORDER_TABLE")
-	)
-	client = airtable.NewClient(apiKey)
-	defaultTable = client.GetTable(baseID, tableName)
-	softLaunchTable = client.GetTable(baseTwo, slTable)
-	attendeesTable = client.GetTable(baseTwo, attendeeTable)
-	ordersTable = client.GetTable(baseTwo, orderTable)
-	constantsTable = client.GetTable(baseTwo, constTable)
-	aggregationsTable = client.GetTable(baseTwo, aggTable)
-	chaosModeTable = client.GetTable(baseTwo, "ChaosMode")
-	sponsorshipTable = client.GetTable(baseTwo, "Sponsorships")
-	// cabinTable = client.GetTable(baseTwo, "Cabins")
-	// ticketTable = client.GetTable(baseTwo, "Tickets")
-	defaultCache = cache
-}
-
-var ErrNoRecords = fmt.Errorf("no records found")
-var ErrManyRecords = fmt.Errorf("multiple records for value")
-
-type SoftLaunchUser struct {
-	UserName          string
-	Name              string
-	TwitterName       string
-	Email             string
-	TicketLimit       int
-	Badge             bool
-	POAP              string
-	DiscordName       string
-	FoodComments      string
-	Vegetarian        bool
-	GlutenFree        bool
-	LactoseIntolerant bool
-	AirtableID        string
-}
-
 type User struct {
+	UserID            string
 	UserName          string
 	TwitterName       string
 	Name              string
@@ -94,17 +33,6 @@ type User struct {
 	TicketID          string
 	DiscordName       string
 	TicketPath        string
-
-	AirtableID string
-}
-
-type ChaosModeUser struct {
-	UserName    string
-	Name        string
-	TwitterName string
-	Email       string
-	TicketLimit int
-	Phase       string
 
 	AirtableID string
 }
@@ -158,7 +86,7 @@ func (u *User) UpdateUser() error {
 		}},
 	}
 
-	recvRecords, err := attendeesTable.UpdateRecordsPartial(r)
+	recvRecords, err := usersTable.UpdateRecordsPartial(r)
 	if err != nil {
 		return errors.Wrap(err, "updating attendee record")
 	}
@@ -177,8 +105,6 @@ func (u *User) CreateUser() error {
 		err := errors.New("User already exists")
 		return err
 	}
-
-	// log.Debugf("%+v", u)
 
 	r := &airtable.Records{
 		Records: []*airtable.Record{
@@ -207,7 +133,7 @@ func (u *User) CreateUser() error {
 		},
 	}
 
-	recvRecords, err := attendeesTable.AddRecords(r)
+	recvRecords, err := usersTable.AddRecords(r)
 	if err != nil {
 		return errors.Wrap(err, "creating attendee record")
 	}
@@ -256,7 +182,7 @@ func GetUser(userName string) (*User, error) {
 }
 
 func getUserByField(field, value string) (*User, error) {
-	response, err := query(attendeesTable, field, value) // get all fields
+	response, err := query(usersTable, field, value) // get all fields
 	if err != nil {
 		return nil, err
 	}
@@ -271,6 +197,7 @@ func getUserByField(field, value string) (*User, error) {
 
 	u := &User{
 		AirtableID:        rec.ID,
+		UserID:            toStr(rec.Fields[fields.UserID]),
 		UserName:          toStr(rec.Fields[fields.UserName]),
 		TwitterName:       toStr(rec.Fields[fields.TwitterName]),
 		Name:              toStr(rec.Fields[fields.Name]),
@@ -285,147 +212,8 @@ func getUserByField(field, value string) (*User, error) {
 		GlutenFree:        rec.Fields[fields.GlutenFree] == checked,
 		LactoseIntolerant: rec.Fields[fields.LactoseIntolerant] == checked,
 		FoodComments:      toStr(rec.Fields[fields.FoodComments]),
-		OrderID:           toStr(rec.Fields[fields.OrderID]),
 		TicketPath:        toStr(rec.Fields[fields.TicketPath]),
 		DiscordName:       toStr(rec.Fields[fields.DiscordName]),
-	}
-
-	if defaultCache != nil {
-		var b bytes.Buffer
-		err := gob.NewEncoder(&b).Encode(*u)
-		if err != nil {
-			return nil, errors.Wrap(err, "cache save")
-		}
-		defaultCache.Set(u.cacheKey(), b.Bytes(), 0)
-	}
-
-	return u, nil
-}
-
-func GetSoftLaunchUser(userName string) (*SoftLaunchUser, error) {
-	cleanName := strings.ToLower(userName)
-	if defaultCache != nil {
-		if u, found := defaultCache.Get("sl-" + cleanName); found {
-			log.Trace("user cache hit")
-			var user SoftLaunchUser
-			err := gob.NewDecoder(bytes.NewBuffer(u.([]byte))).Decode(&user)
-			if err != nil {
-				return nil, errors.Wrap(err, "cache hit")
-			}
-			return &user, nil
-		}
-	}
-
-	user, err := getSoftLaunchUserByField(fields.UserName, cleanName)
-	if err != nil {
-		if errors.Is(err, ErrNoRecords) {
-			err = errors.New("You're not on the guest list! Most likely we spelled your Twitter handle wrong.")
-		} else if errors.Is(err, ErrManyRecords) {
-			err = errors.New("You're on the list multiple times. We probably screwed something up 😰")
-		}
-		return nil, err
-	} else if user == nil {
-		return nil, errors.New("no user found, but no error from db 🤔")
-	}
-
-	return user, nil
-}
-
-func getSoftLaunchUserByField(field, value string) (*SoftLaunchUser, error) {
-	response, err := query(softLaunchTable, field, value) // get all fields
-	if err != nil {
-		return nil, err
-	}
-
-	if response == nil || len(response.Records) == 0 {
-		return nil, errors.Wrap(ErrNoRecords, "")
-	} else if len(response.Records) != 1 {
-		return nil, errors.Wrap(ErrManyRecords, "")
-	}
-
-	rec := response.Records[0]
-	ticketLimit, _ := strconv.Atoi(rec.Fields[fields.TicketLimit].(string))
-
-	u := &SoftLaunchUser{
-		AirtableID:        rec.ID,
-		UserName:          toStr(rec.Fields[fields.UserName]),
-		TwitterName:       toStr(rec.Fields[fields.TwitterName]),
-		Name:              toStr(rec.Fields[fields.Name]),
-		Email:             toStr(rec.Fields[fields.Email]),
-		POAP:              toStr(rec.Fields[fields.POAP]),
-		Badge:             toStr(rec.Fields[fields.Badge]) == "yes",
-		TicketLimit:       ticketLimit,
-		Vegetarian:        rec.Fields[fields.Vegetarian] == checked,
-		GlutenFree:        rec.Fields[fields.GlutenFree] == checked,
-		LactoseIntolerant: rec.Fields[fields.LactoseIntolerant] == checked,
-		DiscordName:       "",
-		FoodComments:      "",
-	}
-
-	if defaultCache != nil {
-		var b bytes.Buffer
-		err := gob.NewEncoder(&b).Encode(*u)
-		if err != nil {
-			return nil, errors.Wrap(err, "cache save")
-		}
-		defaultCache.Set(u.cacheKey(), b.Bytes(), 0)
-	}
-
-	return u, nil
-}
-
-func GetChaosUser(userName string) (*ChaosModeUser, error) {
-	cleanName := strings.ToLower(userName)
-	if defaultCache != nil {
-		if u, found := defaultCache.Get("cm-" + cleanName); found {
-			log.Trace("user cache hit")
-			var user ChaosModeUser
-			err := gob.NewDecoder(bytes.NewBuffer(u.([]byte))).Decode(&user)
-			if err != nil {
-				return nil, errors.Wrap(err, "cache hit")
-			}
-			return &user, nil
-		}
-	}
-
-	user, err := getChaosUserByField(fields.UserName, cleanName)
-	if err != nil {
-		if errors.Is(err, ErrNoRecords) {
-			err = errors.New("You're not on the guest list! Most likely we spelled your Twitter handle wrong.")
-		} else if errors.Is(err, ErrManyRecords) {
-			err = errors.New("You're on the list multiple times. We probably screwed something up 😰")
-		}
-		return nil, err
-	} else if user == nil {
-		return nil, errors.New("no user found, but no error from db 🤔")
-	}
-
-	return user, nil
-}
-
-func getChaosUserByField(field, value string) (*ChaosModeUser, error) {
-	response, err := query(chaosModeTable, field, value) // get all fields
-	if err != nil {
-		return nil, err
-	}
-
-	if response == nil || len(response.Records) == 0 {
-		return nil, errors.Wrap(ErrNoRecords, "")
-	} else if len(response.Records) != 1 {
-		return nil, errors.Wrap(ErrManyRecords, "")
-	}
-
-	rec := response.Records[0]
-	ticketLimit, _ := strconv.Atoi(rec.Fields[fields.TicketLimit].(string))
-
-	u := &ChaosModeUser{
-		AirtableID:  rec.ID,
-		UserName:    toStr(rec.Fields[fields.UserName]),
-		TwitterName: toStr(rec.Fields[fields.TwitterName]),
-		Name:        toStr(rec.Fields[fields.Name]),
-		Email:       toStr(rec.Fields[fields.Email]),
-		Phase:       toStr(rec.Fields[fields.Phase]),
-		TicketLimit: ticketLimit,
 	}
 
 	if defaultCache != nil {
@@ -506,19 +294,6 @@ func getSponsorshipUserByField(field, value string) (*SponsorshipUser, error) {
 	return u, nil
 }
 
-func query(table *airtable.Table, field, value string, returnFields ...string) (*airtable.Records, error) {
-	filterFormula := fmt.Sprintf(`{%s}="%s"`, field, strings.ReplaceAll(value, `"`, `\"`))
-	log.Debugf(`airtable query: %s `, filterFormula)
-	records, err := table.GetRecords().
-		//FromView("view_1").
-		WithFilterFormula(filterFormula).
-		//WithSort(sortQuery1, sortQuery2).
-		ReturnFields(returnFields...).
-		InStringFormat("US/Eastern", "en").
-		Do()
-	return records, errors.Wrap(err, "")
-}
-
 func (u *User) SetBadge(badgeChoice string) error {
 	if badgeChoice != "yes" && badgeChoice != "no" {
 		return errors.Newf("invalid badge choice: '%s'", badgeChoice)
@@ -535,7 +310,7 @@ func (u *User) SetBadge(badgeChoice string) error {
 		}},
 	}
 
-	_, err := attendeesTable.UpdateRecordsPartial(r)
+	_, err := usersTable.UpdateRecordsPartial(r)
 	if err != nil {
 		return errors.Wrap(err, "setting badge")
 	}
@@ -565,7 +340,7 @@ func (u *User) SetFood(veg, gf, lact bool, comments string) error {
 		}},
 	}
 
-	_, err := attendeesTable.UpdateRecordsPartial(r)
+	_, err := usersTable.UpdateRecordsPartial(r)
 	if err != nil {
 		return errors.Wrap(err, "setting food")
 	}
@@ -599,7 +374,7 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments string, disc
 		}},
 	}
 
-	_, err := attendeesTable.UpdateRecordsPartial(r)
+	_, err := usersTable.UpdateRecordsPartial(r)
 	if err != nil {
 		return errors.Wrap(err, "setting food")
 	}
@@ -623,7 +398,7 @@ func (u *User) UpdateOrderID(orderId string) error {
 		}},
 	}
 
-	_, err := attendeesTable.UpdateRecordsPartial(r)
+	_, err := usersTable.UpdateRecordsPartial(r)
 	if err != nil {
 		return errors.Wrap(err, "setting order id")
 	}
@@ -647,7 +422,7 @@ func (u *User) UpdateTicketId(ticketId string) error {
 		}},
 	}
 
-	_, err := attendeesTable.UpdateRecordsPartial(r)
+	_, err := usersTable.UpdateRecordsPartial(r)
 	if err != nil {
 		return errors.Wrap(err, "setting ticket id")
 	}
@@ -671,7 +446,7 @@ func (u *User) SetCheckedIn() error {
 		}},
 	}
 
-	_, err := attendeesTable.UpdateRecordsPartial(r)
+	_, err := usersTable.UpdateRecordsPartial(r)
 	if err != nil {
 		return errors.Wrap(err, "checking in "+u.UserName)
 	}
@@ -726,7 +501,7 @@ func (u *User) GetTicketGroup() ([]*User, error) {
 		return []*User{u}, nil
 	}
 
-	response, err := query(attendeesTable, fields.OrderID, u.OrderID, fields.UserName)
+	response, err := query(usersTable, fields.OrderID, u.OrderID, fields.UserName)
 	if err != nil {
 		return nil, err
 	}
@@ -777,7 +552,7 @@ func CacheWarmup() {
 	offset := ""
 
 	for {
-		response, err := attendeesTable.GetRecords().
+		response, err := usersTable.GetRecords().
 			WithOffset(offset).
 			ReturnFields(fields.UserName).
 			InStringFormat("US/Eastern", "en").
