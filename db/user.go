@@ -110,12 +110,13 @@ type ChaosModeUser struct {
 }
 
 type SponsorshipUser struct {
-	UserName    string
-	Name        string
-	TwitterName string
-	Email       string
-	TicketLimit int
-	Discount    *Currency
+	UserName       string
+	Name           string
+	TwitterName    string
+	Email          string
+	AdmissionLevel string
+	TicketLimit    int
+	Discount       *Currency
 
 	AirtableID string
 }
@@ -485,13 +486,14 @@ func getSponsorshipUserByField(field, value string) (*SponsorshipUser, error) {
 	ticketLimit, _ := strconv.Atoi(rec.Fields[fields.TicketLimit].(string))
 
 	u := &SponsorshipUser{
-		AirtableID:  rec.ID,
-		UserName:    toStr(rec.Fields[fields.UserName]),
-		TwitterName: toStr(rec.Fields[fields.TwitterName]),
-		Name:        toStr(rec.Fields[fields.Name]),
-		Email:       toStr(rec.Fields[fields.Email]),
-		Discount:    CurrencyFromAirtableString(toStr(rec.Fields[fields.Discount])),
-		TicketLimit: ticketLimit,
+		AirtableID:     rec.ID,
+		UserName:       toStr(rec.Fields[fields.UserName]),
+		TwitterName:    toStr(rec.Fields[fields.TwitterName]),
+		Name:           toStr(rec.Fields[fields.Name]),
+		Email:          toStr(rec.Fields[fields.Email]),
+		AdmissionLevel: toStr(rec.Fields[fields.AdmissionLevel]),
+		Discount:       CurrencyFromAirtableString(toStr(rec.Fields[fields.Discount])),
+		TicketLimit:    ticketLimit,
 	}
 
 	if defaultCache != nil {

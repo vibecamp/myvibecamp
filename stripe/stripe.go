@@ -490,6 +490,9 @@ func HandleStripeWebhook(c *gin.Context) {
 
 func makeSponsoredOrder(user db.SponsorshipUser) *db.Order {
 	price := float64(420.69)
+	if user.AdmissionLevel != "Tent" {
+		price = float64(140)
+	}
 	subtotal := price - user.Discount.ToFloat()
 	fee := subtotal * stripeFeePercent
 	total := subtotal + fee
@@ -500,7 +503,7 @@ func makeSponsoredOrder(user db.SponsorshipUser) *db.Order {
 		ProcessingFee: db.CurrencyFromFloat(fee),
 		TotalTickets:  1,
 		AdultCabin:    0,
-		AdultTent:     1,
+		AdultTent:     0,
 		AdultSat:      0,
 		ChildCabin:    0,
 		ChildTent:     0,
@@ -513,6 +516,12 @@ func makeSponsoredOrder(user db.SponsorshipUser) *db.Order {
 		PaymentStatus: "",
 		Date:          time.Now().UTC().Format("2006-01-02 15:04"),
 		AirtableID:    "",
+	}
+
+	if user.AdmissionLevel == "Tent" {
+		order.AdultTent = 1
+	} else {
+		order.AdultSat = 1
 	}
 
 	return order

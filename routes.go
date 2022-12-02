@@ -280,10 +280,58 @@ func SponsorshipCartHandler(c *gin.Context) {
 				c.Redirect(http.StatusFound, "/checkout-complete")
 				return
 			}
+			// add pending status page?
 		}
 	}
 
-	subtotalFloat := float64(420.69) - user.Discount.ToFloat()
+	adultTix := 1
+	dbTicketType := "Adult"
+	admissionLevel := user.AdmissionLevel
+	var basePrice float64
+	var ticketType string
+	if admissionLevel == "Tent" {
+		basePrice = float64(420.69)
+		ticketType = "tent"
+
+		salesCap, err := db.GetConstant(fields.SalesCap)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		fullTixSold, err := db.GetAggregation(fields.FullSold)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		if adultTix+fullTixSold.Quantity > salesCap.Value {
+			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many tickets exceeds our cap! %d tickets left.", salesCap.Value-fullTixSold.Quantity))
+			return
+		}
+	} else {
+		basePrice = float64(140)
+		ticketType = "sat"
+
+		satCap, err := db.GetConstant(fields.SatCap)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		satTixSold, err := db.GetAggregation(fields.SatSold)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		if adultTix+satTixSold.Quantity > satCap.Value {
+			ErrorFlash(c, fmt.Sprintf("Sorry, buying that many tickets exceeds our cap! %d tickets left.", satCap.Value-satTixSold.Quantity))
+			return
+		}
+	}
+
+	subtotalFloat := basePrice - user.Discount.ToFloat()
 	feeFloat := subtotalFloat * float64(0.03)
 	subtotal := db.CurrencyFromFloat(subtotalFloat)
 	total := db.CurrencyFromFloat(subtotalFloat + feeFloat)
@@ -297,34 +345,6 @@ func SponsorshipCartHandler(c *gin.Context) {
 			"Fee":      fee,
 			"Subtotal": subtotal,
 		})
-		return
-	}
-
-	ticketType := "tent"
-	adultTix := 1
-	dbTicketType := "Adult"
-
-	if adultTix > user.TicketLimit {
-		ErrorFlash(c, fmt.Sprintf("You're limited to %d ticket in the soft launch", user.TicketLimit))
-		return
-	}
-
-	var admissionLevel string = "Tent"
-
-	salesCap, err := db.GetConstant(fields.SalesCap)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	fullTixSold, err := db.GetAggregation(fields.FullSold)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	if adultTix+fullTixSold.Quantity > salesCap.Value {
-		ErrorFlash(c, fmt.Sprintf("Sorry, buying that many tickets exceeds our cap! %d tickets left.", salesCap.Value-fullTixSold.Quantity))
 		return
 	}
 
