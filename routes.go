@@ -657,6 +657,12 @@ func SignInRedirect(c *gin.Context) {
 		return
 	}
 
+	spuser, err := db.GetSponsorshipUser(session.UserName)
+	if spuser != nil && err == nil {
+		c.Redirect(http.StatusFound, "/sponsorship-cart")
+		return
+	}
+
 	user, err := db.GetChaosUser(session.UserName)
 	if user != nil && err == nil {
 		c.Redirect(http.StatusFound, "/chaos-mode")
@@ -666,12 +672,6 @@ func SignInRedirect(c *gin.Context) {
 	sluser, err := db.GetSoftLaunchUser(session.UserName)
 	if sluser != nil && err == nil {
 		c.Redirect(http.StatusFound, "/vc2-sl")
-		return
-	}
-
-	spuser, err := db.GetSponsorshipUser(session.UserName)
-	if spuser != nil && err == nil {
-		c.Redirect(http.StatusFound, "/sponsorship-cart")
 		return
 	}
 
