@@ -25,25 +25,71 @@ import (
 
 func IndexHandler(c *gin.Context) {
 	session := GetSession(c)
-	if !session.SignedIn() {
-		c.HTML(http.StatusOK, "index.html.tmpl", nil)
-		return
-	}
-
-	user, err := db.GetUser(session.UserName)
-	if err != nil {
-		_, err = db.GetSoftLaunchUser(session.UserName)
-
-		if err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
+	if c.Request.Method == http.MethodGet {
+		if !session.SignedIn() {
+			c.HTML(http.StatusOK, "index.html.tmpl", nil)
 			return
 		}
 
+		findUser(c, session.UserName, false)
+	}
+
+	// I need to setup session stuff for this - oauth email?
+	// or just get user by email & handle the rest like their
+	// email is their twitter
+	// magic email links? not hard really but need a way to send emails
+
+	emailAddr := c.PostForm("email-address")
+	findUser(c, emailAddr, true)
+}
+
+func findUser(c *gin.Context, username string, isEmailUser bool) {
+	user, err := db.GetUser(username)
+	if err == nil && user != nil {
+		if isEmailUser {
+			makeEmailSession(c, user.UserName, user.AirtableID)
+		}
+		c.Redirect(http.StatusFound, "/2023-logistics")
+		return
+	}
+
+	softLaunchUser, err := db.GetSoftLaunchUser(username)
+	if err == nil && softLaunchUser != nil {
+		if isEmailUser {
+			makeEmailSession(c, softLaunchUser.UserName, softLaunchUser.AirtableID)
+		}
 		c.Redirect(http.StatusFound, "/vc2-sl")
 		return
 	}
 
-	c.HTML(http.StatusOK, "index.html.tmpl", user)
+	chaosUser, err := db.GetChaosUser(username)
+	if err == nil && chaosUser != nil {
+		if isEmailUser {
+			makeEmailSession(c, chaosUser.UserName, chaosUser.AirtableID)
+		}
+		c.Redirect(http.StatusFound, "/chaos-mode")
+		return
+	}
+
+	sponsoredUser, err := db.GetSponsorshipUser(username)
+	if err == nil && sponsoredUser != nil {
+		if isEmailUser {
+			makeEmailSession(c, sponsoredUser.UserName, sponsoredUser.AirtableID)
+		}
+		c.Redirect(http.StatusFound, "/sponsorship-cart")
+		return
+	}
+
+	c.AbortWithError(http.StatusBadRequest, err)
+}
+
+func makeEmailSession(c *gin.Context, username string, id string) {
+	session := GetSession(c)
+	session.UserName = username
+	session.TwitterName = username
+	session.TwitterID = id
+	session.Oauth = nil
+	SaveSession(c, session)
 }
 
 func CalendarHandler(c *gin.Context) {
