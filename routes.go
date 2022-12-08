@@ -46,6 +46,102 @@ func IndexHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html.tmpl", user)
 }
 
+func VC2Welcome(c *gin.Context) {
+	session := GetSession(c)
+	if c.Request.Method == http.MethodGet {
+		if !session.SignedIn() {
+			c.HTML(http.StatusOK, "vc2welcome.html.tmpl", nil)
+			return
+		}
+
+		findUser(c, session.UserName, false)
+	}
+
+	// I need to setup session stuff for this - oauth email?
+	// or just get user by email & handle the rest like their
+	// email is their twitter
+	// magic email links? not hard really but need a way to send emails
+
+	emailAddr := c.PostForm("email-address")
+	findUser(c, emailAddr, true)
+}
+
+func findUser(c *gin.Context, username string, isEmailUser bool) {
+	user, err := db.GetUser(username)
+	if err == nil && user != nil {
+		if isEmailUser {
+			makeEmailSession(c, user.UserName, user.AirtableID)
+		}
+
+		// if they have an order ID, check the order
+		if len(user.OrderID) > 0 {
+			order, err := db.GetOrder(user.OrderID)
+			// if it exists and is not blank payment status, send them to logistics
+			if err == nil && order != nil && order.PaymentStatus != "" {
+				c.Redirect(http.StatusFound, "/2023-logistics")
+			} else {
+				// otherwise send them based on their ticket path to the cart
+				if user.TicketPath == "Sponsorship" {
+					c.Redirect(http.StatusFound, "/sponsorship-cart")
+					return
+				} else if user.TicketPath == "FCFS" || user.TicketPath == "Lottery" || user.TicketPath == "Application" {
+					c.Redirect(http.StatusFound, "/chaos-cart")
+					return
+				} else {
+					c.Redirect(http.StatusFound, "/ticket-cart")
+					return
+				}
+			}
+		} else if user.TicketPath == "Sponsorship" || user.AdmissionLevel == "Staff" {
+			// if they don't have an order id check if they sponsor or staff and send them to logistics still
+			c.Redirect(http.StatusFound, "/2023-logistics")
+			return
+		}
+	}
+
+	// check for sponsorship first, in case they're both on sponsorship and e.g. soft launch
+	sponsoredUser, err := db.GetSponsorshipUser(username)
+	if err == nil && sponsoredUser != nil {
+		if isEmailUser {
+			makeEmailSession(c, sponsoredUser.UserName, sponsoredUser.AirtableID)
+		}
+		c.Redirect(http.StatusFound, "/sponsorship-cart")
+		return
+	}
+
+	// check if they're a soft launch
+	softLaunchUser, err := db.GetSoftLaunchUser(username)
+	if err == nil && softLaunchUser != nil {
+		if isEmailUser {
+			makeEmailSession(c, softLaunchUser.UserName, softLaunchUser.AirtableID)
+		}
+		c.Redirect(http.StatusFound, "/vc2-sl")
+		return
+	}
+
+	// check if they're chaos user
+	chaosUser, err := db.GetChaosUser(username)
+	if err == nil && chaosUser != nil {
+		if isEmailUser {
+			makeEmailSession(c, chaosUser.UserName, chaosUser.AirtableID)
+		}
+		c.Redirect(http.StatusFound, "/chaos-mode")
+		return
+	}
+
+	// abortt
+	c.AbortWithError(http.StatusBadRequest, err)
+}
+
+func makeEmailSession(c *gin.Context, username string, id string) {
+	session := GetSession(c)
+	session.UserName = username
+	session.TwitterName = username
+	session.TwitterID = id
+	session.Oauth = nil
+	SaveSession(c, session)
+}
+
 func CalendarHandler(c *gin.Context) {
 	session := GetSession(c)
 	if !session.SignedIn() {

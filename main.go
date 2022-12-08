@@ -162,6 +162,8 @@ func main() {
 	r.GET("/app-user", AppEndpoint)
 	r.GET("/sponsorship-cart", SponsorshipCartHandler)
 	r.POST("/sponsorship-cart", SponsorshipCartHandler)
+	r.GET("/vc2", VC2Welcome)
+	r.POST("/vc2", VC2Welcome)
 
 	r.GET("/", IndexHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))

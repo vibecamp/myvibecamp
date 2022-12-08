@@ -1,0 +1,91 @@
+{{ template "header" }}
+
+{{ if eq . nil }}
+  <div class="jumbotron text-center">
+    <h1>my.vibecamp</h1>
+    <p class="lead">
+      vibecamp2
+    </p>
+    <p>
+      Sign in with your Twitter account! If you don't have one, we should have your email address 
+      connected. If you're having issues, 
+      <a class="link-secondary" href="mailto:team@vibecamp.xyz?subject=soft launch sign in">let us know</a>.
+    <p>
+      <a class="btn btn-lg btn-twitter" href="/signin" role="button">
+        Sign In With Twitter
+      </a>
+    </p>
+    <br/>
+    <br/>
+    <form method="post" action="">
+      <div class="mb-3">
+        <label for="comments" class="form-label">If you don't have a Twitter, enter your email here</label>
+        <input type="text" class="form-control" id="email-addr" name="email-address"></input>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <small class="text-muted">
+      Sign-in is tied to the twitter account you listed when you bought tickets, or your email if no twitter account was.<br>
+      If you changed your handle or are having issues signing in,
+      <a class="link-secondary" href="mailto:team@vibecamp.xyz?subject=soft launch sign in">let us know</a>.
+    </small>
+  </div>
+
+
+{{ else }}
+
+  {{ template "nav" "home" }}
+
+  <div>
+    <h2>Hey @{{ .UserName }} 🥰</h2>
+    <div class="container mb-3">
+      <p>
+        Congrats on your wise decision to come to Vibecamp this year.
+      </p>
+    </div>
+
+
+    <h4>Thank You!</h4>
+    <div class="container mb-3">
+      <p>
+        Thanks for coming to Vibecamp. We had so much fun with y'all and we can't wait to see you
+        again. Keep an eye on <a href="https://twitter.com/tpotvibecamp">our Twitter</a> for info
+        on what's next.
+      </p>
+    </div>
+
+    {{ if .CheckedIn }}
+      <h4>POAP (free crypto stickers)</h4>
+      <div class="container mb-3">
+        <p>
+          <a href="https://poap.xyz/">POAP</a> stands for "proof of attendance protocol".
+          POAPs are like stickers or digital badges that you can collect at events, both to
+          prove that you were there and to remember the occasion.
+        </p>
+        <p>
+          Getting a Vibecamp POAP is totally free (there's not even gas fees), but you do need
+          an Ethereum wallet and address. If you don't have one yet, install
+          <a href="https://metamask.io/">Metamask</a> or <a href="https://rainbow.me/">Rainbow</a>.
+        </p>
+        <p>
+          If you need help, ask in the Discord or tweet at us.
+        </p>
+        <p class="alert alert-info">
+          Get your VibeCamp POAP <a class="alert-link" href="https://app.poap.xyz/claim/{{ .POAP }}">here</a>.
+        </p>
+      </div>
+    {{ end }}
+
+    <h4>Contact Us</h4>
+    <div class="container mb-3">
+      <p>
+        If Twitter or Discord don't work, you can always reach us by <a href="mailto:team@vibecamp.xyz">email</a>.
+      </p>
+    </div>
+
+  </div>
+
+{{ end }}
+
+{{ template "footer" }}
