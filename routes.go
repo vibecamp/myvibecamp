@@ -39,7 +39,7 @@ func IndexHandler(c *gin.Context) {
 			return
 		}
 
-		c.Redirect(http.StatusFound, "/vc2-sl")
+		SoftLaunchSignIn(c);
 		return
 	}
 
