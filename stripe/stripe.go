@@ -449,6 +449,12 @@ func HandleStripeWebhook(c *gin.Context) {
 			return
 		}
 
+		if order.PaymentStatus == "success" || order.PaymentStatus == "failed" {
+			log.Info("Payment already updated to %v", order.PaymentStatus)
+			w.WriteHeader(http.StatusOk)
+			return
+		}
+
 		err = order.UpdateOrderStatus("processing")
 		if err != nil {
 			log.Errorf("error updating order payment status: %v\n", err)
