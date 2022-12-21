@@ -889,7 +889,6 @@ func Logistics2023Handler(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	log.Debug(user.DiscordName)
 
 	if c.Request.Method == http.MethodGet {
 		c.HTML(http.StatusOK, "logistics2023.html.tmpl", gin.H{

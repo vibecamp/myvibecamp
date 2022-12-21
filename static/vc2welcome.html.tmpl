@@ -35,7 +35,7 @@
 
 {{ else }}
 
-  {{ template "nav" "home" }}
+  {{ template "nav" "vc2" }}
 
   <div>
     <h2>Hey @{{ .UserName }} 🥰</h2>
@@ -54,28 +54,6 @@
         on what's next.
       </p>
     </div>
-
-    {{ if .CheckedIn }}
-      <h4>POAP (free crypto stickers)</h4>
-      <div class="container mb-3">
-        <p>
-          <a href="https://poap.xyz/">POAP</a> stands for "proof of attendance protocol".
-          POAPs are like stickers or digital badges that you can collect at events, both to
-          prove that you were there and to remember the occasion.
-        </p>
-        <p>
-          Getting a Vibecamp POAP is totally free (there's not even gas fees), but you do need
-          an Ethereum wallet and address. If you don't have one yet, install
-          <a href="https://metamask.io/">Metamask</a> or <a href="https://rainbow.me/">Rainbow</a>.
-        </p>
-        <p>
-          If you need help, ask in the Discord or tweet at us.
-        </p>
-        <p class="alert alert-info">
-          Get your VibeCamp POAP <a class="alert-link" href="https://app.poap.xyz/claim/{{ .POAP }}">here</a>.
-        </p>
-      </div>
-    {{ end }}
 
     <h4>Contact Us</h4>
     <div class="container mb-3">
