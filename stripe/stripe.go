@@ -429,6 +429,7 @@ func HandleStripeWebhook(c *gin.Context) {
 		} else {
 			log.Debugf("Order %v already marked successful", order.OrderID)
 		}
+		w.WriteHeader(http.StatusOK)
 		return
 	case "payment_intent.processing":
 		var paymentIntent stripe.PaymentIntent
@@ -455,7 +456,9 @@ func HandleStripeWebhook(c *gin.Context) {
 			return
 		}
 
-	case "payment_intent.failed":
+		w.WriteHeader(http.StatusOK)
+		return
+	case "payment_intent.payment_failed":
 		var paymentIntent stripe.PaymentIntent
 		err := json.Unmarshal(event.Data.Raw, &paymentIntent)
 		if err != nil {
@@ -481,11 +484,24 @@ func HandleStripeWebhook(c *gin.Context) {
 			return
 		}
 
+		w.WriteHeader(http.StatusOK)
+		return
+	case "payment_intent.created":
+		var paymentIntent stripe.PaymentIntent
+		err := json.Unmarshal(event.Data.Raw, &paymentIntent)
+		if err != nil {
+			log.Errorf("Error parsing webhook JSON: %v\n", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		log.Printf("Payment intent created %v", paymentIntent.ID)
+		w.WriteHeader(http.StatusOK)
+		return
 	default:
 		log.Errorf("Unhandled event type: %s\n", event.Type)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func makeSponsoredOrder(user db.SponsorshipUser) *db.Order {
