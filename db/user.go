@@ -289,6 +289,7 @@ func getUserByField(field, value string) (*User, error) {
 		OrderID:           toStr(rec.Fields[fields.OrderID]),
 		TicketPath:        toStr(rec.Fields[fields.TicketPath]),
 		DiscordName:       toStr(rec.Fields[fields.DiscordName]),
+		TicketID:          toStr(rec.Fields[fields.TicketID]),
 	}
 
 	if defaultCache != nil {
