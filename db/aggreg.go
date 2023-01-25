@@ -6,6 +6,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/cockroachdb/errors"
 	"github.com/mehanizm/airtable"
@@ -14,6 +15,7 @@ import (
 )
 
 var stripeFee float64 = 0.03
+var aggregationMutex sync.Mutex
 
 type Constant struct {
 	Name  string
@@ -173,19 +175,6 @@ func (c *Constant) UpdateConstantValue(value int) error {
 }
 
 func GetAggregation(aggName string) (*Aggregation, error) {
-	if defaultCache != nil {
-		tempA := Aggregation{Name: aggName}
-		if a, found := defaultCache.Get(tempA.cacheKey()); found {
-			log.Trace("order cache hit")
-			var agg Aggregation
-			err := gob.NewDecoder(bytes.NewBuffer(a.([]byte))).Decode(&agg)
-			if err != nil {
-				return nil, errors.Wrap(err, "cache hit")
-			}
-			return &agg, nil
-		}
-	}
-
 	agg, err := getAggregationByField(fields.Name, aggName)
 	if err != nil {
 		if errors.Is(err, ErrNoRecords) {
@@ -224,15 +213,6 @@ func getAggregationByField(field, value string) (*Aggregation, error) {
 		Name:       toStr(rec.Fields[fields.Name]),
 		Quantity:   toInt(rec.Fields[fields.Quantity]),
 		Revenue:    revenue,
-	}
-
-	if defaultCache != nil {
-		var b bytes.Buffer
-		err := gob.NewEncoder(&b).Encode(*a)
-		if err != nil {
-			return nil, errors.Wrap(err, "cache save")
-		}
-		defaultCache.Set(a.cacheKey(), b.Bytes(), 0)
 	}
 
 	return a, nil
@@ -289,10 +269,6 @@ func (a *Aggregation) UpdateAggregation(quantity int, revenue int) error {
 		return errors.Wrap(err, "updating aggregation")
 	}
 
-	if defaultCache != nil {
-		defaultCache.Delete(a.cacheKey())
-	}
-
 	return nil
 }
 
@@ -339,10 +315,6 @@ func (a *Aggregation) UpdateAggregationFromOrder(order *Order) error {
 	_, err := aggregationsTable.UpdateRecordsPartial(r)
 	if err != nil {
 		return errors.Wrap(err, "updating aggregation")
-	}
-
-	if defaultCache != nil {
-		defaultCache.Delete(a.cacheKey())
 	}
 
 	return nil
@@ -408,6 +380,8 @@ func (a *Aggregation) MakeUpdatedRecord(order *Order) *airtable.Record {
 }
 
 func UpdateAggregations(order *Order, sl bool) error {
+	aggregationMutex.Lock()
+	defer aggregationMutex.Unlock()
 	aggregations, err := GetAggregations()
 	if err != nil {
 		return err
@@ -433,7 +407,6 @@ func UpdateAggregations(order *Order, sl bool) error {
 		Records: records,
 	}
 
-	log.Debugf("%v", r)
 	_, err = aggregationsTable.UpdateRecordsPartial(r)
 	if err != nil {
 		return errors.Wrap(err, "updating aggregations")
@@ -442,5 +415,4 @@ func UpdateAggregations(order *Order, sl bool) error {
 	return nil
 }
 
-func (c *Constant) cacheKey() string    { return "cons-" + c.Name }
-func (a *Aggregation) cacheKey() string { return "agg-" + a.Name }
+func (c *Constant) cacheKey() string { return "cons-" + c.Name }

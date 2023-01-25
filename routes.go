@@ -76,9 +76,19 @@ func findUser(c *gin.Context, username string, isEmailUser bool) {
 		// if they have an order ID, check the order
 		if len(user.OrderID) > 0 {
 			order, err := db.GetOrder(user.OrderID)
-			// if it exists and is not blank payment status, send them to logistics
+			// if it exists and is not blank payment status, direct them by payment status
 			if err == nil && order != nil && order.PaymentStatus != "" {
-				c.Redirect(http.StatusFound, "/2023-logistics")
+				switch order.PaymentStatus {
+				case "failed":
+					c.Redirect(http.StatusFound, "/purchase-failed")
+					return
+				case "success":
+					c.Redirect(http.StatusFound, "/2023-logistics")
+					return
+				case "processing":
+					c.Redirect(http.StatusFound, "/purchase-complete")
+					return
+				}
 			} else {
 				// otherwise send them based on their ticket path to the cart
 				if user.TicketPath == "Sponsorship" {
@@ -129,7 +139,7 @@ func findUser(c *gin.Context, username string, isEmailUser bool) {
 		return
 	}
 
-	// abortt
+	// abort
 	c.AbortWithError(http.StatusBadRequest, err)
 }
 
@@ -156,22 +166,6 @@ func CalendarHandler(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "calendar.html.tmpl", user)
-}
-
-func TeamHandler(c *gin.Context) {
-	session := GetSession(c)
-	if !session.SignedIn() {
-		c.HTML(http.StatusOK, "team.html.tmpl", nil)
-		return
-	}
-
-	user, err := db.GetUser(session.TwitterName)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	c.HTML(http.StatusOK, "team.html.tmpl", user)
 }
 
 func ContactUsHandler(c *gin.Context) {
@@ -857,18 +851,49 @@ func PurchaseCompleteHandler(c *gin.Context) {
 		return
 	}
 
-	if order.PaymentStatus != "success" {
-		err = order.UpdateOrderStatus("pending")
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-	}
-
 	c.HTML(http.StatusOK, "purchaseComplete.html.tmpl", gin.H{
 		"User":  user,
 		"Order": order,
 	})
+}
+
+func PurchaseFailedHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	if c.Request.Method != http.MethodGet {
+		user, err := db.GetUser(session.UserName)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+
+		order, err := db.GetOrder(user.OrderID)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+
+		if order.PaymentStatus != "failed" {
+			c.Redirect(http.StatusFound, "/vc2")
+			return
+		}
+
+		user.OrderID = ""
+		err = user.UpdateUser()
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		c.Redirect(http.StatusFound, "/vc2")
+		return
+	}
+
+	c.HTML(http.StatusOK, "purchaseFailed.html.tmpl", gin.H{})
 }
 
 func Logistics2023Handler(c *gin.Context) {
