@@ -30,6 +30,13 @@
   {{ if gt .Order.ToddlerCabin 0 }}<p>{{.Order.ToddlerCabin}} toddler cabin ticket{{if gt .Order.ToddlerCabin 1}}s{{end}}</p>{{end}}
   {{ if gt .Order.ToddlerTent 0 }}<p>{{.Order.ToddlerTent}} toddler tent ticket{{if gt .Order.ToddlerTent 1}}s{{end}}</p>{{end}}
   {{ if gt .Order.ToddlerSat 0 }}<p>{{.Order.ToddlerSat}} toddler saturday night ticket{{if gt .Order.ToddlerSat 1}}s{{end}}</p>{{end}}
+
+  {{ if and (eq .User.AdmissionLevel "Cabin") (eq .Order.AdultCabin 0)}}<p>And you upgraded to Cabin tickets! Congrats!</p>{{end}}
+
+  {{ else }}
+
+  <h2>You have one {{ .User.AdmissionLevel }} ticket to vibecamp!</h2>
+
   {{ end }}
 
     <form method="post" action="">

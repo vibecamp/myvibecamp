@@ -173,8 +173,11 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 
 		if dbOrder != nil {
 			// if it's successful redirect
-			if dbOrder.PaymentStatus == "success" {
+			if dbOrder.PaymentStatus == "success" || dbOrder.PaymentStatus == "processing" {
 				c.Redirect(http.StatusFound, "/checkout-complete")
+				return
+			} else if dbOrder.PaymentStatus == "failed" {
+				c.Redirect(http.StatusFound, "/checkout-failed")
 				return
 			}
 
