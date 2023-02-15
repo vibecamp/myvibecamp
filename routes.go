@@ -904,18 +904,22 @@ func Logistics2023Handler(c *gin.Context) {
 		return
 	}
 
-	order, err := db.GetOrder(user.OrderID)
-	if err != nil && user.AdmissionLevel != "Staff" && user.TicketPath != "Sponsorship" {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
+	needsOrder := !(user.AdmissionLevel == 'Staff' || user.TicketPath == "Sponsorship")
 
-	if order.PaymentStatus == "failed" {
-		c.Redirect(http.StatusFound, "/checkout-failed")
-		return
-	} else if order.PaymentStatus == "processing" {
-		c.Redirect(http.StatusFound, "/checkout-complete")
-		return
+	order, err := db.GetOrder(user.OrderID)
+	if needsOrder {
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+
+		if order.PaymentStatus == "failed" {
+			c.Redirect(http.StatusFound, "/checkout-failed")
+			return
+		} else if order.PaymentStatus == "processing" {
+			c.Redirect(http.StatusFound, "/checkout-complete")
+			return
+		}
 	}
 
 	if c.Request.Method == http.MethodGet {
