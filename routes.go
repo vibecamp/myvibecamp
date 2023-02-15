@@ -736,7 +736,6 @@ func SignInRedirect(c *gin.Context) {
 	}
 
 	findUser(c, session.UserName, false)
-	c.Redirect(http.StatusFound, "/")
 }
 
 func StripeCheckoutHandler(c *gin.Context) {
