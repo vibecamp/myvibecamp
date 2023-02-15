@@ -735,36 +735,7 @@ func SignInRedirect(c *gin.Context) {
 		return
 	}
 
-	attendee, err := db.GetUser(session.UserName)
-	if attendee != nil && err == nil {
-		c.Redirect(http.StatusFound, "/2023-logistics")
-		return
-	}
-
-	spuser, err := db.GetSponsorshipUser(session.UserName)
-	if spuser != nil && err == nil {
-		c.Redirect(http.StatusFound, "/sponsorship-cart")
-		return
-	}
-
-	user, err := db.GetChaosUser(session.UserName)
-	if user != nil && err == nil {
-		c.Redirect(http.StatusFound, "/chaos-mode")
-		return
-	}
-
-	sluser, err := db.GetSoftLaunchUser(session.UserName)
-	if sluser != nil && err == nil {
-		c.Redirect(http.StatusFound, "/vc2-sl")
-		return
-	}
-
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
+	findUser(c, session.UserName, false)
 	c.Redirect(http.StatusFound, "/")
 }
 
@@ -888,7 +859,6 @@ func PurchaseFailedHandler(c *gin.Context) {
 	}
 
 	c.Redirect(http.StatusFound, "/vc2")
-	return
 }
 
 func Logistics2023Handler(c *gin.Context) {
@@ -904,7 +874,7 @@ func Logistics2023Handler(c *gin.Context) {
 		return
 	}
 
-	needsOrder := !(user.AdmissionLevel == 'Staff' || user.TicketPath == "Sponsorship")
+	needsOrder := !(user.AdmissionLevel == "Staff" || user.TicketPath == "Sponsorship")
 
 	order, err := db.GetOrder(user.OrderID)
 	if needsOrder {
