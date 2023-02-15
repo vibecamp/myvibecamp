@@ -272,54 +272,6 @@ func (a *Aggregation) UpdateAggregation(quantity int, revenue int) error {
 	return nil
 }
 
-func (a *Aggregation) UpdateAggregationFromOrder(order *Order) error {
-	if a.Name == fields.TotalTicketsSold || a.Name == fields.SoftLaunchSold {
-		a.Quantity += order.TotalTickets
-		a.Revenue += int(order.Total.ToFloat()) - order.Donation
-	} else if a.Name == fields.CabinSold {
-		a.Quantity += order.AdultCabin + order.ChildCabin + order.ToddlerCabin
-		a.Revenue += (order.AdultCabin * 590) + (order.ChildCabin * 380)
-	} else if a.Name == fields.TentSold {
-		a.Quantity += order.AdultTent + order.ChildTent + order.ToddlerTent
-		a.Revenue += (order.AdultTent * 420) + (order.ChildTent * 210)
-	} else if a.Name == fields.SatSold {
-		a.Quantity += order.AdultSat + order.ChildSat + order.ToddlerSat
-		a.Revenue += (order.AdultSat * 140) + (order.ChildSat * 70)
-	} else if a.Name == fields.AdultSold {
-		a.Quantity += order.AdultCabin + order.AdultTent + order.AdultSat
-		a.Revenue += (order.AdultCabin * 590) + (order.AdultTent * 420) + (order.AdultSat * 140)
-	} else if a.Name == fields.ChildSold {
-		a.Quantity += order.ChildCabin + order.ChildTent + order.ChildSat
-		a.Revenue += (order.ChildCabin * 380) + (order.ChildTent * 210) + (order.ChildSat * 70)
-	} else if a.Name == fields.DonationsRecv {
-		if order.Donation > 0 {
-			a.Quantity += 1
-			a.Revenue += order.Donation
-		}
-	} else {
-		return errors.New("No such aggregation")
-	}
-
-	revenueStr := "$" + strconv.Itoa(a.Revenue/100) + "." + strconv.Itoa(a.Revenue%100)
-
-	r := &airtable.Records{
-		Records: []*airtable.Record{{
-			ID: a.AirtableID,
-			Fields: map[string]interface{}{
-				fields.Quantity: a.Quantity,
-				fields.Revenue:  revenueStr,
-			},
-		}},
-	}
-
-	_, err := aggregationsTable.UpdateRecordsPartial(r)
-	if err != nil {
-		return errors.Wrap(err, "updating aggregation")
-	}
-
-	return nil
-}
-
 func (a *Aggregation) MakeUpdatedRecord(order *Order) *airtable.Record {
 	ticketTotal := int((order.Total.ToFloat()-order.ProcessingFee.ToFloat()-float64(order.Donation))*100 + 0.5)
 	donationFee := int(float64(order.Donation)*stripeFee*100 + 0.5)
@@ -379,7 +331,7 @@ func (a *Aggregation) MakeUpdatedRecord(order *Order) *airtable.Record {
 	return r
 }
 
-func UpdateAggregations(order *Order, sl bool) error {
+func UpdateAggregations(order *Order, ticketPath string) error {
 	aggregationMutex.Lock()
 	defer aggregationMutex.Unlock()
 	aggregations, err := GetAggregations()
@@ -394,7 +346,11 @@ func UpdateAggregations(order *Order, sl bool) error {
 			records = append(records, element.MakeUpdatedRecord(order))
 		} else if order.TotalTickets > 0 {
 			if element.Name == fields.SoftLaunchSold {
-				if sl {
+				if ticketPath == "2022 Attendee" {
+					records = append(records, element.MakeUpdatedRecord(order))
+				}
+			} else if element.Name == fields.Sponsorships {
+				if ticketPath == "Sponsorship" {
 					records = append(records, element.MakeUpdatedRecord(order))
 				}
 			} else {

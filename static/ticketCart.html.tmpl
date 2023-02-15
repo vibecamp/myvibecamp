@@ -19,6 +19,12 @@
             document.getElementById("adult-price-tag").innerText = "$140";
             document.getElementById("child-price-tag").innerText = "$70";
         }
+
+        if (ticketType === "none")
+          document.getElementById("checkout-button").classList.add("hidden")
+        } else {
+          document.getElementById("checkout-button").classList.remove("hidden")
+        }
     }
 
     function onCartInputChange(event) {
@@ -49,7 +55,7 @@
     }
 </script>
 
-{{ template "nav" "softlaunch" }}
+{{ template "nav" "vc2" }}
 
 <div class="container">
   <nav aria-label="breadcrumb">
@@ -194,7 +200,7 @@
       {{ template "logistics-form" .User }}
 
 
-      <button type="submit" class="btn btn-primary">Checkout</button>
+      <button type="submit" class="btn btn-primary" id="checkout-button">Checkout</button>
     </form>
 
 

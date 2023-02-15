@@ -380,8 +380,6 @@ func HandleStripeWebhook(c *gin.Context) {
 			return
 		}
 		log.Printf("Successful payment for %d.", paymentIntent.Amount)
-		// Then define and call a func to handle the successful payment intent.
-		// handlePaymentIntentSucceeded(paymentIntent)
 
 		// update order in db to mark as successful payment
 		order, err := db.GetOrderByPaymentID(paymentIntent.ID)
@@ -407,7 +405,7 @@ func HandleStripeWebhook(c *gin.Context) {
 			}
 
 			// update aggregations
-			err = db.UpdateAggregations(order, user.TicketPath == "2022 Attendee")
+			err = db.UpdateAggregations(order, user.TicketPath)
 			if err != nil {
 				log.Errorf("error updating aggregations %v\n", err)
 				w.WriteHeader((http.StatusInternalServerError))

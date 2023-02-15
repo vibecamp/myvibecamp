@@ -30,20 +30,7 @@ func IndexHandler(c *gin.Context) {
 		return
 	}
 
-	user, err := db.GetUser(session.UserName)
-	if err != nil {
-		_, err = db.GetSoftLaunchUser(session.UserName)
-
-		if err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
-			return
-		}
-
-		c.Redirect(http.StatusFound, "/vc2-sl")
-		return
-	}
-
-	c.HTML(http.StatusOK, "index.html.tmpl", user)
+	findUser(c, session.UserName, false)
 }
 
 func VC2Welcome(c *gin.Context) {
@@ -66,10 +53,10 @@ func VC2Welcome(c *gin.Context) {
 	findUser(c, emailAddr, true)
 }
 
-func findUser(c *gin.Context, username string, isEmailUser bool) {
+func findUser(c *gin.Context, username string, isEmailSignIn bool) {
 	user, err := db.GetUser(username)
 	if err == nil && user != nil {
-		if isEmailUser {
+		if isEmailSignIn {
 			makeEmailSession(c, user.UserName, user.AirtableID)
 		}
 
@@ -119,7 +106,7 @@ func findUser(c *gin.Context, username string, isEmailUser bool) {
 	// check for sponsorship first, in case they're both on sponsorship and e.g. soft launch
 	sponsoredUser, err := db.GetSponsorshipUser(username)
 	if err == nil && sponsoredUser != nil {
-		if isEmailUser {
+		if isEmailSignIn {
 			makeEmailSession(c, sponsoredUser.UserName, sponsoredUser.AirtableID)
 		}
 		c.Redirect(http.StatusFound, "/sponsorship-cart")
@@ -129,7 +116,7 @@ func findUser(c *gin.Context, username string, isEmailUser bool) {
 	// check if they're a soft launch
 	softLaunchUser, err := db.GetSoftLaunchUser(username)
 	if err == nil && softLaunchUser != nil {
-		if isEmailUser {
+		if isEmailSignIn {
 			makeEmailSession(c, softLaunchUser.UserName, softLaunchUser.AirtableID)
 		}
 		c.Redirect(http.StatusFound, "/vc2-sl")
@@ -139,7 +126,7 @@ func findUser(c *gin.Context, username string, isEmailUser bool) {
 	// check if they're chaos user
 	chaosUser, err := db.GetChaosUser(username)
 	if err == nil && chaosUser != nil {
-		if isEmailUser {
+		if isEmailSignIn {
 			makeEmailSession(c, chaosUser.UserName, chaosUser.AirtableID)
 		}
 		c.Redirect(http.StatusFound, "/chaos-mode")
@@ -209,7 +196,7 @@ func TicketCartHandler(c *gin.Context) {
 		if attendee.OrderID != "" {
 			order, err := db.GetOrder(attendee.OrderID)
 			if err == nil && order != nil && order.PaymentStatus == "success" {
-				c.Redirect(http.StatusFound, "/checkout-complete")
+				c.Redirect(http.StatusFound, "/2023-logistics")
 				return
 			}
 		}
