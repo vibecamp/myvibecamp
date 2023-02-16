@@ -42,6 +42,7 @@ func VC2Welcome(c *gin.Context) {
 		}
 
 		findUser(c, session.UserName, false)
+		return
 	}
 
 	// I need to setup session stuff for this - oauth email?
