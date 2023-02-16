@@ -304,6 +304,9 @@ func (a *Aggregation) MakeUpdatedRecord(order *Order) *airtable.Record {
 	} else if a.Name == fields.FullSold {
 		a.Quantity += order.AdultCabin + order.AdultTent + order.ChildCabin + order.ChildTent + order.ToddlerCabin + order.ToddlerTent
 		a.Revenue += order.AdultTent*42069 + (order.AdultCabin*590+order.ChildCabin*380+order.ChildTent*210)*100
+	} else if a.Name == fields.Sponsorships {
+		a.Quantity += order.TotalTickets
+		a.Revenue += (int(order.Total.ToCurrencyInt() - order.ProcessingFee.ToCurrencyInt()))
 	}
 
 	cents := a.Revenue % 100

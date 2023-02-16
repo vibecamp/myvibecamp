@@ -20,7 +20,7 @@
             document.getElementById("child-price-tag").innerText = "$70";
         }
 
-        if (ticketType === "none")
+        if (ticketType === "none") {
           document.getElementById("checkout-button").classList.add("hidden")
         } else {
           document.getElementById("checkout-button").classList.remove("hidden")
@@ -205,5 +205,10 @@
 
 
 </div>
+<script type="text/javascript">
+    if (document.getElementById("ticket-type").value !== "none") {
+      onTicketTypeChange(document.getElementById("ticket-type").value)
+    }
+</script>
 
 {{ template "footer" }}
