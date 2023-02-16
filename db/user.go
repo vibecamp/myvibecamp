@@ -164,6 +164,10 @@ func (u *User) UpdateUser() error {
 		return errors.Wrap(err, "updating attendee record")
 	}
 
+	if defaultCache != nil {
+		defaultCache.Delete(u.cacheKey())
+	}
+
 	if recvRecords == nil || len(recvRecords.Records) == 0 {
 		return errors.Wrap(ErrNoRecords, "")
 	} else if len(recvRecords.Records) != 1 {
