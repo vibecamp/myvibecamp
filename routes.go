@@ -30,20 +30,7 @@ func IndexHandler(c *gin.Context) {
 		return
 	}
 
-	user, err := db.GetUser(session.UserName)
-	if err != nil {
-		_, err = db.GetSoftLaunchUser(session.UserName)
-
-		if err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
-			return
-		}
-
-		c.Redirect(http.StatusFound, "/vc2-sl")
-		return
-	}
-
-	c.HTML(http.StatusOK, "index.html.tmpl", user)
+	findUser(c, session.UserName, false)
 }
 
 func VC2Welcome(c *gin.Context) {
@@ -55,6 +42,7 @@ func VC2Welcome(c *gin.Context) {
 		}
 
 		findUser(c, session.UserName, false)
+		return
 	}
 
 	// I need to setup session stuff for this - oauth email?
@@ -66,19 +54,29 @@ func VC2Welcome(c *gin.Context) {
 	findUser(c, emailAddr, true)
 }
 
-func findUser(c *gin.Context, username string, isEmailUser bool) {
+func findUser(c *gin.Context, username string, isEmailSignIn bool) {
 	user, err := db.GetUser(username)
 	if err == nil && user != nil {
-		if isEmailUser {
+		if isEmailSignIn {
 			makeEmailSession(c, user.UserName, user.AirtableID)
 		}
 
 		// if they have an order ID, check the order
 		if len(user.OrderID) > 0 {
 			order, err := db.GetOrder(user.OrderID)
-			// if it exists and is not blank payment status, send them to logistics
+			// if it exists and is not blank payment status, direct them by payment status
 			if err == nil && order != nil && order.PaymentStatus != "" {
-				c.Redirect(http.StatusFound, "/2023-logistics")
+				switch order.PaymentStatus {
+				case "failed":
+					c.Redirect(http.StatusFound, "/checkout-failed")
+					return
+				case "success":
+					c.Redirect(http.StatusFound, "/2023-logistics")
+					return
+				case "processing":
+					c.Redirect(http.StatusFound, "/checkout-complete")
+					return
+				}
 			} else {
 				// otherwise send them based on their ticket path to the cart
 				if user.TicketPath == "Sponsorship" {
@@ -92,8 +90,15 @@ func findUser(c *gin.Context, username string, isEmailUser bool) {
 					return
 				}
 			}
-		} else if user.TicketPath == "Sponsorship" || user.AdmissionLevel == "Staff" {
-			// if they don't have an order id check if they sponsor or staff and send them to logistics still
+		} else if user.TicketPath == "Sponsorship" {
+			// if they dont have an order ID, check if they're in sponsorship table. if not, they're a full sponsor
+			sponsoredUser, err := db.GetSponsorshipUser(username)
+			if sponsoredUser == nil && err != nil {
+				c.Redirect(http.StatusFound, "/2023-logistics")
+				return
+			}
+		} else if user.AdmissionLevel == "Staff" {
+			// if they don't have an order id check if they're staff
 			c.Redirect(http.StatusFound, "/2023-logistics")
 			return
 		}
@@ -102,7 +107,7 @@ func findUser(c *gin.Context, username string, isEmailUser bool) {
 	// check for sponsorship first, in case they're both on sponsorship and e.g. soft launch
 	sponsoredUser, err := db.GetSponsorshipUser(username)
 	if err == nil && sponsoredUser != nil {
-		if isEmailUser {
+		if isEmailSignIn {
 			makeEmailSession(c, sponsoredUser.UserName, sponsoredUser.AirtableID)
 		}
 		c.Redirect(http.StatusFound, "/sponsorship-cart")
@@ -112,7 +117,7 @@ func findUser(c *gin.Context, username string, isEmailUser bool) {
 	// check if they're a soft launch
 	softLaunchUser, err := db.GetSoftLaunchUser(username)
 	if err == nil && softLaunchUser != nil {
-		if isEmailUser {
+		if isEmailSignIn {
 			makeEmailSession(c, softLaunchUser.UserName, softLaunchUser.AirtableID)
 		}
 		c.Redirect(http.StatusFound, "/vc2-sl")
@@ -122,14 +127,14 @@ func findUser(c *gin.Context, username string, isEmailUser bool) {
 	// check if they're chaos user
 	chaosUser, err := db.GetChaosUser(username)
 	if err == nil && chaosUser != nil {
-		if isEmailUser {
+		if isEmailSignIn {
 			makeEmailSession(c, chaosUser.UserName, chaosUser.AirtableID)
 		}
 		c.Redirect(http.StatusFound, "/chaos-mode")
 		return
 	}
 
-	// abortt
+	// abort
 	c.AbortWithError(http.StatusBadRequest, err)
 }
 
@@ -156,22 +161,6 @@ func CalendarHandler(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "calendar.html.tmpl", user)
-}
-
-func TeamHandler(c *gin.Context) {
-	session := GetSession(c)
-	if !session.SignedIn() {
-		c.HTML(http.StatusOK, "team.html.tmpl", nil)
-		return
-	}
-
-	user, err := db.GetUser(session.TwitterName)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	c.HTML(http.StatusOK, "team.html.tmpl", user)
 }
 
 func ContactUsHandler(c *gin.Context) {
@@ -208,7 +197,7 @@ func TicketCartHandler(c *gin.Context) {
 		if attendee.OrderID != "" {
 			order, err := db.GetOrder(attendee.OrderID)
 			if err == nil && order != nil && order.PaymentStatus == "success" {
-				c.Redirect(http.StatusFound, "/checkout-complete")
+				c.Redirect(http.StatusFound, "/2023-logistics")
 				return
 			}
 		}
@@ -747,37 +736,7 @@ func SignInRedirect(c *gin.Context) {
 		return
 	}
 
-	attendee, err := db.GetUser(session.UserName)
-	if attendee != nil && err == nil {
-		c.Redirect(http.StatusFound, "/2023-logistics")
-		return
-	}
-
-	spuser, err := db.GetSponsorshipUser(session.UserName)
-	if spuser != nil && err == nil {
-		c.Redirect(http.StatusFound, "/sponsorship-cart")
-		return
-	}
-
-	user, err := db.GetChaosUser(session.UserName)
-	if user != nil && err == nil {
-		c.Redirect(http.StatusFound, "/chaos-mode")
-		return
-	}
-
-	sluser, err := db.GetSoftLaunchUser(session.UserName)
-	if sluser != nil && err == nil {
-		c.Redirect(http.StatusFound, "/vc2-sl")
-		return
-	}
-
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	c.Redirect(http.StatusFound, "/")
+	findUser(c, session.UserName, false)
 }
 
 func StripeCheckoutHandler(c *gin.Context) {
@@ -857,18 +816,49 @@ func PurchaseCompleteHandler(c *gin.Context) {
 		return
 	}
 
-	if order.PaymentStatus != "success" {
-		err = order.UpdateOrderStatus("pending")
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-	}
-
 	c.HTML(http.StatusOK, "purchaseComplete.html.tmpl", gin.H{
 		"User":  user,
 		"Order": order,
 	})
+}
+
+func PurchaseFailedHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	if c.Request.Method == http.MethodGet {
+		c.HTML(http.StatusOK, "purchaseFailed.html.tmpl", gin.H{})
+		return
+	}
+
+	user, err := db.GetUser(session.UserName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	order, err := db.GetOrder(user.OrderID)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if order.PaymentStatus != "failed" {
+		c.Redirect(http.StatusFound, "/vc2")
+		return
+	}
+
+	user.OrderID = ""
+	err = user.UpdateUser()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/vc2")
 }
 
 func Logistics2023Handler(c *gin.Context) {
@@ -884,12 +874,23 @@ func Logistics2023Handler(c *gin.Context) {
 		return
 	}
 
+	needsOrder := !(user.AdmissionLevel == "Staff" || user.TicketPath == "Sponsorship")
+
 	order, err := db.GetOrder(user.OrderID)
-	if err != nil && user.AdmissionLevel != "Staff" && user.TicketPath != "Sponsorship" {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
+	if needsOrder {
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+
+		if order.PaymentStatus == "failed" {
+			c.Redirect(http.StatusFound, "/checkout-failed")
+			return
+		} else if order.PaymentStatus == "processing" {
+			c.Redirect(http.StatusFound, "/checkout-complete")
+			return
+		}
 	}
-	log.Debug(user.DiscordName)
 
 	if c.Request.Method == http.MethodGet {
 		c.HTML(http.StatusOK, "logistics2023.html.tmpl", gin.H{

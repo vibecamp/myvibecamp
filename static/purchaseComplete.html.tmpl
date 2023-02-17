@@ -1,6 +1,6 @@
 {{ template "header" }}
 
-{{ template "nav" "softlaunch" }}
+{{ template "nav" "vc2" }}
 
 <div class="container">
   <nav aria-label="breadcrumb">
@@ -11,11 +11,12 @@
   </nav>
   {{ template "flashes" .flashes }}
 
-  <h2>Your Purchase is Complete!</h2>
+  <h2>Your Purchase is Pending!</h2>
 
   <p>
     Thank you for purchasing {{ if gt .Order.TotalTickets 1 }}{{ .Order.TotalTickets }} tickets{{else}}a ticket{{end}} to the 
-    second vibecamp! We can't wait to see you in 2023, and stay posted for updates from the team!
+    second vibecamp! You'll receive an email when your purchase has processed, but can return to this site to check the status. 
+    We can't wait to see you in 2023, and stay posted for updates from the team!
   </p>
 
   <p>

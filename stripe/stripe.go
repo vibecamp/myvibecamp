@@ -173,8 +173,11 @@ func HandleCreatePaymentIntent(c *gin.Context) {
 
 		if dbOrder != nil {
 			// if it's successful redirect
-			if dbOrder.PaymentStatus == "success" {
+			if dbOrder.PaymentStatus == "success" || dbOrder.PaymentStatus == "processing" {
 				c.Redirect(http.StatusFound, "/checkout-complete")
+				return
+			} else if dbOrder.PaymentStatus == "failed" {
+				c.Redirect(http.StatusFound, "/checkout-failed")
 				return
 			}
 
@@ -377,8 +380,6 @@ func HandleStripeWebhook(c *gin.Context) {
 			return
 		}
 		log.Printf("Successful payment for %d.", paymentIntent.Amount)
-		// Then define and call a func to handle the successful payment intent.
-		// handlePaymentIntentSucceeded(paymentIntent)
 
 		// update order in db to mark as successful payment
 		order, err := db.GetOrderByPaymentID(paymentIntent.ID)
@@ -404,7 +405,7 @@ func HandleStripeWebhook(c *gin.Context) {
 			}
 
 			// update aggregations
-			err = db.UpdateAggregations(order, user.TicketPath == "2022 Attendee")
+			err = db.UpdateAggregations(order, user.TicketPath)
 			if err != nil {
 				log.Errorf("error updating aggregations %v\n", err)
 				w.WriteHeader((http.StatusInternalServerError))

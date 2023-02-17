@@ -132,7 +132,6 @@ func main() {
 	r.GET("/callback", CallbackHandler)
 	r.GET("/signin-redirect", SignInRedirect)
 	r.GET("/calendar", CalendarHandler)
-	r.GET("/team", TeamHandler)
 	r.GET("/contact-us", ContactUsHandler)
 
 	r.GET("/ticket", TicketHandler)
@@ -152,6 +151,8 @@ func main() {
 	r.POST("/vc2-sl", SoftLaunchSignIn)
 	r.POST("/stripe-webhook", stripe.HandleStripeWebhook)
 	r.GET("/checkout-complete", PurchaseCompleteHandler)
+	r.GET("/checkout-failed", PurchaseFailedHandler)
+	r.POST("/checkout-failed", PurchaseFailedHandler)
 	r.GET("/2023-logistics", Logistics2023Handler)
 	r.POST("/2023-logistics", Logistics2023Handler)
 	r.GET("/chaos-mode", ChaosModeSignIn)
@@ -171,8 +172,6 @@ func main() {
 	r.StaticFS("/img", http.FS(mustSub(static, "static/img")))
 
 	log.Printf("Visit %s in your browser\n", externalURL)
-	//log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
-	//log.Fatal(r.Run(fmt.Sprintf(":%s", port)))
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", port),

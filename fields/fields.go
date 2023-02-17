@@ -108,4 +108,5 @@ const (
 	ChildSold        = "Child Tickets Sold"
 	ToddlerSold      = "Toddler Tickets Sold"
 	DonationsRecv    = "Donations Received"
+	Sponsorships     = "Sponsorships"
 )

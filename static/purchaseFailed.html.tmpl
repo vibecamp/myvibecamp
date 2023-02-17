@@ -1,0 +1,24 @@
+{{ template "header" }}
+
+{{ template "nav" "vc2" }}
+
+<div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/signin-redirect">Welcome</a></li>
+    </ol>
+  </nav>
+  {{ template "flashes" .flashes }}
+
+  <h2>Your Order Failed</h2>
+
+  <p>
+    This may have been due to insufficient funds, incorrect CVC entry, or another reason. Please double-check your available balance &
+    click below to try again!
+  </p>
+  <form method="post" action="">
+    <button type="submit" class="btn btn-primary">Try Again</button>
+  </form>
+</div>
+
+{{ template "footer" }}

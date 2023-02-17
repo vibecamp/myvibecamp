@@ -18,6 +18,12 @@
         } else if (ticketType === "sat") {
             document.getElementById("adult-price-tag").innerText = "$140";
             document.getElementById("child-price-tag").innerText = "$70";
+        } 
+
+        if (ticketType === "none") {
+          document.getElementById("checkout-button").classList.add("hidden")
+        } else {
+          document.getElementById("checkout-button").classList.remove("hidden")
         }
     }
 
@@ -49,7 +55,7 @@
     }
 </script>
 
-{{ template "nav" "chaosmode" }}
+{{ template "nav" "vc2" }}
 
 <div class="container">
   <nav aria-label="breadcrumb">
@@ -193,10 +199,15 @@
 
       {{ template "logistics-form" }}
 
-      <button type="submit" class="btn btn-primary">Checkout</button>
+      <button type="submit" class="btn btn-primary hidden" id="checkout-button">Checkout</button>
     </form>
 
 
 </div>
+<script type="text/javascript">
+    if (document.getElementById("ticket-type").value !== "none") {
+      onTicketTypeChange(document.getElementById("ticket-type").value)
+    }
+</script>
 
 {{ template "footer" }}
