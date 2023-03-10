@@ -69,6 +69,7 @@ type SoftLaunchUser struct {
 	POAP              string
 	DiscordName       string
 	FoodComments      string
+	Cabin2022         string
 	Vegetarian        bool
 	GlutenFree        bool
 	LactoseIntolerant bool
@@ -76,24 +77,26 @@ type SoftLaunchUser struct {
 }
 
 type User struct {
-	UserName          string
-	TwitterName       string
-	Name              string
-	Email             string
-	AdmissionLevel    string
-	TicketType        string
-	Barcode           string
-	OrderNotes        string
-	OrderID           string
-	CheckedIn         bool
-	Badge             bool
-	Vegetarian        bool
-	GlutenFree        bool
-	LactoseIntolerant bool
-	FoodComments      string
-	TicketID          string
-	DiscordName       string
-	TicketPath        string
+	UserName           string
+	TwitterName        string
+	Name               string
+	Email              string
+	AdmissionLevel     string
+	TicketType         string
+	Barcode            string
+	OrderNotes         string
+	OrderID            string
+	CheckedIn          bool
+	Badge              bool
+	Vegetarian         bool
+	GlutenFree         bool
+	LactoseIntolerant  bool
+	SponsorshipConfirm string
+	FoodComments       string
+	TicketID           string
+	DiscordName        string
+	TicketPath         string
+	Cabin2022          string
 
 	AirtableID string
 }
@@ -189,24 +192,26 @@ func (u *User) CreateUser() error {
 		Records: []*airtable.Record{
 			{
 				Fields: map[string]interface{}{
-					fields.UserName:          u.UserName,
-					fields.TwitterName:       u.TwitterName,
-					fields.Name:              u.Name,
-					fields.Email:             u.Email,
-					fields.AdmissionLevel:    u.AdmissionLevel,
-					fields.TicketType:        u.TicketType,
-					fields.Barcode:           u.Barcode,
-					fields.OrderNotes:        u.OrderNotes,
-					fields.OrderID:           u.OrderID,
-					fields.CheckedIn:         u.CheckedIn,
-					fields.Badge:             u.Badge,
-					fields.Vegetarian:        u.Vegetarian,
-					fields.GlutenFree:        u.GlutenFree,
-					fields.LactoseIntolerant: u.LactoseIntolerant,
-					fields.FoodComments:      u.FoodComments,
-					fields.TicketID:          "",
-					fields.DiscordName:       u.DiscordName,
-					fields.TicketPath:        u.TicketPath,
+					fields.UserName:                u.UserName,
+					fields.TwitterName:             u.TwitterName,
+					fields.Name:                    u.Name,
+					fields.Email:                   u.Email,
+					fields.AdmissionLevel:          u.AdmissionLevel,
+					fields.TicketType:              u.TicketType,
+					fields.Barcode:                 u.Barcode,
+					fields.OrderNotes:              u.OrderNotes,
+					fields.OrderID:                 u.OrderID,
+					fields.CheckedIn:               u.CheckedIn,
+					fields.Badge:                   u.Badge,
+					fields.Vegetarian:              u.Vegetarian,
+					fields.GlutenFree:              u.GlutenFree,
+					fields.LactoseIntolerant:       u.LactoseIntolerant,
+					fields.FoodComments:            u.FoodComments,
+					fields.TicketID:                "",
+					fields.DiscordName:             u.DiscordName,
+					fields.TicketPath:              u.TicketPath,
+					fields.Cabin2022:               u.Cabin2022,
+					fields.SponsorshipConfirmation: "",
 				},
 			},
 		},
@@ -275,25 +280,27 @@ func getUserByField(field, value string) (*User, error) {
 	rec := response.Records[0]
 
 	u := &User{
-		AirtableID:        rec.ID,
-		UserName:          toStr(rec.Fields[fields.UserName]),
-		TwitterName:       toStr(rec.Fields[fields.TwitterName]),
-		Name:              toStr(rec.Fields[fields.Name]),
-		Email:             toStr(rec.Fields[fields.Email]),
-		TicketType:        toStr(rec.Fields[fields.TicketType]),
-		AdmissionLevel:    toStr(rec.Fields[fields.AdmissionLevel]),
-		CheckedIn:         rec.Fields[fields.CheckedIn] == checked,
-		Barcode:           toStr(rec.Fields[fields.Barcode]),
-		OrderNotes:        toStr(rec.Fields[fields.OrderNotes]),
-		Badge:             rec.Fields[fields.Badge] == checked,
-		Vegetarian:        rec.Fields[fields.Vegetarian] == checked,
-		GlutenFree:        rec.Fields[fields.GlutenFree] == checked,
-		LactoseIntolerant: rec.Fields[fields.LactoseIntolerant] == checked,
-		FoodComments:      toStr(rec.Fields[fields.FoodComments]),
-		OrderID:           toStr(rec.Fields[fields.OrderID]),
-		TicketPath:        toStr(rec.Fields[fields.TicketPath]),
-		DiscordName:       toStr(rec.Fields[fields.DiscordName]),
-		TicketID:          toStr(rec.Fields[fields.TicketID]),
+		AirtableID:         rec.ID,
+		UserName:           toStr(rec.Fields[fields.UserName]),
+		TwitterName:        toStr(rec.Fields[fields.TwitterName]),
+		Name:               toStr(rec.Fields[fields.Name]),
+		Email:              toStr(rec.Fields[fields.Email]),
+		TicketType:         toStr(rec.Fields[fields.TicketType]),
+		AdmissionLevel:     toStr(rec.Fields[fields.AdmissionLevel]),
+		CheckedIn:          rec.Fields[fields.CheckedIn] == checked,
+		Barcode:            toStr(rec.Fields[fields.Barcode]),
+		OrderNotes:         toStr(rec.Fields[fields.OrderNotes]),
+		Badge:              rec.Fields[fields.Badge] == checked,
+		Vegetarian:         rec.Fields[fields.Vegetarian] == checked,
+		GlutenFree:         rec.Fields[fields.GlutenFree] == checked,
+		LactoseIntolerant:  rec.Fields[fields.LactoseIntolerant] == checked,
+		FoodComments:       toStr(rec.Fields[fields.FoodComments]),
+		OrderID:            toStr(rec.Fields[fields.OrderID]),
+		TicketPath:         toStr(rec.Fields[fields.TicketPath]),
+		DiscordName:        toStr(rec.Fields[fields.DiscordName]),
+		TicketID:           toStr(rec.Fields[fields.TicketID]),
+		Cabin2022:          toStr(rec.Fields[fields.Cabin2022]),
+		SponsorshipConfirm: toStr(rec.Fields[fields.SponsorshipConfirmation]),
 	}
 
 	if defaultCache != nil {
@@ -360,6 +367,7 @@ func getSoftLaunchUserByField(field, value string) (*SoftLaunchUser, error) {
 		Email:             toStr(rec.Fields[fields.Email]),
 		POAP:              toStr(rec.Fields[fields.POAP]),
 		Badge:             toStr(rec.Fields[fields.Badge]) == "yes",
+		Cabin2022:         toStr(rec.Fields[fields.Cabin2022]),
 		TicketLimit:       ticketLimit,
 		Vegetarian:        rec.Fields[fields.Vegetarian] == checked,
 		GlutenFree:        rec.Fields[fields.GlutenFree] == checked,
@@ -584,7 +592,7 @@ func (u *User) SetFood(veg, gf, lact bool, comments string) error {
 	return nil
 }
 
-func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments string, discordName string) error {
+func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments string, discordName string, confirm string) error {
 	u.Badge = badge
 	u.Vegetarian = veg
 	u.GlutenFree = gf
@@ -592,23 +600,47 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments string, disc
 	u.FoodComments = comments
 	u.DiscordName = discordName
 
-	r := &airtable.Records{
-		Records: []*airtable.Record{{
-			ID: u.AirtableID,
-			Fields: map[string]interface{}{
-				fields.Vegetarian:        u.Vegetarian,
-				fields.GlutenFree:        u.GlutenFree,
-				fields.LactoseIntolerant: u.LactoseIntolerant,
-				fields.FoodComments:      comments,
-				fields.Badge:             u.Badge,
-				fields.DiscordName:       u.DiscordName,
-			},
-		}},
-	}
+	if confirm != "" && confirm != "none" {
+		u.SponsorshipConfirm = confirm
 
-	_, err := attendeesTable.UpdateRecordsPartial(r)
-	if err != nil {
-		return errors.Wrap(err, "setting food")
+		r := &airtable.Records{
+			Records: []*airtable.Record{{
+				ID: u.AirtableID,
+				Fields: map[string]interface{}{
+					fields.Vegetarian:              u.Vegetarian,
+					fields.GlutenFree:              u.GlutenFree,
+					fields.LactoseIntolerant:       u.LactoseIntolerant,
+					fields.FoodComments:            comments,
+					fields.Badge:                   u.Badge,
+					fields.DiscordName:             u.DiscordName,
+					fields.SponsorshipConfirmation: u.SponsorshipConfirm,
+				},
+			}},
+		}
+
+		_, err := attendeesTable.UpdateRecordsPartial(r)
+		if err != nil {
+			return errors.Wrap(err, "setting 2023 logistics")
+		}
+	} else {
+		r := &airtable.Records{
+			Records: []*airtable.Record{{
+				ID: u.AirtableID,
+				Fields: map[string]interface{}{
+					fields.Vegetarian:        u.Vegetarian,
+					fields.GlutenFree:        u.GlutenFree,
+					fields.LactoseIntolerant: u.LactoseIntolerant,
+					fields.FoodComments:      comments,
+					fields.Badge:             u.Badge,
+					fields.DiscordName:       u.DiscordName,
+				},
+			}},
+		}
+
+		_, err := attendeesTable.UpdateRecordsPartial(r)
+		if err != nil {
+			return errors.Wrap(err, "setting 2023 logistics")
+		}
 	}
 
 	if defaultCache != nil {
