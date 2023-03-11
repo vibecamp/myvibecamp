@@ -303,25 +303,27 @@ func TicketCartHandler(c *gin.Context) {
 	}
 
 	newUser := &db.User{
-		AirtableID:        "",
-		UserName:          user.UserName,
-		TwitterName:       user.TwitterName,
-		Name:              user.Name,
-		Email:             user.Email,
-		AdmissionLevel:    admissionLevel,
-		TicketType:        dbTicketType,
-		CheckedIn:         false,
-		Barcode:           "",
-		OrderNotes:        "",
-		OrderID:           "",
-		TicketID:          "",
-		Badge:             c.PostForm("badge-checkbox") == "on",
-		Vegetarian:        c.PostForm("vegetarian") == "on",
-		GlutenFree:        c.PostForm("glutenfree") == "on",
-		LactoseIntolerant: c.PostForm("lactose") == "on",
-		FoodComments:      c.PostForm("comments"),
-		DiscordName:       c.PostForm("discord-name"),
-		TicketPath:        "2022 Attendee",
+		AirtableID:         "",
+		UserName:           user.UserName,
+		TwitterName:        user.TwitterName,
+		Name:               user.Name,
+		Email:              user.Email,
+		Cabin2022:          user.Cabin2022,
+		AdmissionLevel:     admissionLevel,
+		TicketType:         dbTicketType,
+		CheckedIn:          false,
+		Barcode:            "",
+		OrderNotes:         "",
+		OrderID:            "",
+		TicketID:           "",
+		Badge:              c.PostForm("badge-checkbox") == "on",
+		Vegetarian:         c.PostForm("vegetarian") == "on",
+		GlutenFree:         c.PostForm("glutenfree") == "on",
+		LactoseIntolerant:  c.PostForm("lactose") == "on",
+		FoodComments:       c.PostForm("comments"),
+		DiscordName:        c.PostForm("discord-name"),
+		TicketPath:         "2022 Attendee",
+		SponsorshipConfirm: "",
 	}
 
 	if attendee != nil {
@@ -1277,7 +1279,7 @@ func AppEndpoint(c *gin.Context) {
 		// c.AbortWithError(http.StatusInternalServerError, err)
 		c.JSON(http.StatusNotFound, nil)
 	} else if user != nil {
-		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel})
+		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022})
 	} else {
 		c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
 	}
