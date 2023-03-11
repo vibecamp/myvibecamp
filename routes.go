@@ -51,6 +51,12 @@ func VC2Welcome(c *gin.Context) {
 	// magic email links? not hard really but need a way to send emails
 
 	emailAddr := c.PostForm("email-address")
+	if !localDevMode && !strings.Contains(emailAddr, "@") {
+		// throw an error if it's not a valid email on prod
+		c.AbortWithError(http.StatusBadRequest, errors.New("must enter a valid email address"))
+		return
+	}
+
 	findUser(c, emailAddr, true)
 }
 
@@ -506,6 +512,12 @@ func SoftLaunchSignIn(c *gin.Context) {
 	// magic email links? not hard really but need a way to send emails
 
 	emailAddr := c.PostForm("email-address")
+	if !localDevMode && !strings.Contains(emailAddr, "@") {
+		// throw an error if it's not a valid email on prod
+		c.AbortWithError(http.StatusBadRequest, errors.New("must enter a valid email address"))
+		return
+	}
+
 	// get user by email somehow
 	user, err := db.GetSoftLaunchUser(emailAddr)
 	// then return the same page
@@ -543,6 +555,12 @@ func ChaosModeSignIn(c *gin.Context) {
 	}
 
 	emailAddr := c.PostForm("email-address")
+	if !localDevMode && !strings.Contains(emailAddr, "@") {
+		// throw an error if it's not a valid email on prod
+		c.AbortWithError(http.StatusBadRequest, errors.New("must enter a valid email address"))
+		return
+	}
+
 	// get user by email somehow
 	user, err := db.GetChaosUser(emailAddr)
 	// then return the same page
