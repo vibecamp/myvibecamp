@@ -65,6 +65,25 @@
   </div>
 {{ end }}
 
+{{ define "sponsorship-confirmation" }}
+  <fieldset>
+    <legend>Attendance Confirmation</legend>
+    <div class="form-group row">
+      <label class="col-sm-9 col-form-label" for="sponsorship-confirmation">
+        Because you received a sponsorship, we'd like to confirm that you'll be able to attend vibecamp in 2023
+      </label>
+      <div class="col-sm-3">
+        <select name="sponsorship-confirmation" id="sponsorship-confirmation" class="form-select" value="{{if .SponsorshipConfirm}}{{.SponsorshipConfirm}}{{end}}" required style="text-align: right;">
+          <option value="none" hidden></option>
+          <option value="Confirmed" {{if (eq .SponsorshipConfirm "Confirmed")}}selected{{end}}>Can Attend</option>
+          <option value="Denied" {{if (eq .SponsorshipConfirm "Denied")}}selected{{end}}>Cannot Attend</option>
+        </select>
+      </div>
+    </div>
+  </fieldset>
+  <br/>
+{{ end }}
+
 {{ define "logistics-form" }}
   <fieldset>
     <legend>Badges</legend>
