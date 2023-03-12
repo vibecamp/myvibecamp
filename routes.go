@@ -198,6 +198,13 @@ func TicketCartHandler(c *gin.Context) {
 		return
 	}
 
+	if user.TicketLimit < 1 {
+		c.HTML(http.StatusOK, "ticketSalesClosed.html.tmpl", gin.H{
+			"flashes": GetFlashes(c),
+		})
+		return
+	}
+
 	attendee, err := db.GetUser(session.UserName)
 	if err == nil && attendee != nil {
 		if attendee.OrderID != "" {
@@ -365,6 +372,13 @@ func SponsorshipCartHandler(c *gin.Context) {
 		return
 	}
 
+	if user.TicketLimit < 1 {
+		c.HTML(http.StatusOK, "ticketSalesClosed.html.tmpl", gin.H{
+			"flashes": GetFlashes(c),
+		})
+		return
+	}
+
 	attendee, err := db.GetUser(session.UserName)
 	if err == nil && attendee != nil {
 		if attendee.OrderID != "" {
@@ -504,6 +518,13 @@ func SoftLaunchSignIn(c *gin.Context) {
 			return
 		}
 
+		if user.TicketLimit < 1 {
+			c.HTML(http.StatusOK, "ticketSalesClosed.html.tmpl", gin.H{
+				"flashes": GetFlashes(c),
+			})
+			return
+		}
+
 		c.HTML(http.StatusOK, "softLaunchSignIn.html.tmpl", user)
 		return
 	}
@@ -577,6 +598,13 @@ func ChaosModeSignIn(c *gin.Context) {
 	session.Oauth = nil
 	SaveSession(c, session)
 
+	if user.TicketLimit < 1 {
+		c.HTML(http.StatusOK, "ticketSalesClosed.html.tmpl", gin.H{
+			"flashes": GetFlashes(c),
+		})
+		return
+	}
+
 	c.HTML(http.StatusOK, "chaosSignIn.html.tmpl", user)
 }
 
@@ -590,6 +618,13 @@ func ChaosModeCartHandler(c *gin.Context) {
 	user, err := db.GetChaosUser(session.UserName)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if user.TicketLimit < 1 {
+		c.HTML(http.StatusOK, "ticketSalesClosed.html.tmpl", gin.H{
+			"flashes": GetFlashes(c),
+		})
 		return
 	}
 
