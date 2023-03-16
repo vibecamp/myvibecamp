@@ -330,7 +330,7 @@ func TicketCartHandler(c *gin.Context) {
 		FoodComments:       c.PostForm("comments"),
 		DiscordName:        c.PostForm("discord-name"),
 		TicketPath:         "2022 Attendee",
-		SponsorshipConfirm: "",
+		SponsorshipConfirm: false,
 	}
 
 	if attendee != nil {
@@ -456,25 +456,26 @@ func SponsorshipCartHandler(c *gin.Context) {
 	}
 
 	newUser := &db.User{
-		AirtableID:        "",
-		UserName:          user.UserName,
-		TwitterName:       user.TwitterName,
-		Name:              user.Name,
-		Email:             user.Email,
-		AdmissionLevel:    admissionLevel,
-		TicketType:        dbTicketType,
-		CheckedIn:         false,
-		Barcode:           "",
-		OrderNotes:        "",
-		OrderID:           "",
-		TicketID:          "",
-		Badge:             c.PostForm("badge-checkbox") == "on",
-		Vegetarian:        c.PostForm("vegetarian") == "on",
-		GlutenFree:        c.PostForm("glutenfree") == "on",
-		LactoseIntolerant: c.PostForm("lactose") == "on",
-		FoodComments:      c.PostForm("comments"),
-		DiscordName:       c.PostForm("discord-name"),
-		TicketPath:        "Sponsorship",
+		AirtableID:         "",
+		UserName:           user.UserName,
+		TwitterName:        user.TwitterName,
+		Name:               user.Name,
+		Email:              user.Email,
+		AdmissionLevel:     admissionLevel,
+		TicketType:         dbTicketType,
+		CheckedIn:          false,
+		Barcode:            "",
+		OrderNotes:         "",
+		OrderID:            "",
+		TicketID:           "",
+		SponsorshipConfirm: false,
+		Badge:              c.PostForm("badge-checkbox") == "on",
+		Vegetarian:         c.PostForm("vegetarian") == "on",
+		GlutenFree:         c.PostForm("glutenfree") == "on",
+		LactoseIntolerant:  c.PostForm("lactose") == "on",
+		FoodComments:       c.PostForm("comments"),
+		DiscordName:        c.PostForm("discord-name"),
+		TicketPath:         "Sponsorship",
 	}
 
 	if attendee != nil {
@@ -737,25 +738,26 @@ func ChaosModeCartHandler(c *gin.Context) {
 	}
 
 	newUser := &db.User{
-		AirtableID:        "",
-		UserName:          user.UserName,
-		TwitterName:       user.TwitterName,
-		Name:              user.Name,
-		Email:             user.Email,
-		AdmissionLevel:    admissionLevel,
-		TicketType:        dbTicketType,
-		CheckedIn:         false,
-		Barcode:           "",
-		OrderNotes:        "",
-		OrderID:           "",
-		TicketID:          "",
-		Badge:             c.PostForm("badge-checkbox") == "on",
-		Vegetarian:        c.PostForm("vegetarian") == "on",
-		GlutenFree:        c.PostForm("glutenfree") == "on",
-		LactoseIntolerant: c.PostForm("lactose") == "on",
-		FoodComments:      c.PostForm("comments"),
-		DiscordName:       c.PostForm("discord-name"),
-		TicketPath:        user.Phase,
+		AirtableID:         "",
+		UserName:           user.UserName,
+		TwitterName:        user.TwitterName,
+		Name:               user.Name,
+		Email:              user.Email,
+		AdmissionLevel:     admissionLevel,
+		TicketType:         dbTicketType,
+		CheckedIn:          false,
+		Barcode:            "",
+		OrderNotes:         "",
+		OrderID:            "",
+		TicketID:           "",
+		SponsorshipConfirm: false,
+		Badge:              c.PostForm("badge-checkbox") == "on",
+		Vegetarian:         c.PostForm("vegetarian") == "on",
+		GlutenFree:         c.PostForm("glutenfree") == "on",
+		LactoseIntolerant:  c.PostForm("lactose") == "on",
+		FoodComments:       c.PostForm("comments"),
+		DiscordName:        c.PostForm("discord-name"),
+		TicketPath:         user.Phase,
 	}
 
 	if attendee != nil {
@@ -962,9 +964,9 @@ func Logistics2023Handler(c *gin.Context) {
 	lactoseIntolerant := c.PostForm("lactose") == "on"
 	foodComments := c.PostForm("comments")
 	discordName := c.PostForm("discord-name")
-	sponsorshipConf := c.PostForm("sponsorship-confirmation")
+	sponsorshipConf := c.PostForm("sponsorship-confirmation") == "on"
 
-	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments, discordName, sponsorshipConf)
+	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, sponsorshipConf, foodComments, discordName)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
