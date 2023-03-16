@@ -91,7 +91,7 @@ type User struct {
 	Vegetarian         bool
 	GlutenFree         bool
 	LactoseIntolerant  bool
-	SponsorshipConfirm string
+	SponsorshipConfirm bool
 	FoodComments       string
 	TicketID           string
 	DiscordName        string
@@ -211,7 +211,7 @@ func (u *User) CreateUser() error {
 					fields.DiscordName:             u.DiscordName,
 					fields.TicketPath:              u.TicketPath,
 					fields.Cabin2022:               u.Cabin2022,
-					fields.SponsorshipConfirmation: "",
+					fields.SponsorshipConfirmation: u.SponsorshipConfirm,
 				},
 			},
 		},
@@ -300,7 +300,7 @@ func getUserByField(field, value string) (*User, error) {
 		DiscordName:        toStr(rec.Fields[fields.DiscordName]),
 		TicketID:           toStr(rec.Fields[fields.TicketID]),
 		Cabin2022:          toStr(rec.Fields[fields.Cabin2022]),
-		SponsorshipConfirm: toStr(rec.Fields[fields.SponsorshipConfirmation]),
+		SponsorshipConfirm: rec.Fields[fields.SponsorshipConfirmation] == checked,
 	}
 
 	if defaultCache != nil {
@@ -592,7 +592,7 @@ func (u *User) SetFood(veg, gf, lact bool, comments string) error {
 	return nil
 }
 
-func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments string, discordName string, confirm string) error {
+func (u *User) Set2023Logistics(badge, veg, gf, lact, confirm bool, comments string, discordName string) error {
 	u.Badge = badge
 	u.Vegetarian = veg
 	u.GlutenFree = gf
@@ -600,47 +600,26 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments string, disc
 	u.FoodComments = comments
 	u.DiscordName = discordName
 
-	if confirm != "" && confirm != "none" {
-		u.SponsorshipConfirm = confirm
+	u.SponsorshipConfirm = confirm
 
-		r := &airtable.Records{
-			Records: []*airtable.Record{{
-				ID: u.AirtableID,
-				Fields: map[string]interface{}{
-					fields.Vegetarian:              u.Vegetarian,
-					fields.GlutenFree:              u.GlutenFree,
-					fields.LactoseIntolerant:       u.LactoseIntolerant,
-					fields.FoodComments:            comments,
-					fields.Badge:                   u.Badge,
-					fields.DiscordName:             u.DiscordName,
-					fields.SponsorshipConfirmation: u.SponsorshipConfirm,
-				},
-			}},
-		}
+	r := &airtable.Records{
+		Records: []*airtable.Record{{
+			ID: u.AirtableID,
+			Fields: map[string]interface{}{
+				fields.Vegetarian:              u.Vegetarian,
+				fields.GlutenFree:              u.GlutenFree,
+				fields.LactoseIntolerant:       u.LactoseIntolerant,
+				fields.FoodComments:            comments,
+				fields.Badge:                   u.Badge,
+				fields.DiscordName:             u.DiscordName,
+				fields.SponsorshipConfirmation: u.SponsorshipConfirm,
+			},
+		}},
+	}
 
-		_, err := attendeesTable.UpdateRecordsPartial(r)
-		if err != nil {
-			return errors.Wrap(err, "setting 2023 logistics")
-		}
-	} else {
-		r := &airtable.Records{
-			Records: []*airtable.Record{{
-				ID: u.AirtableID,
-				Fields: map[string]interface{}{
-					fields.Vegetarian:        u.Vegetarian,
-					fields.GlutenFree:        u.GlutenFree,
-					fields.LactoseIntolerant: u.LactoseIntolerant,
-					fields.FoodComments:      comments,
-					fields.Badge:             u.Badge,
-					fields.DiscordName:       u.DiscordName,
-				},
-			}},
-		}
-
-		_, err := attendeesTable.UpdateRecordsPartial(r)
-		if err != nil {
-			return errors.Wrap(err, "setting 2023 logistics")
-		}
+	_, err := attendeesTable.UpdateRecordsPartial(r)
+	if err != nil {
+		return errors.Wrap(err, "setting 2023 logistics")
 	}
 
 	if defaultCache != nil {
