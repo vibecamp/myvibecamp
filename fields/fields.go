@@ -36,6 +36,7 @@ const (
 	POAP                    = "POAP"
 	Cabin2022               = "2022 Cabin"
 	SponsorshipConfirmation = "Sponsorship Confirmation"
+	Created                 = "Created"
 
 	Confirmed = "Confirmed"
 	Denied    = "Denied"

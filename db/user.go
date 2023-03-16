@@ -97,6 +97,7 @@ type User struct {
 	DiscordName        string
 	TicketPath         string
 	Cabin2022          string
+	Created            string
 
 	AirtableID string
 }
@@ -278,6 +279,11 @@ func getUserByField(field, value string) (*User, error) {
 	}
 
 	rec := response.Records[0]
+	//fmt.Printf("%+v", rec.Fields[fields.Created])
+	//t, _ := time.Parse("1/2/2006 15:04", toStr(rec.Fields[fields.Created]))
+	//fmt.Printf("%+v\n", t)
+	//ttxt, _ := t.MarshalText()
+	//fmt.Printf("%+v\n", ttxt)
 
 	u := &User{
 		AirtableID:         rec.ID,
