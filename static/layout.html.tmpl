@@ -67,10 +67,14 @@
 
 {{ define "sponsorship-confirmation" }}
   <fieldset>
+    <legend>Sponsorships</legend>
+    <p>
+      Because you received a sponsorship, we'd like to confirm that you'll be able to attend vibecamp in 2023
+    </p>
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" name="sponsorship-confirmation" id="veg" {{if and . .SponsorshipConfirm}}checked{{end}}>
+      <input class="form-check-input" type="checkbox" name="sponsorship-confirmation" id="sponsorship-confirmation" {{if and . .SponsorshipConfirm}}checked{{end}}>
       <label class="form-check-label" for="sponsorship-confirmation">
-        Because you received a sponsorship, we'd like to confirm that you'll be able to attend vibecamp in 2023
+        I can attend vibecamp 2023
       </label>
     </div>
   </fieldset>
