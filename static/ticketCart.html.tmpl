@@ -2,28 +2,34 @@
 
 <script type="text/javascript">
     function onTicketTypeChange(ticketType) {
-        document.getElementById("adult-tickets").disabled = false;
-        document.getElementById("child-tickets").disabled = false;
-        document.getElementById("toddler-tickets").disabled = false;
         document.getElementById("adult-tickets").value = 0;
         document.getElementById("child-tickets").value = 0;
         document.getElementById("toddler-tickets").value = 0;
-        document.getElementById("order-total").value = "$" + Number(document.getElementById("donation-amount").value).toString();
-        if (ticketType === "cabin") {
-            document.getElementById("adult-price-tag").innerText = "$590";
-            document.getElementById("child-price-tag").innerText = "$380";
-        } else if (ticketType === "tent") {
-            document.getElementById("adult-price-tag").innerText = "$420.69";
-            document.getElementById("child-price-tag").innerText = "$210";
-        } else if (ticketType === "sat") {
-            document.getElementById("adult-price-tag").innerText = "$140";
-            document.getElementById("child-price-tag").innerText = "$70";
-        }
 
         if (ticketType === "none") {
           document.getElementById("checkout-button").classList.add("hidden")
+          document.getElementById("adult-tickets").disabled = true;
+          document.getElementById("child-tickets").disabled = true;
+          document.getElementById("toddler-tickets").disabled = true;
+          document.getElementById("order-total").value = "$"
+          document.getElementById("processing-fee").value = "$"
         } else {
           document.getElementById("checkout-button").classList.remove("hidden")
+          document.getElementById("adult-tickets").disabled = false;
+          document.getElementById("child-tickets").disabled = false;
+          document.getElementById("toddler-tickets").disabled = false;
+          document.getElementById("order-total").value = "$" + Number(document.getElementById("donation-amount").value).toString();
+          document.getElementById("processing-fee").value = "$"
+          if (ticketType === "cabin") {
+              document.getElementById("adult-price-tag").innerText = "$590";
+              document.getElementById("child-price-tag").innerText = "$380";
+          } else if (ticketType === "tent") {
+              document.getElementById("adult-price-tag").innerText = "$420.69";
+              document.getElementById("child-price-tag").innerText = "$210";
+          } else if (ticketType === "sat") {
+              document.getElementById("adult-price-tag").innerText = "$140";
+              document.getElementById("child-price-tag").innerText = "$70";
+          }
         }
     }
 
@@ -109,7 +115,7 @@
                 Ticket Type
             </label>
             <div class="col-sm-3">
-            <select name="ticket-type" id="ticket-type" class="form-select" onChange="onTicketTypeChange(this.value)" value="none" required style="text-align: right;">
+            <select name="ticket-type" id="ticket-type" class="form-select" onChange="onTicketTypeChange(this.value)" required style="text-align: right;">
                 <option value="none" selected hidden></option>
                 <!-- <option value="cabin">Cabin</option> -->
                 <option value="tent">GA</option>
@@ -210,9 +216,7 @@
 
 </div>
 <script type="text/javascript">
-    if (document.getElementById("ticket-type").value !== "none") {
-      onTicketTypeChange(document.getElementById("ticket-type").value)
-    }
+    onTicketTypeChange(document.getElementById("ticket-type").value)
 </script>
 
 {{ template "footer" }}
