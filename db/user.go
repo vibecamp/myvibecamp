@@ -279,7 +279,6 @@ func getUserByField(field, value string) (*User, error) {
 	}
 
 	rec := response.Records[0]
-	fmt.Printf("%+v", rec.Fields[fields.Created])
 	t, err := time.Parse("1/2/2006 15:04", toStr(rec.Fields[fields.Created]))
 	if err != nil {
 		t = time.Now()
