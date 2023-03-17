@@ -279,11 +279,11 @@ func getUserByField(field, value string) (*User, error) {
 	}
 
 	rec := response.Records[0]
-	//fmt.Printf("%+v", rec.Fields[fields.Created])
-	//t, _ := time.Parse("1/2/2006 15:04", toStr(rec.Fields[fields.Created]))
-	//fmt.Printf("%+v\n", t)
-	//ttxt, _ := t.MarshalText()
-	//fmt.Printf("%+v\n", ttxt)
+	t, err := time.Parse("1/2/2006 15:04", toStr(rec.Fields[fields.Created]))
+	if err != nil {
+		t = time.Now()
+	}
+	created := t.UTC().Format("2006-01-02T15:04:05Z")
 
 	u := &User{
 		AirtableID:         rec.ID,
@@ -307,6 +307,7 @@ func getUserByField(field, value string) (*User, error) {
 		TicketID:           toStr(rec.Fields[fields.TicketID]),
 		Cabin2022:          toStr(rec.Fields[fields.Cabin2022]),
 		SponsorshipConfirm: rec.Fields[fields.SponsorshipConfirmation] == checked,
+		Created:            created,
 	}
 
 	if defaultCache != nil {
