@@ -97,6 +97,7 @@ type User struct {
 	DiscordName        string
 	TicketPath         string
 	Cabin2022          string
+	Cabin              string
 	Created            string
 
 	AirtableID string
@@ -307,6 +308,7 @@ func getUserByField(field, value string) (*User, error) {
 		TicketID:           toStr(rec.Fields[fields.TicketID]),
 		Cabin2022:          toStr(rec.Fields[fields.Cabin2022]),
 		SponsorshipConfirm: rec.Fields[fields.SponsorshipConfirmation] == checked,
+		Cabin:              toStr(rec.Fields[fields.Cabin]),
 		Created:            created,
 	}
 
