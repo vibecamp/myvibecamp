@@ -33,7 +33,7 @@ var sponsorshipTable *airtable.Table
 // var cabinTable *airtable.Table
 // var ticketTable *airtable.Table
 
-func Init(apiKey, baseID, tableName string, cache *cache.Cache) {
+func Init(apiKey, baseID string, cache *cache.Cache) {
 	var (
 		baseTwo       = os.Getenv("AIRTABLE_2023_BASE")
 		slTable       = os.Getenv("AIRTABLE_SL_TABLE")
@@ -43,7 +43,7 @@ func Init(apiKey, baseID, tableName string, cache *cache.Cache) {
 		orderTable    = os.Getenv("AIRTABLE_ORDER_TABLE")
 	)
 	client = airtable.NewClient(apiKey)
-	defaultTable = client.GetTable(baseID, tableName)
+	defaultTable = client.GetTable(baseID, "Attendees")
 	softLaunchTable = client.GetTable(baseTwo, slTable)
 	attendeesTable = client.GetTable(baseTwo, attendeeTable)
 	ordersTable = client.GetTable(baseTwo, orderTable)

@@ -93,7 +93,7 @@ func main() {
 	}
 	c := cache.New(cacheTime, 1*time.Hour)
 
-	db.Init(os.Getenv("AIRTABLE_API_KEY"), os.Getenv("AIRTABLE_BASE_ID"), os.Getenv("AIRTABLE_TABLE_NAME"), c)
+	db.Init(os.Getenv("AIRTABLE_API_KEY"), os.Getenv("AIRTABLE_BASE_ID"), c)
 
 	if localDevMode {
 		stripe.Init("sk_test_4eC39HqLyjWDarjtT1zdp7dc", "", klaviyoKey, klaviyoListId)

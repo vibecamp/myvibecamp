@@ -3,18 +3,13 @@ package db
 import (
 	"encoding/gob"
 	"strings"
+	"time"
 
 	"github.com/cockroachdb/errors"
 	"github.com/mehanizm/airtable"
-	"github.com/patrickmn/go-cache"
+	log "github.com/sirupsen/logrus"
 	"github.com/vibecamp/myvibecamp/fields"
 )
-
-var oldTable *airtable.Table
-
-func OldInit(apiKey, baseID, tableName string, cache *cache.Cache) {
-	oldTable = airtable.NewClient(apiKey).GetTable(baseID, tableName)
-}
 
 type OldUser struct {
 	TwitterName       string
@@ -68,7 +63,7 @@ func GetOldUser(twitterName string) (*OldUser, error) {
 }
 
 func getOldUserByField(field, value string) (*OldUser, error) {
-	response, err := query(oldTable, field, value) // get all fields
+	response, err := query(defaultTable, field, value) // get all fields
 	if err != nil {
 		return nil, err
 	}
@@ -119,4 +114,71 @@ func getOldUserByField(field, value string) (*OldUser, error) {
 	}
 
 	return u, nil
+}
+
+func MigrateData() error {
+	offset := ""
+
+	for {
+		response, err := defaultTable.GetRecords().
+			WithOffset(offset).
+			ReturnFields(fields.TwitterNameClean, fields.Cabin, fields.Email).
+			InStringFormat("US/Eastern", "en").
+			Do()
+
+		if err != nil {
+			log.Errorf("%+v", err)
+			return err
+		}
+
+		for _, r := range response.Records {
+			name := toStr(r.Fields[fields.TwitterNameClean])
+			if name == "" {
+				name = toStr(r.Fields[fields.Email])
+			}
+			u, _ := GetUser(name)
+
+			if u != nil {
+				r := &airtable.Records{
+					Records: []*airtable.Record{{
+						ID: u.AirtableID,
+						Fields: map[string]interface{}{
+							fields.Cabin2022: toStr(r.Fields[fields.Cabin]),
+						},
+					}},
+				}
+
+				_, err := attendeesTable.UpdateRecordsPartial(r)
+				if err != nil {
+					log.Errorf("%+v", err)
+				}
+			} else {
+				slu, _ := GetSoftLaunchUser(name)
+				if slu != nil {
+					r := &airtable.Records{
+						Records: []*airtable.Record{{
+							ID: slu.AirtableID,
+							Fields: map[string]interface{}{
+								fields.Cabin2022: toStr(r.Fields[fields.Cabin]),
+							},
+						}},
+					}
+
+					_, err := softLaunchTable.UpdateRecordsPartial(r)
+					if err != nil {
+						log.Errorf("%+v", err)
+					}
+				}
+			}
+
+			time.Sleep(3 * time.Second)
+		}
+
+		if response.Offset == "" {
+			break
+		}
+		offset = response.Offset
+	}
+
+	return nil
 }
