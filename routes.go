@@ -1288,6 +1288,7 @@ type AppEndpointResponse struct {
 	TicketID         string `json:"ticket_id"`
 	AccomodationType string `json:"accomodation_type"`
 	Cabin2022        string `json:"cabin_2022,omitempty"`
+	Cabin2023        string `json:"cabin_2023,omitempty"`
 	CreatedAt        string `json:"created_at"`
 }
 
@@ -1317,7 +1318,7 @@ func AppEndpoint(c *gin.Context) {
 		// c.AbortWithError(http.StatusInternalServerError, err)
 		c.JSON(http.StatusNotFound, nil)
 	} else if user != nil {
-		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created})
+		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin})
 	} else {
 		c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
 	}
