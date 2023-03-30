@@ -1,8 +1,5 @@
 package fields
 
-type Order struct {
-}
-
 const (
 	// 2022 attendees table fields (reusing applicable ones in 2023)
 	TwitterName             = "Twitter Name"
@@ -36,7 +33,47 @@ const (
 	POAP                    = "POAP"
 	Cabin2022               = "2022 Cabin"
 	SponsorshipConfirmation = "Sponsorship Confirmation"
+	CabinNickname           = "Nickname (from Cabin)"
 	Created                 = "Created"
+
+	// Transport Form (also attendee table)
+	AssistanceToCamp   = "Assistance To Camp"
+	TravelMethod       = "Travel Method"
+	FlyingInto         = "Flying Into"
+	FlightArrivalTime  = "Flight Arrival Time"
+	RVCamper           = "RV/Camper"
+	WrongCityRedirect  = "Wrong City Redirect"
+	VehicleArrival     = "Vehicle Arrival"
+	AssistanceFromCamp = "Assistance From Camp"
+	LeavingFrom        = "Leaving From"
+	CityArrivalTime    = "City Arrival Time"
+
+	// Bedding Field Names
+	SleepingBagRentals = "Sleeping Bag Rentals"
+	SheetRentals       = "Sheet Rentals"
+	PillowRentals      = "Pillow Rentals"
+
+	// ticket paths
+	Sponsorship  = "Sponsorship"
+	Attendee2022 = "2022 Attendee"
+	Application  = "Application"
+	FCFS         = "FCFS"
+	Lottery      = "Lottery"
+	TicketSwap   = "Ticket Swap"
+	Staff        = "Staff"
+	Volunteer    = "Volunteer"
+
+	NA = "N/A"
+
+	// Travel Methods
+	Flying     = "Flying"
+	OwnVehicle = "Own Vehicle"
+
+	// Cities
+	Baltimore = "Baltimore"
+	Philly    = "Philadelphia"
+
+	Other = "Other"
 
 	Confirmed = "Confirmed"
 	Denied    = "Denied"

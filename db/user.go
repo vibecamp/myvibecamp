@@ -100,6 +100,23 @@ type User struct {
 	Cabin              string
 	Created            string
 
+	// transport fields
+	AssistanceToCamp   bool
+	AssistanceFromCamp bool
+	TravelMethod       string
+	FlyingInto         string
+	WrongCityRedirect  bool
+	FlightArrivalTime  string
+	RVCamper           bool
+	VehicleArrival     string
+	LeavingFrom        string
+	CityArrivalTime    string
+
+	// bedding fields
+	SleepingBagRentals int
+	SheetRentals       int
+	PillowRentals      int
+
 	AirtableID string
 }
 
@@ -310,6 +327,23 @@ func getUserByField(field, value string) (*User, error) {
 		SponsorshipConfirm: rec.Fields[fields.SponsorshipConfirmation] == checked,
 		Cabin:              toStr(rec.Fields[fields.Cabin]),
 		Created:            created,
+
+		// transport fields
+		AssistanceToCamp:   rec.Fields[fields.AssistanceToCamp] == checked,
+		AssistanceFromCamp: rec.Fields[fields.AssistanceFromCamp] == checked,
+		WrongCityRedirect:  rec.Fields[fields.WrongCityRedirect] == checked,
+		RVCamper:           rec.Fields[fields.RVCamper] == checked,
+		TravelMethod:       toStr(rec.Fields[fields.TravelMethod]),
+		FlyingInto:         toStr(rec.Fields[fields.FlyingInto]),
+		FlightArrivalTime:  toStr(rec.Fields[fields.FlightArrivalTime]),
+		VehicleArrival:     toStr(rec.Fields[fields.VehicleArrival]),
+		LeavingFrom:        toStr(rec.Fields[fields.LeavingFrom]),
+		CityArrivalTime:    toStr(rec.Fields[fields.CityArrivalTime]),
+
+		// bedding fields
+		SleepingBagRentals: toInt(rec.Fields[fields.SleepingBagRentals]),
+		SheetRentals:       toInt(rec.Fields[fields.SheetRentals]),
+		PillowRentals:      toInt(rec.Fields[fields.PillowRentals]),
 	}
 
 	if defaultCache != nil {

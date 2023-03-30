@@ -139,3 +139,352 @@
     </div>
   </fieldset>
 {{ end }}
+
+{{ define "2023-transport-form" }}
+  <script type="text/javascript">
+    // onAssistanceToChange takes a boolean value and shows/hides the travel method div
+    function onAssistanceToChange(value) {
+      if (value) {
+        document.getElementById("travel-method-div").classList.remove("hidden");
+      } else {
+        document.getElementById("travel-method-div").classList.add("hidden");
+      }
+    }
+
+    // onFlyingIntoChange takes a string value of Baltimore, where it shows
+    // the baltimore-arrival-time div and hides the other two
+    // Philadelphia, where it shows the philly-arrival-time div and hides the other two
+    // and Other, where it shows wrong-city-redirect-div
+    function onFlyingIntoChange(value) {
+      if (value === "Baltimore") {
+        document.getElementById("baltimore-arrival-time").classList.remove("hidden");
+        document.getElementById("philly-arrival-time").classList.add("hidden");
+        document.getElementById("wrong-city-redirect-div").classList.add("hidden");
+      } else if (value === "Philadelphia") {
+        document.getElementById("baltimore-arrival-time").classList.add("hidden");
+        document.getElementById("philly-arrival-time").classList.remove("hidden");
+        document.getElementById("wrong-city-redirect-div").classList.add("hidden");
+      } else {
+        document.getElementById("baltimore-arrival-time").classList.add("hidden");
+        document.getElementById("philly-arrival-time").classList.add("hidden");
+        document.getElementById("wrong-city-redirect-div").classList.remove("hidden");
+      }
+    }
+
+    // onWrongCityRedirectChange takes a boolean value and shows/hides the wrong-city-rediect-info div
+    function onWrongCityRedirectChange(value) {
+      if (value) {
+        document.getElementById("wrong-city-redirect-info").classList.remove("hidden");
+      } else {
+        document.getElementById("wrong-city-redirect-info").classList.add("hidden");
+      }
+    }
+
+    // onTravelMethodChanges takes a string of Flying or OwnVehicle, and shows/hides the flying-into and 
+    // the vehicle-arrival-time, vehicle-arrival-day, and rv-camper-div divs
+    function onTravelMethodChange(value) {
+      if (value === "Flying") {
+        document.getElementById("flying-into").classList.remove("hidden");
+        document.getElementById("vehicle-arrival-time").classList.add("hidden");
+        document.getElementById("vehicle-arrival-day").classList.add("hidden");
+        document.getElementById("rv-camper-div").classList.add("hidden");
+      } else if (value === "OwnVehicle") {
+        document.getElementById("flying-into").classList.add("hidden");
+        document.getElementById("vehicle-arrival-time").classList.remove("hidden");
+        document.getElementById("vehicle-arrival-day").classList.remove("hidden");
+        document.getElementById("rv-camper-div").classList.remove("hidden");
+      }
+    }
+
+    // onAssistanceFromChange takes a boolean value and shows/hides the leaving-from-div
+    function onAssistanceFromChange(value) {
+      if (value) {
+        document.getElementById("leaving-from-div").classList.remove("hidden");
+      } else {
+        document.getElementById("leaving-from-div").classList.add("hidden");
+      }
+    }
+
+    // onLeavingFromChange takes a string value, where it shows/hides the city-arrival-time-div for
+    // Baltimore or Philadelphia, and shows leaving-from-warning if Other
+    function onLeavingFromChange(value) {
+      if (value === "Baltimore") {
+        document.getElementById("city-arrival-time-div").classList.remove("hidden");
+        document.getElementById("leaving-from-warning").classList.add("hidden");
+      } else if (value === "Philadelphia") {
+        document.getElementById("city-arrival-time-div").classList.remove("hidden");
+        document.getElementById("leaving-from-warning").classList.add("hidden");
+      } else {
+        document.getElementById("city-arrival-time-div").classList.add("hidden");
+        document.getElementById("leaving-from-warning").classList.remove("hidden");
+      }
+    }
+  </script>
+  <fieldset>
+    <legend>Transportation</legend>
+    <p>We have a couple of questions regarding transportation to and from vibecamp</p>
+
+    <div class="form-check">
+      <label class="form-check-label" for="assistance-to-camp">
+        Do you need assistance traveling to vibecamp?
+      </label>
+      <input onChange="onAssistanceToChange(this.value)" class="form-check-input" type="checkbox" name="assistance-to-camp" id="assistance-to-camp" {{if and . .AssistanceToCamp }}checked{{end}}>
+    </div>
+
+    <div class="form-group row hidden" id="travel-method-div">
+      <label class="col-sm-9 col-form-label" for="travel-method">
+        How will you be traveling to vibecamp?
+      </label>
+      <div class="col-sm-3">
+        <select name="travel-method" id="travel-method" class="form-select" onChange="onTravelMethodChange(this.value)" style="text-align: right;">
+          <option value="none" selected hidden></option>
+          <option value="Flying">Flying</option>
+          <option value="OwnVehicle">Driving own vehicle</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group row hidden" id="flying-into-div">
+      <label class="col-sm-9 col-form-label" for="flying-into">
+        Where will you be flying into?
+      </label>
+      <div class="col-sm-3">
+        <select name="flying-into" id="flying-into" class="form-select" onChange="onFlyingIntoChange(this.value)" style="text-align: right;">
+          <option value="none" selected hidden></option>
+          <option value="Baltimore">Baltimore</option>
+          <option value="Philadelphia">Philadelphia</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- if not flying into Baltimore or Philadelphia, ask if they can redirect their flight with a checkbox for wrong-city-redirect -->
+    <div class="form-check hidden" id="wrong-city-redirect-div">
+      <label class="form-check-label" for="wrong-city-redirect">
+        Can you redirect your flight to Baltimore or Philadelphia?
+      </label>
+      <input onChange="onWrongCityRedirectChange(this.value)" class="form-check-input" type="checkbox" name="wrong-city-redirect" id="wrong-city-redirect" {{if and . .WrongCityRedirect }}checked{{end}}>
+    </div>
+
+    <!-- if they cannot redirect their flight, show an important info box telling them to contact DreadCanary with details -->
+    <div class="alert alert-danger hidden" role="alert" id="wrong-city-redirect-info"> 
+      <strong>Important!</strong> If you cannot redirect your flight, please contact DreadCanary with your flight details and situation.
+    </div>
+
+    <!-- 
+    if flying into Baltimore, ask with a select for flight-arrival-time for their flight time in blocks of
+    Before 10:30 AM
+    Between 10:30 AM and 2:30 PM
+    Between 2:30 PM and 4:30 PM
+    Later than 4:30 PM
+    -->
+    <div class="form-group row hidden" id="baltimore-arrival-time">
+      <label class="col-sm-9 col-form-label" for="flight-arrival-time">
+        What time will you be arriving in Baltimore?
+      </label>
+      <div class="col-sm-3">
+        <select name="flight-arrival-time" id="flight-arrival-time" class="form-select" style="text-align: right;">
+          <option value="none" selected hidden></option>
+          <option value="Before 10:30 AM">Before 10:30 AM</option>
+          <option value="Between 10:30 AM and 2:30 PM">Between 10:30 AM and 2:30 PM</option>
+          <option value="Between 2:30 PM and 4:30 PM">Between 2:30 PM and 4:30 PM</option>
+          <option value="Later than 4:30 PM">Later than 4:30 PM</option>
+        </select>
+      </div>
+    </div>
+
+    <!--
+    if flying into Philadelphia, ask with a select for flight-arrival-time for their flight time in blocks of
+    Before noon
+    Between noon and 2 PM
+    Between 2 PM and 4 PM
+    Later than 4 PM
+    -->
+    <div class="form-group row hidden" id="philly-arrival-time">
+      <label class="col-sm-9 col-form-label" for="flight-arrival-time">
+        What time will you be arriving in Philadelphia?
+      </label>
+      <div class="col-sm-3">
+        <select name="flight-arrival-time" id="flight-arrival-time" class="form-select" style="text-align: right;">
+          <option value="none" selected hidden></option>
+          <option value="Before noon">Before noon</option>
+          <option value="Between noon and 2 PM">Between noon and 2 PM</option>
+          <option value="Between 2 PM and 4 PM">Between 2 PM and 4 PM</option>
+          <option value="Later than 4 PM">Later than 4 PM</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- checkbox for rv-camper asking if they are driving an RV or Camper -->
+    <div class="form-check hidden" id="rv-camper-div">
+      <label class="form-check-label" for="rv-camper">
+        Are you driving an RV or Camper?
+      </label>
+      <input class="form-check-input" type="checkbox" name="rv-camper" id="rv-camper" {{if and . .RVCamper }}checked{{end}}>
+    </div>
+
+    <!-- 
+    if they are driving their own vehicle, ask with a select for vehicle-arrival-day what day they will be arriving, between Wednesday and Saturday
+    -->
+    <div class="form-group row hidden" id="vehicle-arrival-day-div">
+      <label class="col-sm-9 col-form-label" for="vehicle-arrival-day">
+        What day will you be arriving?
+      </label>
+      <div class="col-sm-3">
+        <select name="vehicle-arrival-day" id="vehicle-arrival-day" class="form-select" style="text-align: right;">
+          <option value="none" selected hidden></option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+          <option value="Saturday">Saturday</option>
+        </select>
+      </div>
+    </div>
+
+    <!--
+    if they are driving their own vehicle & arriving on fri or sat, ask with a select for vehicle-arrival-time what time they will be arriving, in blocks of
+    30 minutes between 8 AM and 8 PM, i.e. 8-830AM, 830-9AM. if they arrive on thurs or weds, the 8am to noon blocks are not available
+    -->
+    <div class="form-group row hidden" id="vehicle-arrival-time-div">
+      <label class="col-sm-9 col-form-label" for="vehicle-arrival-time">
+        What time will you be arriving?
+      </label>
+      <div class="col-sm-3">
+        <select name="vehicle-arrival-time" id="vehicle-arrival-time" class="form-select" style="text-align: right;">
+          <option value="none" selected hidden></option>
+          <option value="8-830 AM">8-830 AM</option>
+          <option value="830-9 AM">830-9 AM</option>
+          <option value="9-930 AM">9-930 AM</option>
+          <option value="930-10 AM">930-10 AM</option>
+          <option value="10-1030 AM">10-1030 AM</option>
+          <option value="1030-11 AM">1030-11 AM</option>
+          <option value="11-1130 AM">11-1130 AM</option>
+          <option value="1130 AM-12 PM">1130 AM-12 PM</option>
+          <option value="12-1230 PM">12-1230 PM</option>
+          <option value="1230-1 PM">1230-1 PM</option>
+          <option value="1-130 PM">1-130 PM</option>
+          <option value="130-2 PM">130-2 PM</option>
+          <option value="2-230 PM">2-230 PM</option>
+          <option value="230-3 PM">230-3 PM</option>
+          <option value="3-330 PM">3-330 PM</option>
+          <option value="330-4 PM">330-4 PM</option>
+          <option value="4-430 PM">4-430 PM</option>
+          <option value="430-5 PM">430-5 PM</option>
+          <option value="5-530 PM">5-530 PM</option>
+          <option value="530-6 PM">530-6 PM</option>
+          <option value="6-630 PM">6-630 PM</option>
+          <option value="630-7 PM">630-7 PM</option>
+          <option value="7-730 PM">7-730 PM</option>
+          <option value="730-8 PM">730-8 PM</option>
+        </select>
+      </div>
+    </div>
+
+
+    <!-- checkbox for assistance-from-camp asking if they need assistance leaving vibecamp -->
+    <div class="form-check">
+      <label class="form-check-label" for="assistance-from-camp">
+        Do you need assistance traveling from vibecamp to the airport?
+      </label>
+      <input onChange="onAssistanceFromChange(this.value)" class="form-check-input" type="checkbox" name="assistance-from-camp" id="assistance-from-camp" {{if and . .AssistanceFromCamp }}checked{{end}}>
+    </div>
+
+    <!-- select for leaving-from asking if they are flying out of Baltimore, Philadelphia, or Other -->
+    <div class="form-group row hidden" id="leaving-from-div">
+      <label class="col-sm-9 col-form-label" for="leaving-from">
+        Where will you be flying out of?
+      </label>
+      <div class="col-sm-3">
+        <select name="leaving-from" id="leaving-from" class="form-select" onChange="onLeavingFromChange(this.value)" style="text-align: right;">
+          <option value="none" selected hidden></option>
+          <option value="Baltimore">Baltimore</option>
+          <option value="Philadelphia">Philadelphia</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- if they are not flying out of Baltimore or Philadelphia, show a warning message that we cannot provide transportation to other locations -->
+    <div id="leaving-from-warning" class="alert alert-warning hidden" role="alert">
+      We are unable to provide transportation to airports outside of Baltimore and Philadelphia. Please make your own arrangements or contact us for more information.
+    </div>
+  
+    <!-- select for city-arrival-time with 30 minute blocks from 8 AM to 8 PM, i.e. 8-830AM, 830-9AM, etc. mark both AM & PM if necessary -->
+    <div class="form-group row hidden" id="city-arrival-time-div">
+      <label class="col-sm-9 col-form-label" for="city-arrival-time">
+        What time do you need to be at the airport?
+      </label>
+      <div class="col-sm-3">
+        <select name="city-arrival-time" id="city-arrival-time" class="form-select" style="text-align: right;">
+          <option value="none" selected hidden></option>
+          <option value="8-830 AM">8-830 AM</option>
+          <option value="830-9 AM">830-9 AM</option>
+          <option value="9-930 AM">9-930 AM</option>
+          <option value="930-10 AM">930-10 AM</option>
+          <option value="10-1030 AM">10-1030 AM</option>
+          <option value="1030-11 AM">1030-11 AM</option>
+          <option value="11-1130 AM">11-1130 AM</option>
+          <option value="1130 AM-12 PM">1130 AM-12 PM</option>
+          <option value="12-1230 PM">12-1230 PM</option>
+          <option value="1230-1 PM">1230-1 PM</option>
+          <option value="1-130 PM">1-130 PM</option>
+          <option value="130-2 PM">130-2 PM</option>
+          <option value="2-230 PM">2-230 PM</option>
+          <option value="230-3 PM">230-3 PM</option>
+          <option value="3-330 PM">3-330 PM</option>
+          <option value="330-4 PM">330-4 PM</option>
+          <option value="4-430 PM">4-430 PM</option>
+          <option value="430-5 PM">430-5 PM</option>
+          <option value="5-530 PM">5-530 PM</option>
+          <option value="530-6 PM">530-6 PM</option>
+          <option value="6-630 PM">6-630 PM</option>
+          <option value="630-7 PM">630-7 PM</option>
+          <option value="7-730 PM">7-730 PM</option>
+          <option value="730-8 PM">730-8 PM</option>
+        </select>
+      </div>
+    </div>
+
+  </fieldset>
+  <br/>
+
+  <fieldset>
+    <legend>Bedding</legend>
+    <p>
+      We also have some questions about bedding, for both cabin & camping tickets. For those with Cabin tickets,
+      Ramblewood provides only bare twin XL mattresses, so we're each responsible for bringing our own bedding. 
+      Of course this is also true if you're camping. Would you like to arrange to rent bedding for the weekend?
+      We'll be offering sleeping bags, pillows, light cotton blankets, and fitted/flat sheets.
+    </p>
+
+    <!-- number input for sleeping-bag-rentals asking how many sleeping bags they would like to rent -->
+    <div class="form-group row">
+      <label class="col-sm-9 col-form-label" for="sleeping-bag-rentals">
+        How many sleeping bags would you like to rent? They will be $35 each.
+      </label>
+      <div class="col-sm-3">
+        <input type="number" name="sleeping-bag-rentals" id="sleeping-bag-rentals" class="form-control" style="text-align: right;" min="0" max="10" value="{{ or .SleepingBagRentals 0 }}">
+      </div>
+    </div>
+
+    <!-- number input for sheet-rentals asking how many sheet/blanket combos they would like to rent -->
+    <div class="form-group row">
+      <label class="col-sm-9 col-form-label" for="sheet-rentals">
+        How many sheet/blanket combos would you like to rent? They will be $50 each.
+      </label>
+      <div class="col-sm-3">
+        <input type="number" name="sheet-rentals" id="sheet-rentals" class="form-control" style="text-align: right;" min="0" max="10" value="{{ or .SheetRentals 0 }}">
+      </div>
+    </div>
+
+    <!-- number input for pillow-rentals asking how many pillows they would like to rent for 15 -->
+    <div class="form-group row">
+      <label class="col-sm-9 col-form-label" for="pillow-rentals">
+        How many pillows would you like to rent? They will be $15 each.
+      </label>
+      <div class="col-sm-3">
+        <input type="number" name="pillow-rentals" id="pillow-rentals" class="form-control" style="text-align: right;" min="0" max="10" value="{{ or .PillowRentals 0 }}">
+      </div>
+    </div>
+  </fieldset>
+{{ end }}
