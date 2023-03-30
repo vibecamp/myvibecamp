@@ -172,7 +172,7 @@
       document.getElementById("assistance-from-camp").checked = {{if and . .AssistanceFromCamp}}true{{else}}false{{end}};
 
       // set flying-from to value or none if assistance from is true
-      document.getElementById("leaving-from").value = "{{if and . .LeavingFrom}}{{.FlyingFrom}}{{else}}{{end}}";
+      document.getElementById("leaving-from").value = "{{if and . .LeavingFrom}}{{.LeavingFrom}}{{else}}{{end}}";
 
       // set city-arrival-time to CityArrivalTime or none if flying from is not none or Other
       document.getElementById("city-arrival-time").value = "{{if and . .CityArrivalTime}}{{.CityArrivalTime}}{{else}}{{end}}";
