@@ -142,6 +142,49 @@
 
 {{ define "2023-transport-form" }}
   <script type="text/javascript">
+    // on page load set all form elements to their golang values
+    function onLoad() {
+      // set assistance-to checked
+      document.getElementById("assistance-to-camp").checked = {{if and . .AssistanceToCamp}}true{{else}}false{{end}};
+      // set travel-method to value or none
+      document.getElementById("travel-method").value = "{{if and . .TravelMethod}}{{.TravelMethod}}{{else}}none{{end}}";
+      // set the rest of the vars
+      document.getElementById("flying-into").value = "{{if and . .FlyingInto}}{{.FlyingInto}}{{else}}none{{end}}";
+      // set baltimore arrival time if flying into is Baltimore and flight arrival time is not none
+      if (document.getElementById("flying-into").value === "Baltimore" && "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}none{{end}}" !== "none") {
+        document.getElementById("baltimore-arrival-time").value = "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}none{{end}}";
+      }
+      // do the same for philly arrival time if flying into is Philadelphia
+      if (document.getElementById("flying-into").value === "Philadelphia" && "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}none{{end}}" !== "none") {
+        document.getElementById("philly-arrival-time").value = "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}none{{end}}";
+      }
+
+      // set wrong-city-redirect checked from variable value 
+      document.getElementById("wrong-city-redirect").value = "{{if and . .WrongCityRedirect}}Yes{{else}}No{{end}}";
+
+      // set rv camper checked from variable value 
+      document.getElementById("rv-camper").checked = {{if and . .RVCamper}}true{{else}}false{{end}};
+
+      // set vehicle arrival time 
+      document.getElementById("vehicle-arrival-time").value = "{{if and . .VehicleArrival}}{{.VehicleArrival}}{{else}}none{{end}}";
+
+      // set assistance-from checked from variable value
+      document.getElementById("assistance-from-camp").checked = {{if and . .AssistanceFromCamp}}true{{else}}false{{end}};
+
+      // set flying-from to value or none if assistance from is true
+      document.getElementById("leaving-from").value = "{{if and . .LeavingFrom}}{{.FlyingFrom}}{{else}}none{{end}}";
+
+      // set city-arrival-time to CityArrivalTime or none if flying from is not none or Other
+      document.getElementById("city-arrival-time").value = "{{if and . .CityArrivalTime}}{{.CityArrivalTime}}{{else}}none{{end}}";
+
+      // set sleeping-bag-rentals from variable value or 0
+      document.getElementById("sleeping-bag-rentals").value = "{{if and . .SleepingBagRentals}}{{.SleepingBagRentals}}{{else}}0{{end}}";
+      // do the same for sheet-rentals
+      document.getElementById("sheet-rentals").value = "{{if and . .SheetRentals}}{{.SheetRentals}}{{else}}0{{end}}";
+      // andn the same for pillow-rentals
+      document.getElementById("pillow-rentals").value = "{{if and . .PillowRentals}}{{.PillowRentals}}{{else}}0{{end}}";
+    }
+
     // onAssistanceToChange takes a boolean value and shows/hides the travel method div
     function onAssistanceToChange(value) {
       if (value) {
@@ -173,26 +216,29 @@
 
     // onWrongCityRedirectChange takes a boolean value and shows/hides the wrong-city-rediect-info div
     function onWrongCityRedirectChange(value) {
-      if (value) {
+      if (value === "No") {
         document.getElementById("wrong-city-redirect-info").classList.remove("hidden");
       } else {
         document.getElementById("wrong-city-redirect-info").classList.add("hidden");
       }
     }
 
-    // onTravelMethodChanges takes a string of Flying or OwnVehicle, and shows/hides the flying-into and 
+    // onTravelMethodChanges takes a string of Flying or OwnVehicle, and shows/hides the flying-into-div and 
     // the vehicle-arrival-time, vehicle-arrival-day, and rv-camper-div divs
     function onTravelMethodChange(value) {
       if (value === "Flying") {
-        document.getElementById("flying-into").classList.remove("hidden");
-        document.getElementById("vehicle-arrival-time").classList.add("hidden");
-        document.getElementById("vehicle-arrival-day").classList.add("hidden");
+        document.getElementById("flying-into-div").classList.remove("hidden");
+        document.getElementById("vehicle-arrival-time-div").classList.add("hidden");
+        document.getElementById("vehicle-arrival-day-div").classList.add("hidden");
         document.getElementById("rv-camper-div").classList.add("hidden");
       } else if (value === "OwnVehicle") {
-        document.getElementById("flying-into").classList.add("hidden");
-        document.getElementById("vehicle-arrival-time").classList.remove("hidden");
-        document.getElementById("vehicle-arrival-day").classList.remove("hidden");
+        document.getElementById("flying-into-div").classList.add("hidden");
+        document.getElementById("vehicle-arrival-time-div").classList.remove("hidden");
+        document.getElementById("vehicle-arrival-day-div").classList.remove("hidden");
         document.getElementById("rv-camper-div").classList.remove("hidden");
+        document.getElementById("baltimore-arrival-time").classList.add("hidden");
+        document.getElementById("philly-arrival-time").classList.add("hidden");
+        document.getElementById("wrong-city-redirect-div").classList.add("hidden");
       }
     }
 
@@ -258,12 +304,18 @@
       </div>
     </div>
 
-    <!-- if not flying into Baltimore or Philadelphia, ask if they can redirect their flight with a checkbox for wrong-city-redirect -->
-    <div class="form-check hidden" id="wrong-city-redirect-div">
-      <label class="form-check-label" for="wrong-city-redirect">
+    <!-- if not flying into Baltimore or Philadelphia, ask if they can redirect their flight with a yes no select for wrong-city-redirect and a wrong-city-redirect hidden div -->
+    <div class="form-group row hidden" id="wrong-city-redirect-div">
+      <label class="col-sm-9 col-form-label" for="wrong-city-redirect">
         Can you redirect your flight to Baltimore or Philadelphia?
       </label>
-      <input onChange="onWrongCityRedirectChange(this.value)" class="form-check-input" type="checkbox" name="wrong-city-redirect" id="wrong-city-redirect" {{if and . .WrongCityRedirect }}checked{{end}}>
+      <div class="col-sm-3">
+        <select name="wrong-city-redirect" id="wrong-city-redirect" class="form-select" onChange="onWrongCityRedirectChange(this.value)" style="text-align: right;">
+          <option value="none" selected hidden></option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
     </div>
 
     <!-- if they cannot redirect their flight, show an important info box telling them to contact DreadCanary with details -->
@@ -487,4 +539,8 @@
       </div>
     </div>
   </fieldset>
+
+  <script type="text/javascript" defer>
+    onLoad();
+  </script>
 {{ end }}
