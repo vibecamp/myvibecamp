@@ -147,16 +147,16 @@
       // set assistance-to checked
       document.getElementById("assistance-to-camp").checked = {{if and . .AssistanceToCamp}}true{{else}}false{{end}};
       // set travel-method to value or none
-      document.getElementById("travel-method").value = "{{if and . .TravelMethod}}{{.TravelMethod}}{{else}}none{{end}}";
+      document.getElementById("travel-method").value = "{{if and . .TravelMethod}}{{.TravelMethod}}{{else}}{{end}}";
       // set the rest of the vars
-      document.getElementById("flying-into").value = "{{if and . .FlyingInto}}{{.FlyingInto}}{{else}}none{{end}}";
+      document.getElementById("flying-into").value = "{{if and . .FlyingInto}}{{.FlyingInto}}{{else}}{{end}}";
       // set baltimore arrival time if flying into is Baltimore and flight arrival time is not none
-      if (document.getElementById("flying-into").value === "Baltimore" && "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}none{{end}}" !== "none") {
-        document.getElementById("baltimore-arrival-time").value = "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}none{{end}}";
+      if (document.getElementById("flying-into").value === "Baltimore" && "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}none{{end}}" !== "") {
+        document.getElementById("baltimore-arrival-time").value = "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}{{end}}";
       }
       // do the same for philly arrival time if flying into is Philadelphia
-      if (document.getElementById("flying-into").value === "Philadelphia" && "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}none{{end}}" !== "none") {
-        document.getElementById("philly-arrival-time").value = "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}none{{end}}";
+      if (document.getElementById("flying-into").value === "Philadelphia" && "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}none{{end}}" !== "") {
+        document.getElementById("philly-arrival-time").value = "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}{{end}}";
       }
 
       // set wrong-city-redirect checked from variable value 
@@ -166,16 +166,16 @@
       document.getElementById("rv-camper").checked = {{if and . .RVCamper}}true{{else}}false{{end}};
 
       // set vehicle arrival time 
-      document.getElementById("vehicle-arrival-time").value = "{{if and . .VehicleArrival}}{{.VehicleArrival}}{{else}}none{{end}}";
+      document.getElementById("vehicle-arrival-time").value = "{{if and . .VehicleArrival}}{{.VehicleArrival}}{{else}}{{end}}";
 
       // set assistance-from checked from variable value
       document.getElementById("assistance-from-camp").checked = {{if and . .AssistanceFromCamp}}true{{else}}false{{end}};
 
       // set flying-from to value or none if assistance from is true
-      document.getElementById("leaving-from").value = "{{if and . .LeavingFrom}}{{.FlyingFrom}}{{else}}none{{end}}";
+      document.getElementById("leaving-from").value = "{{if and . .LeavingFrom}}{{.FlyingFrom}}{{else}}{{end}}";
 
       // set city-arrival-time to CityArrivalTime or none if flying from is not none or Other
-      document.getElementById("city-arrival-time").value = "{{if and . .CityArrivalTime}}{{.CityArrivalTime}}{{else}}none{{end}}";
+      document.getElementById("city-arrival-time").value = "{{if and . .CityArrivalTime}}{{.CityArrivalTime}}{{else}}{{end}}";
 
       // set sleeping-bag-rentals from variable value or 0
       document.getElementById("sleeping-bag-rentals").value = "{{if and . .SleepingBagRentals}}{{.SleepingBagRentals}}{{else}}0{{end}}";
@@ -283,7 +283,7 @@
       </label>
       <div class="col-sm-3">
         <select name="travel-method" id="travel-method" class="form-select" onChange="onTravelMethodChange(this.value)" style="text-align: right;">
-          <option value="none" selected hidden></option>
+          <option value selected hidden></option>
           <option value="Flying">Flying</option>
           <option value="OwnVehicle">Driving own vehicle</option>
         </select>
@@ -296,7 +296,7 @@
       </label>
       <div class="col-sm-3">
         <select name="flying-into" id="flying-into" class="form-select" onChange="onFlyingIntoChange(this.value)" style="text-align: right;">
-          <option value="none" selected hidden></option>
+          <option value selected hidden></option>
           <option value="Baltimore">Baltimore</option>
           <option value="Philadelphia">Philadelphia</option>
           <option value="Other">Other</option>
@@ -311,7 +311,7 @@
       </label>
       <div class="col-sm-3">
         <select name="wrong-city-redirect" id="wrong-city-redirect" class="form-select" onChange="onWrongCityRedirectChange(this.value)" style="text-align: right;">
-          <option value="none" selected hidden></option>
+          <option value selected hidden></option>
           <option value="Yes">Yes</option>
           <option value="No">No</option>
         </select>
@@ -336,7 +336,7 @@
       </label>
       <div class="col-sm-3">
         <select name="flight-arrival-time" id="flight-arrival-time" class="form-select" style="text-align: right;">
-          <option value="none" selected hidden></option>
+          <option value selected hidden></option>
           <option value="Before 10:30 AM">Before 10:30 AM</option>
           <option value="Between 10:30 AM and 2:30 PM">Between 10:30 AM and 2:30 PM</option>
           <option value="Between 2:30 PM and 4:30 PM">Between 2:30 PM and 4:30 PM</option>
@@ -358,7 +358,7 @@
       </label>
       <div class="col-sm-3">
         <select name="flight-arrival-time" id="flight-arrival-time" class="form-select" style="text-align: right;">
-          <option value="none" selected hidden></option>
+          <option value selected hidden></option>
           <option value="Before noon">Before noon</option>
           <option value="Between noon and 2 PM">Between noon and 2 PM</option>
           <option value="Between 2 PM and 4 PM">Between 2 PM and 4 PM</option>
@@ -384,7 +384,7 @@
       </label>
       <div class="col-sm-3">
         <select name="vehicle-arrival-day" id="vehicle-arrival-day" class="form-select" style="text-align: right;">
-          <option value="none" selected hidden></option>
+          <option value selected hidden></option>
           <option value="Wednesday">Wednesday</option>
           <option value="Thursday">Thursday</option>
           <option value="Friday">Friday</option>
@@ -403,7 +403,7 @@
       </label>
       <div class="col-sm-3">
         <select name="vehicle-arrival-time" id="vehicle-arrival-time" class="form-select" style="text-align: right;">
-          <option value="none" selected hidden></option>
+          <option value selected hidden></option>
           <option value="8-830 AM">8-830 AM</option>
           <option value="830-9 AM">830-9 AM</option>
           <option value="9-930 AM">9-930 AM</option>
@@ -448,7 +448,7 @@
       </label>
       <div class="col-sm-3">
         <select name="leaving-from" id="leaving-from" class="form-select" onChange="onLeavingFromChange(this.value)" style="text-align: right;">
-          <option value="none" selected hidden></option>
+          <option value selected hidden></option>
           <option value="Baltimore">Baltimore</option>
           <option value="Philadelphia">Philadelphia</option>
           <option value="Other">Other</option>
@@ -468,7 +468,7 @@
       </label>
       <div class="col-sm-3">
         <select name="city-arrival-time" id="city-arrival-time" class="form-select" style="text-align: right;">
-          <option value="none" selected hidden></option>
+          <option value selected hidden></option>
           <option value="8-830 AM">8-830 AM</option>
           <option value="830-9 AM">830-9 AM</option>
           <option value="9-930 AM">9-930 AM</option>

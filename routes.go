@@ -964,9 +964,41 @@ func Logistics2023Handler(c *gin.Context) {
 	lactoseIntolerant := c.PostForm("lactose") == "on"
 	foodComments := c.PostForm("comments")
 	discordName := c.PostForm("discord-name")
-	sponsorshipConf := c.PostForm("sponsorship-confirmation") == "on"
 
-	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, sponsorshipConf, foodComments, discordName)
+	assistanceToCamp := c.PostForm("assistance-to-camp") == "on"
+	assistanceFromCamp := c.PostForm("assistance-from-camp") == "on"
+	wrongCityRedirect := c.PostForm("wrong-city-redirect") == "Yes"
+	rvCamper := c.PostForm("rv-camper") == "on"
+	travelMethod := c.PostForm("travel-method")
+	flyingInto := c.PostForm("flying-into")
+	flightArrivalTime := c.PostForm("flight-arrival-time")
+	vehicleArrivalTime := c.PostForm("vehicle-arrival-time")
+	vehicleArrivalDate := c.PostForm("vehicle-arrival-date")
+	leavingFrom := c.PostForm("leaving-from")
+	cityArrivalTime := c.PostForm("city-arrival-time")
+	sleepingBagRentals, _ := strconv.Atoi(c.PostForm("sleeping-bag-rentals"))
+	sheetRentals, _ := strconv.Atoi(c.PostForm("sheet-rentals"))
+	pillowRentals, _ := strconv.Atoi(c.PostForm("pillow-rentals"))
+
+	// print all the vars
+	fmt.Printf("assistance to %v\n", assistanceToCamp)
+	fmt.Printf("assistance from %v\n", assistanceFromCamp)
+	fmt.Printf("wrong city redirect %v\n", wrongCityRedirect)
+	fmt.Printf("rv camper %v\n", rvCamper)
+	fmt.Printf("travel method %v\n", travelMethod)
+	fmt.Printf("flying into %v\n", flyingInto)
+	fmt.Printf("flight arrival time %v\n", flightArrivalTime)
+	fmt.Printf("vehicle arrival time %v\n", vehicleArrivalTime)
+	fmt.Printf("vehicle arrival date %v\n", vehicleArrivalDate)
+	fmt.Printf("leaving from %v\n", leavingFrom)
+	fmt.Printf("city arrival time %v\n", cityArrivalTime)
+	fmt.Printf("sleeping bag rentals %v\n", sleepingBagRentals)
+	fmt.Printf("sheet rentals %v\n", sheetRentals)
+	fmt.Printf("pillow rentals %v\n", pillowRentals)
+
+	// pass all the vars to Set2023Logistics
+	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments, discordName, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDate, leavingFrom, cityArrivalTime, sleepingBagRentals, sheetRentals, pillowRentals)
+	// err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, sponsorshipConf, foodComments, discordName)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return

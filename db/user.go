@@ -635,7 +635,7 @@ func (u *User) SetFood(veg, gf, lact bool, comments string) error {
 	return nil
 }
 
-func (u *User) Set2023Logistics(badge, veg, gf, lact, confirm bool, comments string, discordName string) error {
+func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName string, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper bool, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDay, leavingFrom, cityArrivalTime string, sleepingBagRentals, sheetRentals, pillowRentals int) error {
 	u.Badge = badge
 	u.Vegetarian = veg
 	u.GlutenFree = gf
@@ -643,19 +643,44 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact, confirm bool, comments str
 	u.FoodComments = comments
 	u.DiscordName = discordName
 
-	u.SponsorshipConfirm = confirm
+	u.AssistanceToCamp = assistanceToCamp
+	u.AssistanceFromCamp = assistanceFromCamp
+	u.WrongCityRedirect = wrongCityRedirect
+	u.RVCamper = rvCamper
+	u.TravelMethod = travelMethod
+	u.FlyingInto = flyingInto
+	u.FlightArrivalTime = flightArrivalTime
+	u.VehicleArrival = vehicleArrivalDay + " " + vehicleArrivalTime
+	u.LeavingFrom = leavingFrom
+	u.CityArrivalTime = cityArrivalTime
+	u.SleepingBagRentals = sleepingBagRentals
+	u.SheetRentals = sheetRentals
+	u.PillowRentals = pillowRentals
 
 	r := &airtable.Records{
 		Records: []*airtable.Record{{
 			ID: u.AirtableID,
 			Fields: map[string]interface{}{
-				fields.Vegetarian:              u.Vegetarian,
-				fields.GlutenFree:              u.GlutenFree,
-				fields.LactoseIntolerant:       u.LactoseIntolerant,
-				fields.FoodComments:            comments,
-				fields.Badge:                   u.Badge,
-				fields.DiscordName:             u.DiscordName,
-				fields.SponsorshipConfirmation: u.SponsorshipConfirm,
+				fields.Vegetarian:        u.Vegetarian,
+				fields.GlutenFree:        u.GlutenFree,
+				fields.LactoseIntolerant: u.LactoseIntolerant,
+				fields.FoodComments:      comments,
+				fields.Badge:             u.Badge,
+				fields.DiscordName:       u.DiscordName,
+				fields.AssistanceToCamp:  u.AssistanceToCamp,
+				// write all vars to corresponding fields
+				fields.AssistanceFromCamp: u.AssistanceFromCamp,
+				fields.WrongCityRedirect:  u.WrongCityRedirect,
+				fields.RVCamper:           u.RVCamper,
+				fields.TravelMethod:       u.TravelMethod,
+				fields.FlyingInto:         u.FlyingInto,
+				fields.FlightArrivalTime:  u.FlightArrivalTime,
+				fields.VehicleArrival:     u.VehicleArrival,
+				fields.LeavingFrom:        u.LeavingFrom,
+				fields.CityArrivalTime:    u.CityArrivalTime,
+				fields.SleepingBagRentals: u.SleepingBagRentals,
+				fields.SheetRentals:       u.SheetRentals,
+				fields.PillowRentals:      u.PillowRentals,
 			},
 		}},
 	}
