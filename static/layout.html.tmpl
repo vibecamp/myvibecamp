@@ -274,7 +274,7 @@
       <label class="form-check-label" for="assistance-to-camp">
         Do you need assistance traveling to vibecamp?
       </label>
-      <input onChange="onAssistanceToChange(this.value)" class="form-check-input" type="checkbox" name="assistance-to-camp" id="assistance-to-camp" {{if and . .AssistanceToCamp }}checked{{end}}>
+      <input onChange="onAssistanceToChange(this.checked)" class="form-check-input" type="checkbox" name="assistance-to-camp" id="assistance-to-camp" {{if and . .AssistanceToCamp }}checked{{end}}>
     </div>
 
     <div class="form-group row hidden" id="travel-method-div">
@@ -438,7 +438,7 @@
       <label class="form-check-label" for="assistance-from-camp">
         Do you need assistance traveling from vibecamp to the airport?
       </label>
-      <input onChange="onAssistanceFromChange(this.value)" class="form-check-input" type="checkbox" name="assistance-from-camp" id="assistance-from-camp" {{if and . .AssistanceFromCamp }}checked{{end}}>
+      <input onChange="onAssistanceFromChange(this.checked)" class="form-check-input" type="checkbox" name="assistance-from-camp" id="assistance-from-camp" {{if and . .AssistanceFromCamp }}checked{{end}}>
     </div>
 
     <!-- select for leaving-from asking if they are flying out of Baltimore, Philadelphia, or Other -->
