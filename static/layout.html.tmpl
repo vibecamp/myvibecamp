@@ -438,7 +438,7 @@
 
       <!--
       if they are driving their own vehicle & arriving on fri or sat, ask with a select for vehicle-arrival-time what time they will be arriving, in blocks of
-      30 minutes between 8 AM and 8 PM, i.e. 8-830AM, 830-9AM. if they arrive on thurs or weds, the 8am to noon blocks are not available
+      30 minutes between 8 AM and 8 PM, i.e. 8:00-8:30AM, 8:30-9:00AM. if they arrive on thurs or weds, the 8am to noon blocks are not available
       -->
       <div class="form-group row form-top-margin" id="vehicle-arrival-time-div">
         <label class="col-sm-9 col-form-label" for="vehicle-arrival-time">
@@ -447,30 +447,30 @@
         <div class="col-sm-3">
           <select name="vehicle-arrival-time" id="vehicle-arrival-time" class="form-select" style="text-align: right;">
             <option value selected hidden></option>
-            <option value="8-830 AM">8-830</option>
-            <option value="830-9 AM">830-9</option>
-            <option value="9-930 AM">9-930</option>
-            <option value="930-10 AM">930-10</option>
-            <option value="10-1030 AM">10-1030</option>
-            <option value="1030-11 AM">1030-11</option>
-            <option value="11-1130 AM">11-1130</option>
-            <option value="1130 AM-12 PM">1130 AM-12</option>
-            <option value="12-1230 PM">12-1230</option>
-            <option value="1230-1 PM">1230-1</option>
-            <option value="1-130 PM">1-130</option>
-            <option value="130-2 PM">130-2</option>
-            <option value="2-230 PM">2-230</option>
-            <option value="230-3 PM">230-3</option>
-            <option value="3-330 PM">3-330</option>
-            <option value="330-4 PM">330-4</option>
-            <option value="4-430 PM">4-430</option>
-            <option value="430-5 PM">430-5</option>
-            <option value="5-530 PM">5-530</option>
-            <option value="530-6 PM">530-6</option>
-            <option value="6-630 PM">6-630</option>
-            <option value="630-7 PM">630-7</option>
-            <option value="7-730 PM">7-730</option>
-            <option value="730-8 PM">730-8</option>
+            <option value="8:00-8:30 AM">8:00-8:30</option>
+            <option value="8:30-9:00 AM">8:30-9:00</option>
+            <option value="9:00-9:30 AM">9:00-9:30</option>
+            <option value="9:30-10:00 AM">9:30-10:00</option>
+            <option value="10:00-10:30 AM">10:00-10:30</option>
+            <option value="10:30-11:00 AM">10:30-11:00</option>
+            <option value="11:00-11:30 AM">11:00-11:30</option>
+            <option value="11:30-12:00 PM">11:30-12:00</option>
+            <option value="12:00-12:30 PM">12:00-12:30</option>
+            <option value="12:30-1:00 PM">12:30-1:00</option>
+            <option value="1:00-1:30 PM">1:00-1:30</option>
+            <option value="1:30-2:00 PM">1:30-2:00</option>
+            <option value="2:00-2:30 PM">2:00-2:30</option>
+            <option value="2:30-3:00 PM">2:30-3:00</option>
+            <option value="3:00-3:30 PM">3:00-3:30</option>
+            <option value="3:30-4:00 PM">3:30-4:00</option>
+            <option value="4:00-4:30 PM">4:00-4:30</option>
+            <option value="4:30-5:00 PM">4:30-5:00</option>
+            <option value="5:00-5:30 PM">5:00-5:30</option>
+            <option value="5:30-6:00 PM">5:30-6:00</option>
+            <option value="6:00-6:30 PM">6:00-6:30</option>
+            <option value="6:30-7:00 PM">6:30-7:00</option>
+            <option value="7:00-7:30 PM">7:00-7:30</option>
+            <option value="7:30-8:00 PM">7:30-8:00</option>
           </select>
         </div>
       </div>
@@ -506,7 +506,7 @@
       We are unable to provide transportation to airports outside of Baltimore and Philadelphia. Please make your own arrangements or contact us for more information.
     </div>
   
-    <!-- select for city-arrival-time with 30 minute blocks from 8 AM to 8 PM, i.e. 8-830AM, 830-9AM, etc. mark both AM & PM if necessary -->
+    <!-- select for city-arrival-time with 30 minute blocks from 8 AM to 8 PM, i.e. 8:00-8:30AM, 8:30-9:00AM, etc. mark both AM & PM if necessary -->
     <!-- update to be 10AM - 4PM ish -->
     <div class="form-group row hidden form-top-margin" id="city-arrival-time-div">
       <label class="col-sm-9 col-form-label" for="city-arrival-time">
@@ -515,30 +515,30 @@
       <div class="col-sm-3">
         <select name="city-arrival-time" id="city-arrival-time" class="form-select" style="text-align: right;">
           <option value selected hidden></option>
-          <option value="8-830 AM">8-830</option>
-          <option value="830-9 AM">830-9</option>
-          <option value="9-930 AM">9-930</option>
-          <option value="930-10 AM">930-10</option>
-          <option value="10-1030 AM">10-1030</option>
-          <option value="1030-11 AM">1030-11</option>
-          <option value="11-1130 AM">11-1130</option>
-          <option value="1130 AM-12 PM">1130 AM-12</option>
-          <option value="12-1230 PM">12-1230</option>
-          <option value="1230-1 PM">1230-1</option>
-          <option value="1-130 PM">1-130</option>
-          <option value="130-2 PM">130-2</option>
-          <option value="2-230 PM">2-230</option>
-          <option value="230-3 PM">230-3</option>
-          <option value="3-330 PM">3-330</option>
-          <option value="330-4 PM">330-4</option>
-          <option value="4-430 PM">4-430</option>
-          <option value="430-5 PM">430-5</option>
-          <option value="5-530 PM">5-530</option>
-          <option value="530-6 PM">530-6</option>
-          <option value="6-630 PM">6-630</option>
-          <option value="630-7 PM">630-7</option>
-          <option value="7-730 PM">7-730</option>
-          <option value="730-8 PM">730-8</option>
+          <option value="8:00-8:30 AM">8:00-8:30</option>
+          <option value="8:30-9:00 AM">8:30-9:00</option>
+          <option value="9:00-9:30 AM">9:00-9:30</option>
+          <option value="9:30-10:00 AM">9:30-10:00</option>
+          <option value="10:00-10:30 AM">10:00-10:30</option>
+          <option value="10:30-11:00 AM">10:30-11:00</option>
+          <option value="11:00-11:30 AM">11:00-11:30</option>
+          <option value="11:30-12:00 PM">11:30-12:00</option>
+          <option value="12:00-12:30 PM">12:00-12:30</option>
+          <option value="12:30-1:00 PM">12:30-1:00</option>
+          <option value="1:00-1:30 PM">1:00-1:30</option>
+          <option value="1:30-2:00 PM">1:30-2:00</option>
+          <option value="2:00-2:30 PM">2:00-2:30</option>
+          <option value="2:30-3:00 PM">2:30-3:00</option>
+          <option value="3:00-3:30 PM">3:00-3:30</option>
+          <option value="3:30-4:00 PM">3:30-4:00</option>
+          <option value="4:00-4:30 PM">4:00-4:30</option>
+          <option value="4:30-5:00 PM">4:30-5:00</option>
+          <option value="5:00-5:30 PM">5:00-5:30</option>
+          <option value="5:30-6:00 PM">5:30-6:00</option>
+          <option value="6:00-6:30 PM">6:00-6:30</option>
+          <option value="6:30-7:00 PM">6:30-7:00</option>
+          <option value="7:00-7:30 PM">7:00-7:30</option>
+          <option value="7:30-8:00 PM">7:30-8:00</option>
         </select>
       </div>
     </div>
