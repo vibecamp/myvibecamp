@@ -981,25 +981,7 @@ func Logistics2023Handler(c *gin.Context) {
 	pillowRentals, _ := strconv.Atoi(c.PostForm("pillow-rentals"))
 	earlyArrival := c.PostForm("early-arrival")
 
-	// print all the vars
-	fmt.Printf("assistance to %v\n", assistanceToCamp)
-	fmt.Printf("assistance from %v\n", assistanceFromCamp)
-	fmt.Printf("wrong city redirect %v\n", wrongCityRedirect)
-	fmt.Printf("rv camper %v\n", rvCamper)
-	fmt.Printf("travel method %v\n", travelMethod)
-	fmt.Printf("flying into %v\n", flyingInto)
-	fmt.Printf("flight arrival time %v\n", flightArrivalTime)
-	fmt.Printf("vehicle arrival time %v\n", vehicleArrivalTime)
-	fmt.Printf("vehicle arrival date %v\n", vehicleArrivalDate)
-	fmt.Printf("leaving from %v\n", leavingFrom)
-	fmt.Printf("city arrival time %v\n", cityArrivalTime)
-	fmt.Printf("sleeping bag rentals %v\n", sleepingBagRentals)
-	fmt.Printf("sheet rentals %v\n", sheetRentals)
-	fmt.Printf("pillow rentals %v\n", pillowRentals)
-
-	// pass all the vars to Set2023Logistics
 	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments, discordName, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDate, leavingFrom, cityArrivalTime, earlyArrival, sleepingBagRentals, sheetRentals, pillowRentals)
-	// err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, sponsorshipConf, foodComments, discordName)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
