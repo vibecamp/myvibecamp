@@ -33,7 +33,7 @@ const (
 	POAP                    = "POAP"
 	Cabin2022               = "2022 Cabin"
 	SponsorshipConfirmation = "Sponsorship Confirmation"
-	CabinNickname           = "Nickname (from Cabin)"
+	CabinNickname           = "Cabin Nickname (from Cabin)"
 	Created                 = "Created"
 
 	// Transport Form (also attendee table)
@@ -47,6 +47,12 @@ const (
 	AssistanceFromCamp = "Assistance From Camp"
 	LeavingFrom        = "Leaving From"
 	CityArrivalTime    = "City Arrival Time"
+	EarlyArrival       = "Early Arrival"
+
+	// Early Arrival Options
+	TuesdayAfternoon = "Tuesday Afternoon"
+	WedsMorning      = "Wednesday Morning"
+	WedsAfternoon    = "Wednesday Afternoon"
 
 	// Bedding Field Names
 	SleepingBagRentals = "Sleeping Bag Rentals"

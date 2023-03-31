@@ -97,7 +97,8 @@ type User struct {
 	DiscordName        string
 	TicketPath         string
 	Cabin2022          string
-	Cabin              string
+	Cabin2023          string
+	CabinNickname2023  string
 	Created            string
 
 	// transport fields
@@ -111,6 +112,7 @@ type User struct {
 	VehicleArrival     string
 	LeavingFrom        string
 	CityArrivalTime    string
+	EarlyArrival       string
 
 	// bedding fields
 	SleepingBagRentals int
@@ -325,7 +327,8 @@ func getUserByField(field, value string) (*User, error) {
 		TicketID:           toStr(rec.Fields[fields.TicketID]),
 		Cabin2022:          toStr(rec.Fields[fields.Cabin2022]),
 		SponsorshipConfirm: rec.Fields[fields.SponsorshipConfirmation] == checked,
-		Cabin:              toStr(rec.Fields[fields.Cabin]),
+		Cabin2023:          toStr(rec.Fields[fields.Cabin]),
+		CabinNickname2023:  toStr(rec.Fields[fields.CabinNickname]),
 		Created:            created,
 
 		// transport fields
@@ -339,6 +342,7 @@ func getUserByField(field, value string) (*User, error) {
 		VehicleArrival:     toStr(rec.Fields[fields.VehicleArrival]),
 		LeavingFrom:        toStr(rec.Fields[fields.LeavingFrom]),
 		CityArrivalTime:    toStr(rec.Fields[fields.CityArrivalTime]),
+		EarlyArrival:       toStr(rec.Fields[fields.EarlyArrival]),
 
 		// bedding fields
 		SleepingBagRentals: toInt(rec.Fields[fields.SleepingBagRentals]),
@@ -635,7 +639,7 @@ func (u *User) SetFood(veg, gf, lact bool, comments string) error {
 	return nil
 }
 
-func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName string, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper bool, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDay, leavingFrom, cityArrivalTime string, sleepingBagRentals, sheetRentals, pillowRentals int) error {
+func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName string, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper bool, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDay, leavingFrom, cityArrivalTime, earlyArrival string, sleepingBagRentals, sheetRentals, pillowRentals int) error {
 	u.Badge = badge
 	u.Vegetarian = veg
 	u.GlutenFree = gf
@@ -656,19 +660,19 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName
 	u.SleepingBagRentals = sleepingBagRentals
 	u.SheetRentals = sheetRentals
 	u.PillowRentals = pillowRentals
+	u.EarlyArrival = earlyArrival
 
 	r := &airtable.Records{
 		Records: []*airtable.Record{{
 			ID: u.AirtableID,
 			Fields: map[string]interface{}{
-				fields.Vegetarian:        u.Vegetarian,
-				fields.GlutenFree:        u.GlutenFree,
-				fields.LactoseIntolerant: u.LactoseIntolerant,
-				fields.FoodComments:      comments,
-				fields.Badge:             u.Badge,
-				fields.DiscordName:       u.DiscordName,
-				fields.AssistanceToCamp:  u.AssistanceToCamp,
-				// write all vars to corresponding fields
+				fields.Vegetarian:         u.Vegetarian,
+				fields.GlutenFree:         u.GlutenFree,
+				fields.LactoseIntolerant:  u.LactoseIntolerant,
+				fields.FoodComments:       comments,
+				fields.Badge:              u.Badge,
+				fields.DiscordName:        u.DiscordName,
+				fields.AssistanceToCamp:   u.AssistanceToCamp,
 				fields.AssistanceFromCamp: u.AssistanceFromCamp,
 				fields.WrongCityRedirect:  u.WrongCityRedirect,
 				fields.RVCamper:           u.RVCamper,
@@ -681,6 +685,7 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName
 				fields.SleepingBagRentals: u.SleepingBagRentals,
 				fields.SheetRentals:       u.SheetRentals,
 				fields.PillowRentals:      u.PillowRentals,
+				fields.EarlyArrival:       u.EarlyArrival,
 			},
 		}},
 	}

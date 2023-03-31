@@ -979,6 +979,7 @@ func Logistics2023Handler(c *gin.Context) {
 	sleepingBagRentals, _ := strconv.Atoi(c.PostForm("sleeping-bag-rentals"))
 	sheetRentals, _ := strconv.Atoi(c.PostForm("sheet-rentals"))
 	pillowRentals, _ := strconv.Atoi(c.PostForm("pillow-rentals"))
+	earlyArrival := c.PostForm("early-arrival")
 
 	// print all the vars
 	fmt.Printf("assistance to %v\n", assistanceToCamp)
@@ -997,7 +998,7 @@ func Logistics2023Handler(c *gin.Context) {
 	fmt.Printf("pillow rentals %v\n", pillowRentals)
 
 	// pass all the vars to Set2023Logistics
-	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments, discordName, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDate, leavingFrom, cityArrivalTime, sleepingBagRentals, sheetRentals, pillowRentals)
+	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments, discordName, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDate, leavingFrom, cityArrivalTime, earlyArrival, sleepingBagRentals, sheetRentals, pillowRentals)
 	// err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, sponsorshipConf, foodComments, discordName)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -1313,15 +1314,16 @@ func DiscordAuthenticator(c *gin.Context) {
 }
 
 type AppEndpointResponse struct {
-	TwitterName      string `json:"twitter_name"`
-	DiscordName      string `json:"discord_name"`
-	TicketStatus     string `json:"ticket_status"`
-	TicketType       string `json:"ticket_type"`
-	TicketID         string `json:"ticket_id"`
-	AccomodationType string `json:"accomodation_type"`
-	Cabin2022        string `json:"cabin_2022,omitempty"`
-	Cabin2023        string `json:"cabin_2023,omitempty"`
-	CreatedAt        string `json:"created_at"`
+	TwitterName       string `json:"twitter_name"`
+	DiscordName       string `json:"discord_name"`
+	TicketStatus      string `json:"ticket_status"`
+	TicketType        string `json:"ticket_type"`
+	TicketID          string `json:"ticket_id"`
+	AccomodationType  string `json:"accomodation_type"`
+	Cabin2022         string `json:"cabin_2022,omitempty"`
+	Cabin2023         string `json:"cabin_2023,omitempty"`
+	CabinNickname2023 string `json:"cabin_nickname_2023,omitempty"`
+	CreatedAt         string `json:"created_at"`
 }
 
 func AppEndpoint(c *gin.Context) {
@@ -1350,7 +1352,7 @@ func AppEndpoint(c *gin.Context) {
 		// c.AbortWithError(http.StatusInternalServerError, err)
 		c.JSON(http.StatusNotFound, nil)
 	} else if user != nil {
-		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin})
+		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin2023, CabinNickname2023: user.CabinNickname2023})
 	} else {
 		c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
 	}
