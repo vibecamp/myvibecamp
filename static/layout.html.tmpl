@@ -153,11 +153,11 @@
           if (flyingInto === "Baltimore") {
             // remove baltimore arrival time div and set select to FlightArrivalTime or blank
             document.getElementById("baltimore-arrival-time-div").classList.remove("hidden");
-            document.getElementById("baltimore-arrival-time").value = "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}{{end}}";
+            document.getElementById("flight-arrival-time").value = "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}{{end}}";
           } else if (flyingInto === "Philadelphia") {
             // remove philly arrival time div and set select to FlightArrivalTime or blank
             document.getElementById("philly-arrival-time-div").classList.remove("hidden");
-            document.getElementById("philly-arrival-time").value = "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}{{end}}";
+            document.getElementById("flight-arrival-time").value = "{{if and . .FlightArrivalTime}}{{.FlightArrivalTime}}{{else}}{{end}}";
           } else if (flyingInto === "Other") {
             // remove hidden from wrong-city-redirect-div
             document.getElementById("wrong-city-redirect-div").classList.remove("hidden");
@@ -224,16 +224,16 @@
     // and Other, where it shows wrong-city-redirect-div
     function onFlyingIntoChange(value) {
       if (value === "Baltimore") {
-        document.getElementById("baltimore-arrival-time").classList.remove("hidden");
-        document.getElementById("philly-arrival-time").classList.add("hidden");
+        document.getElementById("baltimore-arrival-time-div").classList.remove("hidden");
+        document.getElementById("philly-arrival-time-div").classList.add("hidden");
         document.getElementById("wrong-city-redirect-div").classList.add("hidden");
       } else if (value === "Philadelphia") {
-        document.getElementById("baltimore-arrival-time").classList.add("hidden");
-        document.getElementById("philly-arrival-time").classList.remove("hidden");
+        document.getElementById("baltimore-arrival-time-div").classList.add("hidden");
+        document.getElementById("philly-arrival-time-div").classList.remove("hidden");
         document.getElementById("wrong-city-redirect-div").classList.add("hidden");
       } else {
-        document.getElementById("baltimore-arrival-time").classList.add("hidden");
-        document.getElementById("philly-arrival-time").classList.add("hidden");
+        document.getElementById("baltimore-arrival-time-div").classList.add("hidden");
+        document.getElementById("philly-arrival-time-div").classList.add("hidden");
         document.getElementById("wrong-city-redirect-div").classList.remove("hidden");
       }
     }
@@ -258,8 +258,8 @@
         document.getElementById("flying-into-div").classList.add("hidden");
         document.getElementById("vehicle-arrival-div").classList.remove("hidden");
         document.getElementById("rv-camper-div").classList.remove("hidden");
-        document.getElementById("baltimore-arrival-time").classList.add("hidden");
-        document.getElementById("philly-arrival-time").classList.add("hidden");
+        document.getElementById("baltimore-arrival-time-div").classList.add("hidden");
+        document.getElementById("philly-arrival-time-div").classList.add("hidden");
         document.getElementById("wrong-city-redirect-div").classList.add("hidden");
       }
     }
@@ -270,6 +270,8 @@
         document.getElementById("leaving-from-div").classList.remove("hidden");
       } else {
         document.getElementById("leaving-from-div").classList.add("hidden");
+        // hide city arrival time div
+        document.getElementById("city-arrival-time-div").classList.add("hidden");
       }
     }
 
@@ -372,7 +374,7 @@
     Between 2:30 PM and 4:30 PM
     Later than 4:30 PM
     -->
-    <div class="form-group row hidden form-top-margin" id="baltimore-arrival-time">
+    <div class="form-group row hidden form-top-margin" id="baltimore-arrival-time-div">
       <label class="col-sm-9 col-form-label" for="flight-arrival-time">
         What time will you be arriving in Baltimore?
       </label>
@@ -394,7 +396,7 @@
     Between 2 PM and 4 PM
     Later than 4 PM
     -->
-    <div class="form-group row hidden form-top-margin" id="philly-arrival-time">
+    <div class="form-group row hidden form-top-margin" id="philly-arrival-time-div">
       <label class="col-sm-9 col-form-label" for="flight-arrival-time">
         What time will you be arriving in Philadelphia?
       </label>
