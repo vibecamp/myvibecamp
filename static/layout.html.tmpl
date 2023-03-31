@@ -65,22 +65,6 @@
   </div>
 {{ end }}
 
-{{ define "sponsorship-confirmation" }}
-  <fieldset>
-    <legend>Sponsorships</legend>
-    <p>
-      Because you received a sponsorship, we'd like to confirm that you'll be able to attend vibecamp in 2023
-    </p>
-    <div class="form-check">
-      <input class="form-check-input" type="checkbox" name="sponsorship-confirmation" id="sponsorship-confirmation" {{if and . .SponsorshipConfirm}}checked{{end}}>
-      <label class="form-check-label" for="sponsorship-confirmation">
-        I can attend vibecamp 2023
-      </label>
-    </div>
-  </fieldset>
-  <br/>
-{{ end }}
-
 {{ define "logistics-form" }}
   <fieldset>
     <legend>Badges</legend>
@@ -395,10 +379,10 @@
       <div class="col-sm-3">
         <select name="flight-arrival-time" id="flight-arrival-time" class="form-select" style="text-align: right;">
           <option value selected hidden></option>
-          <option value="Before 10:30 AM">Before 10:30 AM</option>
-          <option value="Between 10:30 AM and 2:30 PM">Between 10:30 AM and 2:30 PM</option>
-          <option value="Between 2:30 PM and 4:30 PM">Between 2:30 PM and 4:30 PM</option>
-          <option value="Later than 4:30 PM">Later than 4:30 PM</option>
+          <option value="Before 10:30 AM">Before 10:30</option>
+          <option value="Between 10:30 AM and 2:30 PM">Between 10:30 AM and 2:30</option>
+          <option value="Between 2:30 PM and 4:30 PM">Between 2:30 PM and 4:30</option>
+          <option value="Later than 4:30 PM">Later than 4:30</option>
         </select>
       </div>
     </div>
@@ -418,9 +402,9 @@
         <select name="flight-arrival-time" id="flight-arrival-time" class="form-select" style="text-align: right;">
           <option value selected hidden></option>
           <option value="Before noon">Before noon</option>
-          <option value="Between noon and 2 PM">Between noon and 2 PM</option>
-          <option value="Between 2 PM and 4 PM">Between 2 PM and 4 PM</option>
-          <option value="Later than 4 PM">Later than 4 PM</option>
+          <option value="Between noon and 2 PM">Between noon and 2</option>
+          <option value="Between 2 PM and 4 PM">Between 2 PM and 4</option>
+          <option value="Later than 4 PM">Later than 4</option>
         </select>
       </div>
     </div>
@@ -463,30 +447,30 @@
         <div class="col-sm-3">
           <select name="vehicle-arrival-time" id="vehicle-arrival-time" class="form-select" style="text-align: right;">
             <option value selected hidden></option>
-            <option value="8-830 AM">8-830 AM</option>
-            <option value="830-9 AM">830-9 AM</option>
-            <option value="9-930 AM">9-930 AM</option>
-            <option value="930-10 AM">930-10 AM</option>
-            <option value="10-1030 AM">10-1030 AM</option>
-            <option value="1030-11 AM">1030-11 AM</option>
-            <option value="11-1130 AM">11-1130 AM</option>
-            <option value="1130 AM-12 PM">1130 AM-12 PM</option>
-            <option value="12-1230 PM">12-1230 PM</option>
-            <option value="1230-1 PM">1230-1 PM</option>
-            <option value="1-130 PM">1-130 PM</option>
-            <option value="130-2 PM">130-2 PM</option>
-            <option value="2-230 PM">2-230 PM</option>
-            <option value="230-3 PM">230-3 PM</option>
-            <option value="3-330 PM">3-330 PM</option>
-            <option value="330-4 PM">330-4 PM</option>
-            <option value="4-430 PM">4-430 PM</option>
-            <option value="430-5 PM">430-5 PM</option>
-            <option value="5-530 PM">5-530 PM</option>
-            <option value="530-6 PM">530-6 PM</option>
-            <option value="6-630 PM">6-630 PM</option>
-            <option value="630-7 PM">630-7 PM</option>
-            <option value="7-730 PM">7-730 PM</option>
-            <option value="730-8 PM">730-8 PM</option>
+            <option value="8-830 AM">8-830</option>
+            <option value="830-9 AM">830-9</option>
+            <option value="9-930 AM">9-930</option>
+            <option value="930-10 AM">930-10</option>
+            <option value="10-1030 AM">10-1030</option>
+            <option value="1030-11 AM">1030-11</option>
+            <option value="11-1130 AM">11-1130</option>
+            <option value="1130 AM-12 PM">1130 AM-12</option>
+            <option value="12-1230 PM">12-1230</option>
+            <option value="1230-1 PM">1230-1</option>
+            <option value="1-130 PM">1-130</option>
+            <option value="130-2 PM">130-2</option>
+            <option value="2-230 PM">2-230</option>
+            <option value="230-3 PM">230-3</option>
+            <option value="3-330 PM">3-330</option>
+            <option value="330-4 PM">330-4</option>
+            <option value="4-430 PM">4-430</option>
+            <option value="430-5 PM">430-5</option>
+            <option value="5-530 PM">5-530</option>
+            <option value="530-6 PM">530-6</option>
+            <option value="6-630 PM">6-630</option>
+            <option value="630-7 PM">630-7</option>
+            <option value="7-730 PM">7-730</option>
+            <option value="730-8 PM">730-8</option>
           </select>
         </div>
       </div>
@@ -531,30 +515,30 @@
       <div class="col-sm-3">
         <select name="city-arrival-time" id="city-arrival-time" class="form-select" style="text-align: right;">
           <option value selected hidden></option>
-          <option value="8-830 AM">8-830 AM</option>
-          <option value="830-9 AM">830-9 AM</option>
-          <option value="9-930 AM">9-930 AM</option>
-          <option value="930-10 AM">930-10 AM</option>
-          <option value="10-1030 AM">10-1030 AM</option>
-          <option value="1030-11 AM">1030-11 AM</option>
-          <option value="11-1130 AM">11-1130 AM</option>
-          <option value="1130 AM-12 PM">1130 AM-12 PM</option>
-          <option value="12-1230 PM">12-1230 PM</option>
-          <option value="1230-1 PM">1230-1 PM</option>
-          <option value="1-130 PM">1-130 PM</option>
-          <option value="130-2 PM">130-2 PM</option>
-          <option value="2-230 PM">2-230 PM</option>
-          <option value="230-3 PM">230-3 PM</option>
-          <option value="3-330 PM">3-330 PM</option>
-          <option value="330-4 PM">330-4 PM</option>
-          <option value="4-430 PM">4-430 PM</option>
-          <option value="430-5 PM">430-5 PM</option>
-          <option value="5-530 PM">5-530 PM</option>
-          <option value="530-6 PM">530-6 PM</option>
-          <option value="6-630 PM">6-630 PM</option>
-          <option value="630-7 PM">630-7 PM</option>
-          <option value="7-730 PM">7-730 PM</option>
-          <option value="730-8 PM">730-8 PM</option>
+          <option value="8-830 AM">8-830</option>
+          <option value="830-9 AM">830-9</option>
+          <option value="9-930 AM">9-930</option>
+          <option value="930-10 AM">930-10</option>
+          <option value="10-1030 AM">10-1030</option>
+          <option value="1030-11 AM">1030-11</option>
+          <option value="11-1130 AM">11-1130</option>
+          <option value="1130 AM-12 PM">1130 AM-12</option>
+          <option value="12-1230 PM">12-1230</option>
+          <option value="1230-1 PM">1230-1</option>
+          <option value="1-130 PM">1-130</option>
+          <option value="130-2 PM">130-2</option>
+          <option value="2-230 PM">2-230</option>
+          <option value="230-3 PM">230-3</option>
+          <option value="3-330 PM">3-330</option>
+          <option value="330-4 PM">330-4</option>
+          <option value="4-430 PM">4-430</option>
+          <option value="430-5 PM">430-5</option>
+          <option value="5-530 PM">5-530</option>
+          <option value="530-6 PM">530-6</option>
+          <option value="6-630 PM">6-630</option>
+          <option value="630-7 PM">630-7</option>
+          <option value="7-730 PM">7-730</option>
+          <option value="730-8 PM">730-8</option>
         </select>
       </div>
     </div>
