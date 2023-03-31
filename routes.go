@@ -964,9 +964,24 @@ func Logistics2023Handler(c *gin.Context) {
 	lactoseIntolerant := c.PostForm("lactose") == "on"
 	foodComments := c.PostForm("comments")
 	discordName := c.PostForm("discord-name")
-	sponsorshipConf := c.PostForm("sponsorship-confirmation") == "on"
 
-	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, sponsorshipConf, foodComments, discordName)
+	assistanceToCamp := c.PostForm("assistance-to-camp") == "on"
+	assistanceFromCamp := c.PostForm("assistance-from-camp") == "on"
+	wrongCityRedirect := c.PostForm("wrong-city-redirect") == "Yes"
+	rvCamper := c.PostForm("rv-camper") == "on"
+	travelMethod := c.PostForm("travel-method")
+	flyingInto := c.PostForm("flying-into")
+	flightArrivalTime := c.PostForm("flight-arrival-time")
+	vehicleArrivalTime := c.PostForm("vehicle-arrival-time")
+	vehicleArrivalDate := c.PostForm("vehicle-arrival-date")
+	leavingFrom := c.PostForm("leaving-from")
+	cityArrivalTime := c.PostForm("city-arrival-time")
+	sleepingBagRentals, _ := strconv.Atoi(c.PostForm("sleeping-bag-rentals"))
+	sheetRentals, _ := strconv.Atoi(c.PostForm("sheet-rentals"))
+	pillowRentals, _ := strconv.Atoi(c.PostForm("pillow-rentals"))
+	earlyArrival := c.PostForm("early-arrival")
+
+	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments, discordName, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDate, leavingFrom, cityArrivalTime, earlyArrival, sleepingBagRentals, sheetRentals, pillowRentals)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -1281,15 +1296,16 @@ func DiscordAuthenticator(c *gin.Context) {
 }
 
 type AppEndpointResponse struct {
-	TwitterName      string `json:"twitter_name"`
-	DiscordName      string `json:"discord_name"`
-	TicketStatus     string `json:"ticket_status"`
-	TicketType       string `json:"ticket_type"`
-	TicketID         string `json:"ticket_id"`
-	AccomodationType string `json:"accomodation_type"`
-	Cabin2022        string `json:"cabin_2022,omitempty"`
-	Cabin2023        string `json:"cabin_2023,omitempty"`
-	CreatedAt        string `json:"created_at"`
+	TwitterName       string `json:"twitter_name"`
+	DiscordName       string `json:"discord_name"`
+	TicketStatus      string `json:"ticket_status"`
+	TicketType        string `json:"ticket_type"`
+	TicketID          string `json:"ticket_id"`
+	AccomodationType  string `json:"accomodation_type"`
+	Cabin2022         string `json:"cabin_2022,omitempty"`
+	Cabin2023         string `json:"cabin_2023,omitempty"`
+	CabinNickname2023 string `json:"cabin_nickname_2023,omitempty"`
+	CreatedAt         string `json:"created_at"`
 }
 
 func AppEndpoint(c *gin.Context) {
@@ -1318,7 +1334,7 @@ func AppEndpoint(c *gin.Context) {
 		// c.AbortWithError(http.StatusInternalServerError, err)
 		c.JSON(http.StatusNotFound, nil)
 	} else if user != nil {
-		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin})
+		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin2023, CabinNickname2023: user.CabinNickname2023})
 	} else {
 		c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
 	}

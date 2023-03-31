@@ -97,8 +97,27 @@ type User struct {
 	DiscordName        string
 	TicketPath         string
 	Cabin2022          string
-	Cabin              string
+	Cabin2023          string
+	CabinNickname2023  string
 	Created            string
+
+	// transport fields
+	AssistanceToCamp   bool
+	AssistanceFromCamp bool
+	TravelMethod       string
+	FlyingInto         string
+	WrongCityRedirect  bool
+	FlightArrivalTime  string
+	RVCamper           bool
+	VehicleArrival     string
+	LeavingFrom        string
+	CityArrivalTime    string
+	EarlyArrival       string
+
+	// bedding fields
+	SleepingBagRentals int
+	SheetRentals       int
+	PillowRentals      int
 
 	AirtableID string
 }
@@ -308,8 +327,27 @@ func getUserByField(field, value string) (*User, error) {
 		TicketID:           toStr(rec.Fields[fields.TicketID]),
 		Cabin2022:          toStr(rec.Fields[fields.Cabin2022]),
 		SponsorshipConfirm: rec.Fields[fields.SponsorshipConfirmation] == checked,
-		Cabin:              toStr(rec.Fields[fields.Cabin]),
+		Cabin2023:          toStr(rec.Fields[fields.Cabin]),
+		CabinNickname2023:  toStr(rec.Fields[fields.CabinNickname]),
 		Created:            created,
+
+		// transport fields
+		AssistanceToCamp:   rec.Fields[fields.AssistanceToCamp] == checked,
+		AssistanceFromCamp: rec.Fields[fields.AssistanceFromCamp] == checked,
+		WrongCityRedirect:  rec.Fields[fields.WrongCityRedirect] == checked,
+		RVCamper:           rec.Fields[fields.RVCamper] == checked,
+		TravelMethod:       toStr(rec.Fields[fields.TravelMethod]),
+		FlyingInto:         toStr(rec.Fields[fields.FlyingInto]),
+		FlightArrivalTime:  toStr(rec.Fields[fields.FlightArrivalTime]),
+		VehicleArrival:     toStr(rec.Fields[fields.VehicleArrival]),
+		LeavingFrom:        toStr(rec.Fields[fields.LeavingFrom]),
+		CityArrivalTime:    toStr(rec.Fields[fields.CityArrivalTime]),
+		EarlyArrival:       toStr(rec.Fields[fields.EarlyArrival]),
+
+		// bedding fields
+		SleepingBagRentals: toInt(rec.Fields[fields.SleepingBagRentals]),
+		SheetRentals:       toInt(rec.Fields[fields.SheetRentals]),
+		PillowRentals:      toInt(rec.Fields[fields.PillowRentals]),
 	}
 
 	if defaultCache != nil {
@@ -601,7 +639,7 @@ func (u *User) SetFood(veg, gf, lact bool, comments string) error {
 	return nil
 }
 
-func (u *User) Set2023Logistics(badge, veg, gf, lact, confirm bool, comments string, discordName string) error {
+func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName string, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper bool, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDay, leavingFrom, cityArrivalTime, earlyArrival string, sleepingBagRentals, sheetRentals, pillowRentals int) error {
 	u.Badge = badge
 	u.Vegetarian = veg
 	u.GlutenFree = gf
@@ -609,19 +647,45 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact, confirm bool, comments str
 	u.FoodComments = comments
 	u.DiscordName = discordName
 
-	u.SponsorshipConfirm = confirm
+	u.AssistanceToCamp = assistanceToCamp
+	u.AssistanceFromCamp = assistanceFromCamp
+	u.WrongCityRedirect = wrongCityRedirect
+	u.RVCamper = rvCamper
+	u.TravelMethod = travelMethod
+	u.FlyingInto = flyingInto
+	u.FlightArrivalTime = flightArrivalTime
+	u.VehicleArrival = vehicleArrivalDay + " " + vehicleArrivalTime
+	u.LeavingFrom = leavingFrom
+	u.CityArrivalTime = cityArrivalTime
+	u.SleepingBagRentals = sleepingBagRentals
+	u.SheetRentals = sheetRentals
+	u.PillowRentals = pillowRentals
+	u.EarlyArrival = earlyArrival
 
 	r := &airtable.Records{
 		Records: []*airtable.Record{{
 			ID: u.AirtableID,
 			Fields: map[string]interface{}{
-				fields.Vegetarian:              u.Vegetarian,
-				fields.GlutenFree:              u.GlutenFree,
-				fields.LactoseIntolerant:       u.LactoseIntolerant,
-				fields.FoodComments:            comments,
-				fields.Badge:                   u.Badge,
-				fields.DiscordName:             u.DiscordName,
-				fields.SponsorshipConfirmation: u.SponsorshipConfirm,
+				fields.Vegetarian:         u.Vegetarian,
+				fields.GlutenFree:         u.GlutenFree,
+				fields.LactoseIntolerant:  u.LactoseIntolerant,
+				fields.FoodComments:       comments,
+				fields.Badge:              u.Badge,
+				fields.DiscordName:        u.DiscordName,
+				fields.AssistanceToCamp:   u.AssistanceToCamp,
+				fields.AssistanceFromCamp: u.AssistanceFromCamp,
+				fields.WrongCityRedirect:  u.WrongCityRedirect,
+				fields.RVCamper:           u.RVCamper,
+				fields.TravelMethod:       u.TravelMethod,
+				fields.FlyingInto:         u.FlyingInto,
+				fields.FlightArrivalTime:  u.FlightArrivalTime,
+				fields.VehicleArrival:     u.VehicleArrival,
+				fields.LeavingFrom:        u.LeavingFrom,
+				fields.CityArrivalTime:    u.CityArrivalTime,
+				fields.SleepingBagRentals: u.SleepingBagRentals,
+				fields.SheetRentals:       u.SheetRentals,
+				fields.PillowRentals:      u.PillowRentals,
+				fields.EarlyArrival:       u.EarlyArrival,
 			},
 		}},
 	}

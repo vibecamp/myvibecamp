@@ -72,3 +72,7 @@ fieldset[disabled] .btn-twitter.focus {
 .hidden {
   display: none;
 }
+
+.form-top-margin {
+  margin-top: 2em;
+}

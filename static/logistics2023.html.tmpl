@@ -42,18 +42,17 @@
     <form method="post" action="">
       <fieldset>
 
-        {{ if and (eq .User.TicketPath "Sponsorship") (eq .User.OrderID "") }}
-          {{ template "sponsorship-confirmation" .User }}
-        {{ end }}
-        
         {{template "logistics-form" .User }}
 
-        <button type="submit" class="btn btn-primary">Submit</button>
+        {{template "2023-transport-form" .User }}
 
+        <div class="form-group row justify-content-center form-top-margin">
+          <div class="col-sm-2">
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
       </fieldset>
     </form>
-
-
 </div>
 
 {{ template "footer" }}
