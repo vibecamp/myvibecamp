@@ -38,7 +38,6 @@ const (
 
 	// Transport Form (also attendee table)
 	AssistanceToCamp   = "Assistance To Camp"
-	TravelFromAirport  = "Know How Travel From Airport"
 	TravelMethod       = "Travel Method"
 	FlyingInto         = "Flying Into"
 	FlightArrivalTime  = "Flight Arrival Time"
@@ -49,7 +48,6 @@ const (
 	LeavingFrom        = "Leaving From"
 	CityArrivalTime    = "City Arrival Time"
 	EarlyArrival       = "Early Arrival"
-	DayOfArrival       = "Day Of Arrival"
 
 	// Early Arrival Options
 	TuesdayAfternoon = "Tuesday Afternoon"
