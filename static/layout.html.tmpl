@@ -147,6 +147,7 @@
       if (travelMethod === "Flying") {
         // get the travel from airport div, show it and set its value from golang
         const travelFromAirport = "{{if and . .TravelFromAirport}}{{.TravelFromAirport}}{{else}}{{end}}";
+        console.log(travelFromAirport);
         document.getElementById("travel-from-airport").value = travelFromAirport;
         document.getElementById("travel-from-airport-div").classList.remove("hidden");
 
@@ -182,7 +183,7 @@
         document.getElementById("rv-camper-div").classList.remove("hidden");
         document.getElementById("vehicle-arrival-div").classList.remove("hidden");
         // set rv camper checked from variable value
-        document.getElementById("rv-camper").value = {{if and . .RVCamper}}{{.RVCamper}}{{end}};
+        document.getElementById("rv-camper").value = "{{if and . .RVCamper}}{{.RVCamper}}{{else}}{{end}}";
         // split VehicleArrival into date and time by space and set to respective values
         const vehicleArrival = "{{if and . .VehicleArrival}}{{.VehicleArrival}}{{else}}{{end}}";
         const vehicleArrivalSplit = vehicleArrival.split(" ");
@@ -319,8 +320,6 @@
       will be given to official volunteers & project hosts. If you are interested,
       please select your preferred arrival time below.
     </p> 
-    // arrival starts at noon on thurs for everyone else
-    // day of arrival after this - not sure we need it - axe it yes
     <div class="form-group row justify-content-center">
       <div class="col-sm-5">
         <select name="early-arrival" id="early-arrival" class="form-select" style="text-align: left;">
@@ -331,7 +330,7 @@
         </select>
       </div>
     </div>
-
+    <br/>
     <p>
       Arrival starts at noon on Thursday, June 15 for everyone else.
     </p>

@@ -332,7 +332,7 @@ func getUserByField(field, value string) (*User, error) {
 		Created:            created,
 
 		// transport fields
-		TravelFromAirport:  toStr(rec.Fields[fields.AssistanceToCamp]),
+		TravelFromAirport:  toStr(rec.Fields[fields.KnowHowTravelFromAirport]),
 		AssistanceFromCamp: rec.Fields[fields.AssistanceFromCamp] == checked,
 		WrongCityRedirect:  rec.Fields[fields.WrongCityRedirect] == checked,
 		RVCamper:           toStr(rec.Fields[fields.RVCamper]),
@@ -648,7 +648,6 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName
 	u.DiscordName = discordName
 
 	u.TravelFromAirport = assistanceToCamp
-	u.AssistanceFromCamp = assistanceFromCamp
 	u.WrongCityRedirect = wrongCityRedirect
 	u.RVCamper = rvCamper
 	u.TravelMethod = travelMethod
@@ -666,26 +665,26 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName
 		Records: []*airtable.Record{{
 			ID: u.AirtableID,
 			Fields: map[string]interface{}{
-				fields.Vegetarian:         u.Vegetarian,
-				fields.GlutenFree:         u.GlutenFree,
-				fields.LactoseIntolerant:  u.LactoseIntolerant,
-				fields.FoodComments:       comments,
-				fields.Badge:              u.Badge,
-				fields.DiscordName:        u.DiscordName,
-				fields.AssistanceToCamp:   u.TravelFromAirport,
-				fields.AssistanceFromCamp: u.AssistanceFromCamp,
-				fields.WrongCityRedirect:  u.WrongCityRedirect,
-				fields.RVCamper:           u.RVCamper,
-				fields.TravelMethod:       u.TravelMethod,
-				fields.FlyingInto:         u.FlyingInto,
-				fields.FlightArrivalTime:  u.FlightArrivalTime,
-				fields.VehicleArrival:     u.VehicleArrival,
-				fields.LeavingFrom:        u.LeavingFrom,
-				fields.CityArrivalTime:    u.CityArrivalTime,
-				fields.SleepingBagRentals: u.SleepingBagRentals,
-				fields.SheetRentals:       u.SheetRentals,
-				fields.PillowRentals:      u.PillowRentals,
-				fields.EarlyArrival:       u.EarlyArrival,
+				fields.Vegetarian:               u.Vegetarian,
+				fields.GlutenFree:               u.GlutenFree,
+				fields.LactoseIntolerant:        u.LactoseIntolerant,
+				fields.FoodComments:             comments,
+				fields.Badge:                    u.Badge,
+				fields.DiscordName:              u.DiscordName,
+				fields.AssistanceFromCamp:       u.AssistanceFromCamp,
+				fields.WrongCityRedirect:        u.WrongCityRedirect,
+				fields.RVCamper:                 u.RVCamper,
+				fields.TravelMethod:             u.TravelMethod,
+				fields.KnowHowTravelFromAirport: u.TravelFromAirport,
+				fields.FlyingInto:               u.FlyingInto,
+				fields.FlightArrivalTime:        u.FlightArrivalTime,
+				fields.VehicleArrival:           u.VehicleArrival,
+				fields.LeavingFrom:              u.LeavingFrom,
+				fields.CityArrivalTime:          u.CityArrivalTime,
+				fields.SleepingBagRentals:       u.SleepingBagRentals,
+				fields.SheetRentals:             u.SheetRentals,
+				fields.PillowRentals:            u.PillowRentals,
+				fields.EarlyArrival:             u.EarlyArrival,
 			},
 		}},
 	}

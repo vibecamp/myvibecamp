@@ -965,7 +965,7 @@ func Logistics2023Handler(c *gin.Context) {
 	foodComments := c.PostForm("comments")
 	discordName := c.PostForm("discord-name")
 
-	assistanceToCamp := c.PostForm("assistance-to-camp")
+	assistanceToCamp := c.PostForm("travel-from-airport")
 	assistanceFromCamp := c.PostForm("assistance-from-camp") == "on"
 	wrongCityRedirect := c.PostForm("wrong-city-redirect") == "Yes"
 	rvCamper := c.PostForm("rv-camper")
