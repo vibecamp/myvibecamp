@@ -113,6 +113,7 @@ type User struct {
 	LeavingFrom        string
 	CityArrivalTime    string
 	EarlyArrival       string
+	DayOfArrival       string
 
 	// bedding fields
 	SleepingBagRentals int
@@ -672,7 +673,7 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName
 				fields.FoodComments:       comments,
 				fields.Badge:              u.Badge,
 				fields.DiscordName:        u.DiscordName,
-				fields.AssistanceToCamp:   u.TravelFromAirport,
+				fields.TravelFromAirport:  u.TravelFromAirport,
 				fields.AssistanceFromCamp: u.AssistanceFromCamp,
 				fields.WrongCityRedirect:  u.WrongCityRedirect,
 				fields.RVCamper:           u.RVCamper,
@@ -686,6 +687,7 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName
 				fields.SheetRentals:       u.SheetRentals,
 				fields.PillowRentals:      u.PillowRentals,
 				fields.EarlyArrival:       u.EarlyArrival,
+				fields.DayOfArrival:       u.DayOfArrival,
 			},
 		}},
 	}
