@@ -131,7 +131,7 @@
       // set early-arrival select value to EarlyArrival or blank
       document.getElementById("early-arrival").value = "{{if and . .EarlyArrival}}{{.EarlyArrival}}{{else}}{{end}}";
 
-      // const assistanceTo = {{if and . .AssistanceToCamp}}true{{else}}false{{end}};
+      // const assistanceTo = {{if and . .TravelFromAirport}}true{{else}}false{{end}};
       const assistanceFrom = {{if and . .AssistanceFromCamp}}true{{else}}false{{end}};
 
       // set assistance-to checked
@@ -341,13 +341,6 @@
     <legend>Transportation</legend>
     <p>We have a couple of questions regarding transportation to and from vibecamp</p>
 
-    {/**<div class="form-check">
-      <label class="form-check-label" for="assistance-to-camp">
-        Do you need assistance traveling to vibecamp?
-      </label>
-      <input onChange="onAssistanceToChange(this.checked)" class="form-check-input" type="checkbox" name="assistance-to-camp" id="assistance-to-camp" {{if and . .AssistanceToCamp }}checked{{end}}>
-    </div> **/}
-
     <div class="form-group row form-top-margin" id="travel-method-div">
       <label class="col-sm-9 col-form-label" for="travel-method">
         How will you be traveling to vibecamp?
@@ -378,7 +371,7 @@
     <!-- hidden div for travel-from-airport-yes asking them to switch to driving if they are renting a car -->
     <div class="form-group row hidden form-top-margin" id="travel-from-airport-yes-div">
       <label class="col-sm-9 col-form-label" for="travel-from-airport-yes">
-        If you are renting a car, please switch your travel method choice above to driving your own vehicle.
+        If you are renting a car, please switch your travel method choice above to "Driving Own Vehicle".
       </label>
     </div>
 
@@ -460,8 +453,8 @@
     </div>
 
     <!-- yes no select for rv-camper asking if they are driving an RV or Camper -->
-    <div class="form-check hidden form-top-margin" id="rv-camper-div">
-      <label class="form-check-label" for="rv-camper">
+    <div class="form-group row hidden form-top-margin" id="rv-camper-div">
+      <label class="col-sm-9 col-form-label" for="rv-camper">
         Are you driving an RV or Camper?
       </label>
       <div class="col-sm-3">
