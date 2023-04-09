@@ -131,21 +131,29 @@
       // set early-arrival select value to EarlyArrival or blank
       document.getElementById("early-arrival").value = "{{if and . .EarlyArrival}}{{.EarlyArrival}}{{else}}{{end}}";
 
-      const assistanceTo = {{if and . .AssistanceToCamp}}true{{else}}false{{end}};
+      // const assistanceTo = {{if and . .AssistanceToCamp}}true{{else}}false{{end}};
       const assistanceFrom = {{if and . .AssistanceFromCamp}}true{{else}}false{{end}};
 
       // set assistance-to checked
-      document.getElementById("assistance-to-camp").checked = assistanceTo;
-      
-      if (assistanceTo) {
-        // remove hidden from travel-method-div
-        document.getElementById("travel-method-div").classList.remove("hidden");
-        const travelMethod = "{{if and . .TravelMethod}}{{.TravelMethod}}{{else}}{{end}}";
-        document.getElementById("travel-method").value = travelMethod;
+      // document.getElementById("assistance-to-camp").checked = assistanceTo;
 
-        // if they're flying, show the flight info divs based on whether
-        // they have where they're flying into set
-        if (travelMethod === "Flying") {
+      // remove hidden from travel-method-div
+      document.getElementById("travel-method-div").classList.remove("hidden");
+      const travelMethod = "{{if and . .TravelMethod}}{{.TravelMethod}}{{else}}{{end}}";
+      document.getElementById("travel-method").value = travelMethod;
+
+      // if they're flying, show the flight info divs based on whether
+      // they have where they're flying into set
+      if (travelMethod === "Flying") {
+        // get the travel from airport div, show it and set its value from golang
+        const travelFromAirport = "{{if and . .TravelFromAirport}}{{.TravelFromAirport}}{{else}}{{end}}";
+        document.getElementById("travel-from-airport").value = travelFromAirport;
+        document.getElementById("travel-from-airport-div").classList.remove("hidden");
+
+        // if travelFromAirport is Yes, show the travel from airport yes div
+        if (travelFromAirport === "Yes") {
+          document.getElementById("travel-from-airport-yes-div").classList.remove("hidden");
+        } else {
           // get the flying into div, show it and set its value from golang
           const flyingInto = "{{if and . .FlyingInto}}{{.FlyingInto}}{{else}}{{end}}";
           document.getElementById("flying-into").value = flyingInto;
@@ -167,19 +175,19 @@
               document.getElementById("wrong-city-redirect-warning").classList.remove("hidden");
             }
           }
-        } else if (travelMethod === "Own Vehicle") {
-          // remove hidden from rv camper, vehicle arrival date, and vehicle arrival time divs,
-          // set checked and their values respectively from golang
-          document.getElementById("rv-camper-div").classList.remove("hidden");
-          document.getElementById("vehicle-arrival-div").classList.remove("hidden");
-          // set rv camper checked from variable value
-          document.getElementById("rv-camper").checked = {{if and . .RVCamper}}true{{else}}false{{end}};
-          // split VehicleArrival into date and time by space and set to respective values
-          const vehicleArrival = "{{if and . .VehicleArrival}}{{.VehicleArrival}}{{else}}{{end}}";
-          const vehicleArrivalSplit = vehicleArrival.split(" ");
-          document.getElementById("vehicle-arrival-day").value = vehicleArrivalSplit[0];
-          document.getElementById("vehicle-arrival-time").value = vehicleArrivalSplit[1];
         }
+      } else if (travelMethod === "Own Vehicle") {
+        // remove hidden from rv camper, vehicle arrival date, and vehicle arrival time divs,
+        // set checked and their values respectively from golang
+        document.getElementById("rv-camper-div").classList.remove("hidden");
+        document.getElementById("vehicle-arrival-div").classList.remove("hidden");
+        // set rv camper checked from variable value
+        document.getElementById("rv-camper").value = {{if and . .RVCamper}}{{.RVCamper}}{{end}};
+        // split VehicleArrival into date and time by space and set to respective values
+        const vehicleArrival = "{{if and . .VehicleArrival}}{{.VehicleArrival}}{{else}}{{end}}";
+        const vehicleArrivalSplit = vehicleArrival.split(" ");
+        document.getElementById("vehicle-arrival-day").value = vehicleArrivalSplit[0];
+        document.getElementById("vehicle-arrival-time").value = vehicleArrivalSplit[1];
       }
 
       // set assistance-from checked from variable value
@@ -218,6 +226,17 @@
       }
     }
 
+    // onTravelFromAirportChange takes a string value of Yes or No & shows the appropriate div (flying into for no & travel-from-airport-yes-div for yes)
+    function onTravelFromAirportChange(value) {
+      if (value === "Yes") {
+        document.getElementById("flying-into-div").classList.add("hidden");
+        document.getElementById("travel-from-airport-yes-div").classList.remove("hidden");
+      } else {
+        document.getElementById("flying-into-div").classList.remove("hidden");
+        document.getElementById("travel-from-airport-yes-div").classList.add("hidden");
+      }
+    }
+
     // onFlyingIntoChange takes a string value of Baltimore, where it shows
     // the baltimore-arrival-time div and hides the other two
     // Philadelphia, where it shows the philly-arrival-time div and hides the other two
@@ -247,14 +266,16 @@
       }
     }
 
-    // onTravelMethodChanges takes a string of Flying or Own Vehicle, and shows/hides the flying-into-div and 
+    // onTravelMethodChanges takes a string of Flying or Own Vehicle, and shows/hides the travel from airport div or
     // the vehicle-arrival-time, vehicle-arrival-day, and rv-camper-div divs
     function onTravelMethodChange(value) {
       if (value === "Flying") {
-        document.getElementById("flying-into-div").classList.remove("hidden");
+        document.getElementById("travel-from-airport-div").classList.remove("hidden");
         document.getElementById("vehicle-arrival-div").classList.add("hidden");
         document.getElementById("rv-camper-div").classList.add("hidden");
       } else if (value === "Own Vehicle") {
+        document.getElementById("travel-from-airport-div").classList.add("hidden");
+        document.getElementById("travel-from-airport-yes-div").classList.add("hidden");
         document.getElementById("flying-into-div").classList.add("hidden");
         document.getElementById("vehicle-arrival-div").classList.remove("hidden");
         document.getElementById("rv-camper-div").classList.remove("hidden");
@@ -298,6 +319,8 @@
       will be given to official volunteers & project hosts. If you are interested,
       please select your preferred arrival time below.
     </p> 
+    // arrival starts at noon on thurs for everyone else
+    // day of arrival after this - not sure we need it - axe it yes
     <div class="form-group row justify-content-center">
       <div class="col-sm-5">
         <select name="early-arrival" id="early-arrival" class="form-select" style="text-align: left;">
@@ -308,20 +331,24 @@
         </select>
       </div>
     </div>
+
+    <p>
+      Arrival starts at noon on Thursday, June 15 for everyone else.
+    </p>
   </fieldset>
   <br />
   <fieldset>
     <legend>Transportation</legend>
     <p>We have a couple of questions regarding transportation to and from vibecamp</p>
 
-    <div class="form-check">
+    {/**<div class="form-check">
       <label class="form-check-label" for="assistance-to-camp">
         Do you need assistance traveling to vibecamp?
       </label>
       <input onChange="onAssistanceToChange(this.checked)" class="form-check-input" type="checkbox" name="assistance-to-camp" id="assistance-to-camp" {{if and . .AssistanceToCamp }}checked{{end}}>
-    </div>
+    </div> **/}
 
-    <div class="form-group row hidden form-top-margin" id="travel-method-div">
+    <div class="form-group row form-top-margin" id="travel-method-div">
       <label class="col-sm-9 col-form-label" for="travel-method">
         How will you be traveling to vibecamp?
       </label>
@@ -334,9 +361,30 @@
       </div>
     </div>
 
+    <div class="form-group row hidden form-top-margin" id="travel-from-airport-div">
+      <label class="col-sm-9 col-form-label" for="travel-from-airport">
+        Do you already know how you will be traveling between the airport and Camp Ramblewood?
+      </label>
+      <!-- yes no select named travel-from-airport with onChange function onTravelFromAirportChange -->
+      <div class="col-sm-3">
+        <select name="travel-from-airport" id="travel-from-airport" class="form-select" onChange="onTravelFromAirportChange(this.value)" style="text-align: right;">
+          <option value selected hidden></option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- hidden div for travel-from-airport-yes asking them to switch to driving if they are renting a car -->
+    <div class="form-group row hidden form-top-margin" id="travel-from-airport-yes-div">
+      <label class="col-sm-9 col-form-label" for="travel-from-airport-yes">
+        If you are renting a car, please switch your travel method choice above to driving your own vehicle.
+      </label>
+    </div>
+
     <div class="form-group row hidden form-top-margin" id="flying-into-div">
       <label class="col-sm-9 col-form-label" for="flying-into">
-        Where will you be flying into?
+        Maybe we can help, which airport will you be flying into?
       </label>
       <div class="col-sm-3">
         <select name="flying-into" id="flying-into" class="form-select" onChange="onFlyingIntoChange(this.value)" style="text-align: right;">
@@ -381,8 +429,8 @@
       <div class="col-sm-3">
         <select name="flight-arrival-time" id="flight-arrival-time" class="form-select" style="text-align: right;">
           <option value selected hidden></option>
-          <option value="Before 10:30 AM">Before 10:30</option>
-          <option value="Between 10:30 AM and 2:30 PM">Between 10:30 AM and 2:30</option>
+          <option value="Before 10:30 AM">Before 10:30 AM</option>
+          <option value="Between 10:30 AM and 2:30 PM">10:30 AM-2:30 PM</option>
           <option value="Between 2:30 PM and 4:30 PM">Between 2:30 PM and 4:30</option>
           <option value="Later than 4:30 PM">Later than 4:30</option>
         </select>
@@ -411,12 +459,18 @@
       </div>
     </div>
 
-    <!-- checkbox for rv-camper asking if they are driving an RV or Camper -->
+    <!-- yes no select for rv-camper asking if they are driving an RV or Camper -->
     <div class="form-check hidden form-top-margin" id="rv-camper-div">
       <label class="form-check-label" for="rv-camper">
         Are you driving an RV or Camper?
       </label>
-      <input class="form-check-input" type="checkbox" name="rv-camper" id="rv-camper" {{if and . .RVCamper }}checked{{end}}>
+      <div class="col-sm-3">
+        <select name="rv-camper" id="rv-camper" class="form-select" onChange="onRvCamperChange(this.value)" style="text-align: right;">
+          <option value selected hidden></option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
     </div>
 
     <!-- 
@@ -444,7 +498,7 @@
       -->
       <div class="form-group row form-top-margin" id="vehicle-arrival-time-div">
         <label class="col-sm-9 col-form-label" for="vehicle-arrival-time">
-          What time will you be arriving?
+          What time are you planning on arriving (if you know)?
         </label>
         <div class="col-sm-3">
           <select name="vehicle-arrival-time" id="vehicle-arrival-time" class="form-select" style="text-align: right;">

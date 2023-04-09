@@ -102,13 +102,13 @@ type User struct {
 	Created            string
 
 	// transport fields
-	AssistanceToCamp   bool
+	TravelFromAirport  string
 	AssistanceFromCamp bool
 	TravelMethod       string
 	FlyingInto         string
 	WrongCityRedirect  bool
 	FlightArrivalTime  string
-	RVCamper           bool
+	RVCamper           string
 	VehicleArrival     string
 	LeavingFrom        string
 	CityArrivalTime    string
@@ -332,10 +332,10 @@ func getUserByField(field, value string) (*User, error) {
 		Created:            created,
 
 		// transport fields
-		AssistanceToCamp:   rec.Fields[fields.AssistanceToCamp] == checked,
+		TravelFromAirport:  toStr(rec.Fields[fields.AssistanceToCamp]),
 		AssistanceFromCamp: rec.Fields[fields.AssistanceFromCamp] == checked,
 		WrongCityRedirect:  rec.Fields[fields.WrongCityRedirect] == checked,
-		RVCamper:           rec.Fields[fields.RVCamper] == checked,
+		RVCamper:           toStr(rec.Fields[fields.RVCamper]),
 		TravelMethod:       toStr(rec.Fields[fields.TravelMethod]),
 		FlyingInto:         toStr(rec.Fields[fields.FlyingInto]),
 		FlightArrivalTime:  toStr(rec.Fields[fields.FlightArrivalTime]),
@@ -639,7 +639,7 @@ func (u *User) SetFood(veg, gf, lact bool, comments string) error {
 	return nil
 }
 
-func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName string, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper bool, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDay, leavingFrom, cityArrivalTime, earlyArrival string, sleepingBagRentals, sheetRentals, pillowRentals int) error {
+func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName string, assistanceToCamp string, assistanceFromCamp, wrongCityRedirect bool, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDay, leavingFrom, cityArrivalTime, earlyArrival string, sleepingBagRentals, sheetRentals, pillowRentals int) error {
 	u.Badge = badge
 	u.Vegetarian = veg
 	u.GlutenFree = gf
@@ -647,7 +647,7 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName
 	u.FoodComments = comments
 	u.DiscordName = discordName
 
-	u.AssistanceToCamp = assistanceToCamp
+	u.TravelFromAirport = assistanceToCamp
 	u.AssistanceFromCamp = assistanceFromCamp
 	u.WrongCityRedirect = wrongCityRedirect
 	u.RVCamper = rvCamper
@@ -672,7 +672,7 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName
 				fields.FoodComments:       comments,
 				fields.Badge:              u.Badge,
 				fields.DiscordName:        u.DiscordName,
-				fields.AssistanceToCamp:   u.AssistanceToCamp,
+				fields.AssistanceToCamp:   u.TravelFromAirport,
 				fields.AssistanceFromCamp: u.AssistanceFromCamp,
 				fields.WrongCityRedirect:  u.WrongCityRedirect,
 				fields.RVCamper:           u.RVCamper,
