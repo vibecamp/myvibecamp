@@ -102,13 +102,13 @@ type User struct {
 	Created            string
 
 	// transport fields
-	AssistanceToCamp   bool
+	TravelFromAirport  string
 	AssistanceFromCamp bool
 	TravelMethod       string
 	FlyingInto         string
 	WrongCityRedirect  bool
 	FlightArrivalTime  string
-	RVCamper           bool
+	RVCamper           string
 	VehicleArrival     string
 	LeavingFrom        string
 	CityArrivalTime    string
@@ -332,10 +332,10 @@ func getUserByField(field, value string) (*User, error) {
 		Created:            created,
 
 		// transport fields
-		AssistanceToCamp:   rec.Fields[fields.AssistanceToCamp] == checked,
+		TravelFromAirport:  toStr(rec.Fields[fields.KnowHowTravelFromAirport]),
 		AssistanceFromCamp: rec.Fields[fields.AssistanceFromCamp] == checked,
 		WrongCityRedirect:  rec.Fields[fields.WrongCityRedirect] == checked,
-		RVCamper:           rec.Fields[fields.RVCamper] == checked,
+		RVCamper:           toStr(rec.Fields[fields.RVCamper]),
 		TravelMethod:       toStr(rec.Fields[fields.TravelMethod]),
 		FlyingInto:         toStr(rec.Fields[fields.FlyingInto]),
 		FlightArrivalTime:  toStr(rec.Fields[fields.FlightArrivalTime]),
@@ -639,7 +639,7 @@ func (u *User) SetFood(veg, gf, lact bool, comments string) error {
 	return nil
 }
 
-func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName string, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper bool, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDay, leavingFrom, cityArrivalTime, earlyArrival string, sleepingBagRentals, sheetRentals, pillowRentals int) error {
+func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName string, assistanceToCamp string, assistanceFromCamp, wrongCityRedirect bool, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDay, leavingFrom, cityArrivalTime, earlyArrival string, sleepingBagRentals, sheetRentals, pillowRentals int) error {
 	u.Badge = badge
 	u.Vegetarian = veg
 	u.GlutenFree = gf
@@ -647,8 +647,7 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName
 	u.FoodComments = comments
 	u.DiscordName = discordName
 
-	u.AssistanceToCamp = assistanceToCamp
-	u.AssistanceFromCamp = assistanceFromCamp
+	u.TravelFromAirport = assistanceToCamp
 	u.WrongCityRedirect = wrongCityRedirect
 	u.RVCamper = rvCamper
 	u.TravelMethod = travelMethod
@@ -666,26 +665,26 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName
 		Records: []*airtable.Record{{
 			ID: u.AirtableID,
 			Fields: map[string]interface{}{
-				fields.Vegetarian:         u.Vegetarian,
-				fields.GlutenFree:         u.GlutenFree,
-				fields.LactoseIntolerant:  u.LactoseIntolerant,
-				fields.FoodComments:       comments,
-				fields.Badge:              u.Badge,
-				fields.DiscordName:        u.DiscordName,
-				fields.AssistanceToCamp:   u.AssistanceToCamp,
-				fields.AssistanceFromCamp: u.AssistanceFromCamp,
-				fields.WrongCityRedirect:  u.WrongCityRedirect,
-				fields.RVCamper:           u.RVCamper,
-				fields.TravelMethod:       u.TravelMethod,
-				fields.FlyingInto:         u.FlyingInto,
-				fields.FlightArrivalTime:  u.FlightArrivalTime,
-				fields.VehicleArrival:     u.VehicleArrival,
-				fields.LeavingFrom:        u.LeavingFrom,
-				fields.CityArrivalTime:    u.CityArrivalTime,
-				fields.SleepingBagRentals: u.SleepingBagRentals,
-				fields.SheetRentals:       u.SheetRentals,
-				fields.PillowRentals:      u.PillowRentals,
-				fields.EarlyArrival:       u.EarlyArrival,
+				fields.Vegetarian:               u.Vegetarian,
+				fields.GlutenFree:               u.GlutenFree,
+				fields.LactoseIntolerant:        u.LactoseIntolerant,
+				fields.FoodComments:             comments,
+				fields.Badge:                    u.Badge,
+				fields.DiscordName:              u.DiscordName,
+				fields.AssistanceFromCamp:       u.AssistanceFromCamp,
+				fields.WrongCityRedirect:        u.WrongCityRedirect,
+				fields.RVCamper:                 u.RVCamper,
+				fields.TravelMethod:             u.TravelMethod,
+				fields.KnowHowTravelFromAirport: u.TravelFromAirport,
+				fields.FlyingInto:               u.FlyingInto,
+				fields.FlightArrivalTime:        u.FlightArrivalTime,
+				fields.VehicleArrival:           u.VehicleArrival,
+				fields.LeavingFrom:              u.LeavingFrom,
+				fields.CityArrivalTime:          u.CityArrivalTime,
+				fields.SleepingBagRentals:       u.SleepingBagRentals,
+				fields.SheetRentals:             u.SheetRentals,
+				fields.PillowRentals:            u.PillowRentals,
+				fields.EarlyArrival:             u.EarlyArrival,
 			},
 		}},
 	}
