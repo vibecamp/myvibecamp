@@ -100,6 +100,7 @@ type User struct {
 	Cabin2023          string
 	CabinNickname2023  string
 	Created            string
+	TentVillage        string
 
 	// transport fields
 	TravelFromAirport  string
@@ -330,6 +331,7 @@ func getUserByField(field, value string) (*User, error) {
 		Cabin2023:          toStr(rec.Fields[fields.Cabin]),
 		CabinNickname2023:  toStr(rec.Fields[fields.CabinNickname]),
 		Created:            created,
+		TentVillage:        toStr(rec.Fields[fields.TentVillage]),
 
 		// transport fields
 		TravelFromAirport:  toStr(rec.Fields[fields.KnowHowTravelFromAirport]),
@@ -360,6 +362,25 @@ func getUserByField(field, value string) (*User, error) {
 	}
 
 	return u, nil
+}
+
+// function GetAttendees returns all attendees in the attendees table, just Usernames
+func GetAttendees() ([]string, error) {
+	response, err := query(attendeesTable, fields.UserName, "")
+	if err != nil {
+		return nil, err
+	}
+
+	if response == nil || len(response.Records) == 0 {
+		return nil, errors.Wrap(ErrNoRecords, "")
+	}
+
+	var attendees []string
+	for _, rec := range response.Records {
+		attendees = append(attendees, toStr(rec.Fields[fields.UserName]))
+	}
+
+	return attendees, nil
 }
 
 func GetSoftLaunchUser(userName string) (*SoftLaunchUser, error) {

@@ -35,6 +35,7 @@ const (
 	SponsorshipConfirmation = "Sponsorship Confirmation"
 	CabinNickname           = "Cabin Nickname (from Cabin)"
 	Created                 = "Created"
+	TentVillage             = "Tent Village"
 
 	// Transport Form (also attendee table)
 	AssistanceToCamp         = "Assistance To Camp"

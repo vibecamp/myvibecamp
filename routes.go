@@ -1305,6 +1305,7 @@ type AppEndpointResponse struct {
 	Cabin2023         string `json:"cabin_2023,omitempty"`
 	CabinNickname2023 string `json:"cabin_nickname_2023,omitempty"`
 	CreatedAt         string `json:"created_at"`
+	TentVillage2023   string `json:"tent_village_2023,omitempty"`
 }
 
 func AppEndpoint(c *gin.Context) {
@@ -1331,10 +1332,80 @@ func AppEndpoint(c *gin.Context) {
 	user, err := db.GetUser(twitterName)
 	if err != nil {
 		// c.AbortWithError(http.StatusInternalServerError, err)
-		c.JSON(http.StatusNotFound, nil)
+		if err == errors.New("You're not on the guest list! Most likely we spelled your Twitter handle wrong.") {
+			c.JSON(http.StatusNotFound, nil)
+		} else {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
 	} else if user != nil {
-		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin2023, CabinNickname2023: user.CabinNickname2023})
+		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin2023, CabinNickname2023: user.CabinNickname2023, TentVillage2023: user.TentVillage})
 	} else {
 		c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
 	}
+}
+
+func UserByDiscordEndpoint(c *gin.Context) {
+	authToken := c.Query("auth_token")
+	discordName := c.Query("discord_name")
+
+	if authToken == "" {
+		c.AbortWithError(http.StatusUnauthorized, errors.New("auth_token required"))
+		return
+	}
+
+	hmacSecret := os.Getenv("HMAC_SECRET")
+	if hmacSecret == "" {
+		c.AbortWithError(http.StatusForbidden, errors.New("route disabled"))
+		return
+	}
+
+	h := sha256.Sum256([]byte(hmacSecret))
+	if subtle.ConstantTimeCompare([]byte(hex.EncodeToString(h[:])), []byte(authToken)) != 1 {
+		c.AbortWithError(http.StatusForbidden, errors.New("invalid auth_token"))
+		return
+	}
+
+	user, err := db.GetUserByDiscord(discordName)
+	if err != nil {
+		// c.AbortWithError(http.StatusInternalServerError, err)
+		if err == db.ErrNoRecords {
+			c.JSON(http.StatusNotFound, nil)
+		} else {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
+	} else if user != nil {
+		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin2023, CabinNickname2023: user.CabinNickname2023, TentVillage2023: user.TentVillage})
+	} else {
+		c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
+	}
+}
+
+// gets all attendees and returns them in an array
+func GetAttendeesEndpoint(c *gin.Context) {
+	authToken := c.Query("auth_token")
+
+	if authToken == "" {
+		c.AbortWithError(http.StatusUnauthorized, errors.New("auth_token required"))
+		return
+	}
+
+	hmacSecret := os.Getenv("HMAC_SECRET")
+	if hmacSecret == "" {
+		c.AbortWithError(http.StatusForbidden, errors.New("route disabled"))
+		return
+	}
+
+	h := sha256.Sum256([]byte(hmacSecret))
+	if subtle.ConstantTimeCompare([]byte(hex.EncodeToString(h[:])), []byte(authToken)) != 1 {
+		c.AbortWithError(http.StatusForbidden, errors.New("invalid auth_token"))
+		return
+	}
+
+	attendees, err := db.GetAttendees()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, attendees)
 }
