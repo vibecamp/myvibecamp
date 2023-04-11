@@ -147,9 +147,9 @@
       if (travelMethod === "Flying") {
         // get the travel from airport div, show it and set its value from golang
         const travelFromAirport = "{{if and . .TravelFromAirport}}{{.TravelFromAirport}}{{else}}{{end}}";
-        console.log(travelFromAirport);
         document.getElementById("travel-from-airport").value = travelFromAirport;
         document.getElementById("travel-from-airport-div").classList.remove("hidden");
+        document.getElementById("assistance-from-camp-div").classList.remove("hidden");
 
         // if travelFromAirport is Yes, show the travel from airport yes div
         if (travelFromAirport === "Yes") {
@@ -177,6 +177,22 @@
             }
           }
         }
+
+        if (assistanceFrom) {
+          // remove hidden from leaving-from-div
+          document.getElementById("leaving-from-div").classList.remove("hidden");
+          // set flying-from to value or none if assistance from is true
+          document.getElementById("leaving-from").value = "{{if and . .LeavingFrom}}{{.LeavingFrom}}{{else}}{{end}}";
+          // if leaving from is other, remove hidden from the warning div. else if leaving from is not blank, remove hidden from city-arrival-time-div
+          if (document.getElementById("leaving-from").value === "Other") {
+            document.getElementById("leaving-from-warning").classList.remove("hidden");
+          } else if (document.getElementById("leaving-from").value !== "") {
+            document.getElementById("city-arrival-time-div").classList.remove("hidden");
+          }
+
+          // set city-arrival-time to CityArrivalTime or none
+          document.getElementById("city-arrival-time").value = "{{if and . .CityArrivalTime}}{{.CityArrivalTime}}{{else}}{{end}}";
+        }
       } else if (travelMethod === "Own Vehicle") {
         // remove hidden from rv camper, vehicle arrival date, and vehicle arrival time divs,
         // set checked and their values respectively from golang
@@ -186,29 +202,13 @@
         document.getElementById("rv-camper").value = "{{if and . .RVCamper}}{{.RVCamper}}{{else}}{{end}}";
         // split VehicleArrival into date and time by space and set to respective values
         const vehicleArrival = "{{if and . .VehicleArrival}}{{.VehicleArrival}}{{else}}{{end}}";
-        const vehicleArrivalSplit = vehicleArrival.split(" ");
-        document.getElementById("vehicle-arrival-day").value = vehicleArrivalSplit[0];
-        document.getElementById("vehicle-arrival-time").value = vehicleArrivalSplit[1];
+        document.getElementById("vehicle-arrival-time").value = vehicleArrival;
       }
 
       // set assistance-from checked from variable value
       document.getElementById("assistance-from-camp").checked = assistanceFrom;
 
-      if (assistanceFrom) {
-        // remove hidden from leaving-from-div
-        document.getElementById("leaving-from-div").classList.remove("hidden");
-        // set flying-from to value or none if assistance from is true
-        document.getElementById("leaving-from").value = "{{if and . .LeavingFrom}}{{.LeavingFrom}}{{else}}{{end}}";
-        // if leaving from is other, remove hidden from the warning div. else if leaving from is not blank, remove hidden from city-arrival-time-div
-        if (document.getElementById("leaving-from").value === "Other") {
-          document.getElementById("leaving-from-warning").classList.remove("hidden");
-        } else if (document.getElementById("leaving-from").value !== "") {
-          document.getElementById("city-arrival-time-div").classList.remove("hidden");
-        }
 
-        // set city-arrival-time to CityArrivalTime or none
-        document.getElementById("city-arrival-time").value = "{{if and . .CityArrivalTime}}{{.CityArrivalTime}}{{else}}{{end}}";
-      }
 
       // set sleeping-bag-rentals from variable value or 0
       document.getElementById("sleeping-bag-rentals").value = "{{if and . .SleepingBagRentals}}{{.SleepingBagRentals}}{{else}}0{{end}}";
@@ -274,6 +274,20 @@
         document.getElementById("travel-from-airport-div").classList.remove("hidden");
         document.getElementById("vehicle-arrival-div").classList.add("hidden");
         document.getElementById("rv-camper-div").classList.add("hidden");
+        document.getElementById("assistance-from-camp-div").classList.remove("hidden");
+
+        if (document.getElementById("assistance-from-camp").checked) {
+          document.getElementById("leaving-from-div").classList.remove("hidden");
+          if (document.getElementById("leaving-from").value === "Other") {
+            document.getElementById("leaving-from-warning").classList.remove("hidden");
+          } else if (document.getElementById("leaving-from").value !== "") {
+            document.getElementById("city-arrival-time-div").classList.remove("hidden");
+          }
+        } else {
+          document.getElementById("leaving-from-div").classList.add("hidden");
+          document.getElementById("leaving-from-warning").classList.add("hidden");
+          document.getElementById("city-arrival-time-div").classList.add("hidden");
+        }
       } else if (value === "Own Vehicle") {
         document.getElementById("travel-from-airport-div").classList.add("hidden");
         document.getElementById("travel-from-airport-yes-div").classList.add("hidden");
@@ -283,6 +297,11 @@
         document.getElementById("baltimore-arrival-time-div").classList.add("hidden");
         document.getElementById("philly-arrival-time-div").classList.add("hidden");
         document.getElementById("wrong-city-redirect-div").classList.add("hidden");
+        // hide assistance-from-camp-div, leaving-from-div, city-arrival-time-div, and leaving-from-warning
+        document.getElementById("assistance-from-camp-div").classList.add("hidden");
+        document.getElementById("leaving-from-div").classList.add("hidden");
+        document.getElementById("city-arrival-time-div").classList.add("hidden");
+        document.getElementById("leaving-from-warning").classList.add("hidden");
       }
     }
 
@@ -290,6 +309,12 @@
     function onAssistanceFromChange(value) {
       if (value) {
         document.getElementById("leaving-from-div").classList.remove("hidden");
+        // if leaving from is not empty, show city arrival time div or warning if other
+        if (document.getElementById("leaving-from").value === "Other") {
+          document.getElementById("leaving-from-warning").classList.remove("hidden");
+        } else if (document.getElementById("leaving-from").value !== "") {
+          document.getElementById("city-arrival-time-div").classList.remove("hidden");
+        }
       } else {
         document.getElementById("leaving-from-div").classList.add("hidden");
         // hide city arrival time div
@@ -416,7 +441,7 @@
     -->
     <div class="form-group row hidden form-top-margin" id="baltimore-arrival-time-div">
       <label class="col-sm-9 col-form-label" for="flight-arrival-time">
-        What time will you be arriving in Baltimore?
+        What time will you be arriving in Baltimore on Thurs 6/15?
       </label>
       <div class="col-sm-3">
         <select name="flight-arrival-time" id="flight-arrival-time" class="form-select" style="text-align: right;">
@@ -438,7 +463,7 @@
     -->
     <div class="form-group row hidden form-top-margin" id="philly-arrival-time-div">
       <label class="col-sm-9 col-form-label" for="flight-arrival-time">
-        What time will you be arriving in Philadelphia?
+        What time will you be arriving in Philadelphia on Thurs 6/15?
       </label>
       <div class="col-sm-3">
         <select name="flight-arrival-time" id="flight-arrival-time" class="form-select" style="text-align: right;">
@@ -465,32 +490,14 @@
       </div>
     </div>
 
-    <!-- 
-    if they are driving their own vehicle, ask with a select for vehicle-arrival-day what day they will be arriving, between Wednesday and Saturday
-    -->
     <div id="vehicle-arrival-div" class="hidden">
-      <div class="form-group row form-top-margin" id="vehicle-arrival-day-div">
-        <label class="col-sm-9 col-form-label" for="vehicle-arrival-day">
-          What day will you be arriving?
-        </label>
-        <div class="col-sm-3">
-          <select name="vehicle-arrival-day" id="vehicle-arrival-day" class="form-select" style="text-align: right;">
-            <option value selected hidden></option>
-            <option value="Wednesday">Wednesday</option>
-            <option value="Thursday">Thursday</option>
-            <option value="Friday">Friday</option>
-            <option value="Saturday">Saturday</option>
-          </select>
-        </div>
-      </div>
-
       <!--
       if they are driving their own vehicle & arriving on fri or sat, ask with a select for vehicle-arrival-time what time they will be arriving, in blocks of
       30 minutes between 8 AM and 8 PM, i.e. 8:00-8:30AM, 8:30-9:00AM. if they arrive on thurs or weds, the 8am to noon blocks are not available
       -->
       <div class="form-group row form-top-margin" id="vehicle-arrival-time-div">
         <label class="col-sm-9 col-form-label" for="vehicle-arrival-time">
-          What time are you planning on arriving (if you know)?
+          What time are you planning on arriving on Thurs 6/15 (if you know)?
         </label>
         <div class="col-sm-3">
           <select name="vehicle-arrival-time" id="vehicle-arrival-time" class="form-select" style="text-align: right;">
@@ -527,7 +534,7 @@
 
 
     <!-- checkbox for assistance-from-camp asking if they need assistance leaving vibecamp -->
-    <div class="form-check">
+    <div class="form-check hidden" id="assistance-from-camp-div">
       <label class="form-check-label" for="assistance-from-camp">
         Do you need assistance traveling from vibecamp to the airport?
       </label>
@@ -554,8 +561,7 @@
       We are unable to provide transportation to airports outside of Baltimore and Philadelphia. Please make your own arrangements or contact us for more information.
     </div>
   
-    <!-- select for city-arrival-time with 30 minute blocks from 8 AM to 8 PM, i.e. 8:00-8:30AM, 8:30-9:00AM, etc. mark both AM & PM if necessary -->
-    <!-- update to be 10AM - 4PM ish -->
+    <!-- select for city-arrival-time with 30 minute blocks from 10 AM to 430 PM, i.e. 10:00-10:30AM, 10:30-11:00AM, etc. mark both AM & PM if necessary -->
     <div class="form-group row hidden form-top-margin" id="city-arrival-time-div">
       <label class="col-sm-9 col-form-label" for="city-arrival-time">
         What time do you need to be at the airport?
@@ -563,30 +569,19 @@
       <div class="col-sm-3">
         <select name="city-arrival-time" id="city-arrival-time" class="form-select" style="text-align: right;">
           <option value selected hidden></option>
-          <option value="8:00-8:30 AM">8:00-8:30</option>
-          <option value="8:30-9:00 AM">8:30-9:00</option>
-          <option value="9:00-9:30 AM">9:00-9:30</option>
-          <option value="9:30-10:00 AM">9:30-10:00</option>
-          <option value="10:00-10:30 AM">10:00-10:30</option>
-          <option value="10:30-11:00 AM">10:30-11:00</option>
-          <option value="11:00-11:30 AM">11:00-11:30</option>
-          <option value="11:30-12:00 PM">11:30-12:00</option>
-          <option value="12:00-12:30 PM">12:00-12:30</option>
-          <option value="12:30-1:00 PM">12:30-1:00</option>
-          <option value="1:00-1:30 PM">1:00-1:30</option>
-          <option value="1:30-2:00 PM">1:30-2:00</option>
-          <option value="2:00-2:30 PM">2:00-2:30</option>
-          <option value="2:30-3:00 PM">2:30-3:00</option>
-          <option value="3:00-3:30 PM">3:00-3:30</option>
-          <option value="3:30-4:00 PM">3:30-4:00</option>
-          <option value="4:00-4:30 PM">4:00-4:30</option>
-          <option value="4:30-5:00 PM">4:30-5:00</option>
-          <option value="5:00-5:30 PM">5:00-5:30</option>
-          <option value="5:30-6:00 PM">5:30-6:00</option>
-          <option value="6:00-6:30 PM">6:00-6:30</option>
-          <option value="6:30-7:00 PM">6:30-7:00</option>
-          <option value="7:00-7:30 PM">7:00-7:30</option>
-          <option value="7:30-8:00 PM">7:30-8:00</option>
+          <option value="10:00-10:30 AM">10:00-10:30 AM</option>
+          <option value="10:30-11:00 AM">10:30-11:00 AM</option>
+          <option value="11:00-11:30 AM">11:00-11:30 AM</option>
+          <option value="11:30-12:00 PM">11:30-12:00 PM</option>
+          <option value="12:00-12:30 PM">12:00-12:30 PM</option>
+          <option value="12:30-1:00 PM">12:30-1:00 PM</option>
+          <option value="1:00-1:30 PM">1:00-1:30 PM</option>
+          <option value="1:30-2:00 PM">1:30-2:00 PM</option>
+          <option value="2:00-2:30 PM">2:00-2:30 PM</option>
+          <option value="2:30-3:00 PM">2:30-3:00 PM</option>
+          <option value="3:00-3:30 PM">3:00-3:30 PM</option>
+          <option value="3:30-4:00 PM">3:30-4:00 PM</option>
+          <option value="4:00-4:30 PM">4:00-4:30 PM</option>
         </select>
       </div>
     </div>
