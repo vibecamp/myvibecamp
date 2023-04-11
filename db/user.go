@@ -366,18 +366,32 @@ func getUserByField(field, value string) (*User, error) {
 
 // function GetAttendees returns all attendees in the attendees table, just Usernames
 func GetAttendees() ([]string, error) {
-	response, err := query(attendeesTable, fields.UserName, "")
-	if err != nil {
-		return nil, err
-	}
-
-	if response == nil || len(response.Records) == 0 {
-		return nil, errors.Wrap(ErrNoRecords, "")
-	}
-
+	offset := ""
 	var attendees []string
-	for _, rec := range response.Records {
-		attendees = append(attendees, toStr(rec.Fields[fields.UserName]))
+
+	for {
+		response, err := attendeesTable.GetRecords().
+			WithOffset(offset).
+			ReturnFields(fields.UserName).
+			InStringFormat("US/Eastern", "en").
+			Do()
+
+		if err != nil {
+			log.Errorf("%+v", err)
+			return nil, err
+		}
+
+		for _, rec := range response.Records {
+			attendees = append(attendees, toStr(rec.Fields[fields.UserName]))
+		}
+
+		if response.Offset == "" {
+			break
+		}
+
+		offset = response.Offset
+		// sleep
+		time.Sleep(1 * time.Second)
 	}
 
 	return attendees, nil

@@ -1382,9 +1382,9 @@ func UserByDiscordEndpoint(c *gin.Context) {
 
 // gets all attendees and returns them in an array
 func GetAttendeesEndpoint(c *gin.Context) {
-	authToken := c.Query("auth_token")
+	authToken := c.Request.Header[http.CanonicalHeaderKey("auth_token")]
 
-	if authToken == "" {
+	if authToken == nil {
 		c.AbortWithError(http.StatusUnauthorized, errors.New("auth_token required"))
 		return
 	}
@@ -1396,7 +1396,7 @@ func GetAttendeesEndpoint(c *gin.Context) {
 	}
 
 	h := sha256.Sum256([]byte(hmacSecret))
-	if subtle.ConstantTimeCompare([]byte(hex.EncodeToString(h[:])), []byte(authToken)) != 1 {
+	if subtle.ConstantTimeCompare([]byte(hex.EncodeToString(h[:])), []byte(authToken[0])) != 1 {
 		c.AbortWithError(http.StatusForbidden, errors.New("invalid auth_token"))
 		return
 	}
