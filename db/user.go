@@ -639,7 +639,7 @@ func (u *User) SetFood(veg, gf, lact bool, comments string) error {
 	return nil
 }
 
-func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName string, assistanceToCamp string, assistanceFromCamp, wrongCityRedirect bool, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDay, leavingFrom, cityArrivalTime, earlyArrival string, sleepingBagRentals, sheetRentals, pillowRentals int) error {
+func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName string, assistanceToCamp string, assistanceFromCamp, wrongCityRedirect bool, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, leavingFrom, cityArrivalTime, earlyArrival string, sleepingBagRentals, sheetRentals, pillowRentals int) error {
 	u.Badge = badge
 	u.Vegetarian = veg
 	u.GlutenFree = gf
@@ -653,7 +653,7 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName
 	u.TravelMethod = travelMethod
 	u.FlyingInto = flyingInto
 	u.FlightArrivalTime = flightArrivalTime
-	u.VehicleArrival = vehicleArrivalDay + " " + vehicleArrivalTime
+	u.VehicleArrival = vehicleArrivalTime
 	u.LeavingFrom = leavingFrom
 	u.CityArrivalTime = cityArrivalTime
 	u.SleepingBagRentals = sleepingBagRentals

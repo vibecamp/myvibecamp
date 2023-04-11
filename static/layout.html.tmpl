@@ -177,6 +177,22 @@
             }
           }
         }
+
+        if (assistanceFrom) {
+          // remove hidden from leaving-from-div
+          document.getElementById("leaving-from-div").classList.remove("hidden");
+          // set flying-from to value or none if assistance from is true
+          document.getElementById("leaving-from").value = "{{if and . .LeavingFrom}}{{.LeavingFrom}}{{else}}{{end}}";
+          // if leaving from is other, remove hidden from the warning div. else if leaving from is not blank, remove hidden from city-arrival-time-div
+          if (document.getElementById("leaving-from").value === "Other") {
+            document.getElementById("leaving-from-warning").classList.remove("hidden");
+          } else if (document.getElementById("leaving-from").value !== "") {
+            document.getElementById("city-arrival-time-div").classList.remove("hidden");
+          }
+
+          // set city-arrival-time to CityArrivalTime or none
+          document.getElementById("city-arrival-time").value = "{{if and . .CityArrivalTime}}{{.CityArrivalTime}}{{else}}{{end}}";
+        }
       } else if (travelMethod === "Own Vehicle") {
         // remove hidden from rv camper, vehicle arrival date, and vehicle arrival time divs,
         // set checked and their values respectively from golang
@@ -186,29 +202,13 @@
         document.getElementById("rv-camper").value = "{{if and . .RVCamper}}{{.RVCamper}}{{else}}{{end}}";
         // split VehicleArrival into date and time by space and set to respective values
         const vehicleArrival = "{{if and . .VehicleArrival}}{{.VehicleArrival}}{{else}}{{end}}";
-        const vehicleArrivalSplit = vehicleArrival.split(" ");
-        document.getElementById("vehicle-arrival-day").value = vehicleArrivalSplit[0];
-        document.getElementById("vehicle-arrival-time").value = vehicleArrivalSplit[1];
+        document.getElementById("vehicle-arrival-time").value = vehicleArrival;
       }
 
       // set assistance-from checked from variable value
       document.getElementById("assistance-from-camp").checked = assistanceFrom;
 
-      if (assistanceFrom) {
-        // remove hidden from leaving-from-div
-        document.getElementById("leaving-from-div").classList.remove("hidden");
-        // set flying-from to value or none if assistance from is true
-        document.getElementById("leaving-from").value = "{{if and . .LeavingFrom}}{{.LeavingFrom}}{{else}}{{end}}";
-        // if leaving from is other, remove hidden from the warning div. else if leaving from is not blank, remove hidden from city-arrival-time-div
-        if (document.getElementById("leaving-from").value === "Other") {
-          document.getElementById("leaving-from-warning").classList.remove("hidden");
-        } else if (document.getElementById("leaving-from").value !== "") {
-          document.getElementById("city-arrival-time-div").classList.remove("hidden");
-        }
 
-        // set city-arrival-time to CityArrivalTime or none
-        document.getElementById("city-arrival-time").value = "{{if and . .CityArrivalTime}}{{.CityArrivalTime}}{{else}}{{end}}";
-      }
 
       // set sleeping-bag-rentals from variable value or 0
       document.getElementById("sleeping-bag-rentals").value = "{{if and . .SleepingBagRentals}}{{.SleepingBagRentals}}{{else}}0{{end}}";
@@ -274,6 +274,20 @@
         document.getElementById("travel-from-airport-div").classList.remove("hidden");
         document.getElementById("vehicle-arrival-div").classList.add("hidden");
         document.getElementById("rv-camper-div").classList.add("hidden");
+        document.getElementById("assistance-from-camp-div").classList.remove("hidden");
+
+        if (document.getElementById("assistance-from-camp").checked) {
+          document.getElementById("leaving-from-div").classList.remove("hidden");
+          if (document.getElementById("leaving-from").value === "Other") {
+            document.getElementById("leaving-from-warning").classList.remove("hidden");
+          } else if (document.getElementById("leaving-from").value !== "") {
+            document.getElementById("city-arrival-time-div").classList.remove("hidden");
+          }
+        } else {
+          document.getElementById("leaving-from-div").classList.add("hidden");
+          document.getElementById("leaving-from-warning").classList.add("hidden");
+          document.getElementById("city-arrival-time-div").classList.add("hidden");
+        }
       } else if (value === "Own Vehicle") {
         document.getElementById("travel-from-airport-div").classList.add("hidden");
         document.getElementById("travel-from-airport-yes-div").classList.add("hidden");
@@ -465,25 +479,6 @@
       </div>
     </div>
 
-    <!-- 
-    if they are driving their own vehicle, ask with a select for vehicle-arrival-day what day they will be arriving, between Wednesday and Saturday
-    -->
-    <div id="vehicle-arrival-div" class="hidden">
-      <div class="form-group row form-top-margin" id="vehicle-arrival-day-div">
-        <label class="col-sm-9 col-form-label" for="vehicle-arrival-day">
-          What day will you be arriving?
-        </label>
-        <div class="col-sm-3">
-          <select name="vehicle-arrival-day" id="vehicle-arrival-day" class="form-select" style="text-align: right;">
-            <option value selected hidden></option>
-            <option value="Wednesday">Wednesday</option>
-            <option value="Thursday">Thursday</option>
-            <option value="Friday">Friday</option>
-            <option value="Saturday">Saturday</option>
-          </select>
-        </div>
-      </div>
-
       <!--
       if they are driving their own vehicle & arriving on fri or sat, ask with a select for vehicle-arrival-time what time they will be arriving, in blocks of
       30 minutes between 8 AM and 8 PM, i.e. 8:00-8:30AM, 8:30-9:00AM. if they arrive on thurs or weds, the 8am to noon blocks are not available
@@ -527,7 +522,7 @@
 
 
     <!-- checkbox for assistance-from-camp asking if they need assistance leaving vibecamp -->
-    <div class="form-check">
+    <div class="form-check hidden" id="assistance-from-camp-div">
       <label class="form-check-label" for="assistance-from-camp">
         Do you need assistance traveling from vibecamp to the airport?
       </label>

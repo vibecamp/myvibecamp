@@ -973,7 +973,6 @@ func Logistics2023Handler(c *gin.Context) {
 	flyingInto := c.PostForm("flying-into")
 	flightArrivalTime := c.PostForm("flight-arrival-time")
 	vehicleArrivalTime := c.PostForm("vehicle-arrival-time")
-	vehicleArrivalDate := c.PostForm("vehicle-arrival-date")
 	leavingFrom := c.PostForm("leaving-from")
 	cityArrivalTime := c.PostForm("city-arrival-time")
 	sleepingBagRentals, _ := strconv.Atoi(c.PostForm("sleeping-bag-rentals"))
@@ -981,7 +980,7 @@ func Logistics2023Handler(c *gin.Context) {
 	pillowRentals, _ := strconv.Atoi(c.PostForm("pillow-rentals"))
 	earlyArrival := c.PostForm("early-arrival")
 
-	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments, discordName, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, vehicleArrivalDate, leavingFrom, cityArrivalTime, earlyArrival, sleepingBagRentals, sheetRentals, pillowRentals)
+	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments, discordName, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, leavingFrom, cityArrivalTime, earlyArrival, sleepingBagRentals, sheetRentals, pillowRentals)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
