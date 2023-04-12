@@ -1263,10 +1263,10 @@ type DiscordResponse struct {
 }
 
 func DiscordAuthenticator(c *gin.Context) {
-	authToken := c.Query("auth_token")
+	authToken := c.Request.Header[http.CanonicalHeaderKey("auth_token")]
 	discordName := c.Query("discord_name")
 
-	if authToken == "" {
+	if authToken == nil {
 		c.AbortWithError(http.StatusUnauthorized, errors.New("auth_token required"))
 		return
 	}
@@ -1278,7 +1278,7 @@ func DiscordAuthenticator(c *gin.Context) {
 	}
 
 	h := sha256.Sum256([]byte(hmacSecret))
-	if subtle.ConstantTimeCompare([]byte(hex.EncodeToString(h[:])), []byte(authToken)) != 1 {
+	if subtle.ConstantTimeCompare([]byte(hex.EncodeToString(h[:])), []byte(authToken[0])) != 1 {
 		c.AbortWithError(http.StatusForbidden, errors.New("invalid auth_token"))
 		return
 	}
