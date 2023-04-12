@@ -88,7 +88,7 @@ func findUser(c *gin.Context, username string, isEmailSignIn bool) {
 				if user.TicketPath == "Sponsorship" {
 					c.Redirect(http.StatusFound, "/sponsorship-cart")
 					return
-				} else if user.TicketPath == "FCFS" || user.TicketPath == "Lottery" || user.TicketPath == "Application" {
+				} else if user.TicketPath == "FCFS" || user.TicketPath == "Lottery" || user.TicketPath == "Application" || user.TicketPath == fields.LateApp {
 					c.Redirect(http.StatusFound, "/chaos-cart")
 					return
 				} else {
@@ -103,7 +103,7 @@ func findUser(c *gin.Context, username string, isEmailSignIn bool) {
 				c.Redirect(http.StatusFound, "/2023-logistics")
 				return
 			}
-		} else if user.AdmissionLevel == "Staff" {
+		} else if user.AdmissionLevel == fields.Staff || user.TicketPath == fields.Volunteer || user.TicketPath == fields.TicketSwap || user.TicketPath == fields.Comped {
 			// if they don't have an order id check if they're staff
 			c.Redirect(http.StatusFound, "/2023-logistics")
 			return
@@ -1295,7 +1295,8 @@ func DiscordAuthenticator(c *gin.Context) {
 }
 
 type AppEndpointResponse struct {
-	TwitterName       string `json:"twitter_name"`
+	TwitterName       string `json:"twitter_name,omitempty"`
+	UserName          string `json:"user_name"`
 	DiscordName       string `json:"discord_name"`
 	TicketStatus      string `json:"ticket_status"`
 	TicketType        string `json:"ticket_type"`
@@ -1338,7 +1339,7 @@ func AppEndpoint(c *gin.Context) {
 			c.AbortWithError(http.StatusInternalServerError, err)
 		}
 	} else if user != nil {
-		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin2023, CabinNickname2023: user.CabinNickname2023, TentVillage2023: user.TentVillage})
+		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.TwitterName, UserName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin2023, CabinNickname2023: user.CabinNickname2023, TentVillage2023: user.TentVillage})
 	} else {
 		c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
 	}
@@ -1374,7 +1375,7 @@ func UserByDiscordEndpoint(c *gin.Context) {
 			c.AbortWithError(http.StatusInternalServerError, err)
 		}
 	} else if user != nil {
-		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin2023, CabinNickname2023: user.CabinNickname2023, TentVillage2023: user.TentVillage})
+		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.TwitterName, UserName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin2023, CabinNickname2023: user.CabinNickname2023, TentVillage2023: user.TentVillage})
 	} else {
 		c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
 	}

@@ -70,6 +70,8 @@ const (
 	TicketSwap   = "Ticket Swap"
 	Staff        = "Staff"
 	Volunteer    = "Volunteer"
+	LateApp      = "Late App"
+	Comped       = "Comped"
 
 	NA = "N/A"
 
