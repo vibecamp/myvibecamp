@@ -255,7 +255,7 @@ func (u *User) CreateUser() error {
 }
 
 func GetUserFromBarcode(barcode string) (*User, error) {
-	return getUserByField(fields.Barcode, barcode)
+	return GetUserByField(fields.Barcode, barcode)
 }
 
 func GetUser(userName string) (*User, error) {
@@ -272,7 +272,7 @@ func GetUser(userName string) (*User, error) {
 		}
 	}
 
-	user, err := getUserByField(fields.UserName, cleanName)
+	user, err := GetUserByField(fields.UserName, cleanName)
 	if err != nil {
 		if errors.Is(err, ErrNoRecords) {
 			err = errors.New("You're not on the guest list! Most likely we spelled your Twitter handle wrong.")
@@ -287,7 +287,7 @@ func GetUser(userName string) (*User, error) {
 	return user, nil
 }
 
-func getUserByField(field, value string) (*User, error) {
+func GetUserByField(field, value string) (*User, error) {
 	response, err := query(attendeesTable, field, value) // get all fields
 	if err != nil {
 		return nil, err
@@ -809,7 +809,7 @@ func (u *User) SetCheckedIn() error {
 }
 
 func GetUserByDiscord(discordName string) (*User, error) {
-	user, err := getUserByField(fields.DiscordName, discordName)
+	user, err := GetUserByField(fields.DiscordName, discordName)
 	if err != nil {
 		if errors.Is(err, ErrNoRecords) {
 			err = errors.New("user not found")

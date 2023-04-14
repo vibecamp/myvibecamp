@@ -1330,18 +1330,26 @@ func AppEndpoint(c *gin.Context) {
 		return
 	}
 
-	user, err := db.GetUser(twitterName)
-	if err != nil {
-		// c.AbortWithError(http.StatusInternalServerError, err)
-		if err == errors.New("You're not on the guest list! Most likely we spelled your Twitter handle wrong.") {
-			c.JSON(http.StatusNotFound, nil)
-		} else {
-			c.AbortWithError(http.StatusInternalServerError, err)
-		}
-	} else if user != nil {
+	user, _ := db.GetUser(twitterName)
+	if user != nil {
 		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.TwitterName, UserName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin2023, CabinNickname2023: user.CabinNickname2023, TentVillage2023: user.TentVillage})
 	} else {
-		c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
+		user, err := db.GetUserByField("twitter_name", twitterName)
+		if user != nil {
+			c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.TwitterName, UserName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin2023, CabinNickname2023: user.CabinNickname2023, TentVillage2023: user.TentVillage})
+			return
+		}
+
+		if err != nil {
+			// c.AbortWithError(http.StatusInternalServerError, err)
+			if err == errors.New("You're not on the guest list! Most likely we spelled your Twitter handle wrong.") {
+				c.JSON(http.StatusNotFound, nil)
+			} else {
+				c.AbortWithError(http.StatusInternalServerError, err)
+			}
+		} else {
+			c.AbortWithError(http.StatusInternalServerError, errors.New("Unknown server error"))
+		}
 	}
 }
 
