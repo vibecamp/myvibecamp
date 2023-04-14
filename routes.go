@@ -1334,7 +1334,7 @@ func AppEndpoint(c *gin.Context) {
 	if user != nil {
 		c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.TwitterName, UserName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin2023, CabinNickname2023: user.CabinNickname2023, TentVillage2023: user.TentVillage})
 	} else {
-		user, err := db.GetUserByField("twitter_name", twitterName)
+		user, err := db.GetUserByField(fields.TwitterName, twitterName)
 		if user != nil {
 			c.JSON(http.StatusOK, AppEndpointResponse{TwitterName: user.TwitterName, UserName: user.UserName, DiscordName: user.DiscordName, TicketStatus: "Active", TicketType: user.TicketType, TicketID: user.TicketID, AccomodationType: user.AdmissionLevel, Cabin2022: user.Cabin2022, CreatedAt: user.Created, Cabin2023: user.Cabin2023, CabinNickname2023: user.CabinNickname2023, TentVillage2023: user.TentVillage})
 			return
