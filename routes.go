@@ -931,7 +931,7 @@ func Logistics2023Handler(c *gin.Context) {
 		return
 	}
 
-	needsOrder := !(user.AdmissionLevel == "Staff" || user.TicketPath == "Sponsorship")
+	needsOrder := !(user.AdmissionLevel == "Staff" || user.TicketPath == "Sponsorship" || user.TicketPath == fields.Volunteer || user.TicketPath == fields.TicketSwap || user.TicketPath == fields.Comped)
 
 	order, err := db.GetOrder(user.OrderID)
 	if needsOrder {
