@@ -13,7 +13,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/sirupsen/logrus v1.8.1
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	github.com/stripe/stripe-go/v72 v72.111.0
+	github.com/stripe/stripe-go/v74 v74.16.0
 )
 
 require (

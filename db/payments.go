@@ -35,6 +35,7 @@ type Order struct {
 	ToddlerTent   int
 	ToddlerSat    int
 	Donation      int
+	CardPacks     int
 	StripeID      string
 	PaymentStatus string
 	Date          string
@@ -79,6 +80,7 @@ func (o *Order) CreateOrder() error {
 					fields.ToddlerCabin:  o.ToddlerCabin,
 					fields.ToddlerTent:   o.ToddlerTent,
 					fields.ToddlerSat:    o.ToddlerSat,
+					fields.CardPacks:     o.CardPacks,
 					fields.Donation:      o.Donation,
 					fields.PaymentID:     o.StripeID,
 					fields.PaymentStatus: o.PaymentStatus,
