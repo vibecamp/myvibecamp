@@ -397,8 +397,7 @@ func HandleStripeWebhook(c *gin.Context) {
 	// If you are using an endpoint defined with the API or dashboard, look in your webhook settings
 	// at https://dashboard.stripe.com/webhooks
 	signatureHeader := req.Header.Get("Stripe-Signature")
-	event, err = webhook.ConstructEventWithOptions(payload, signatureHeader, webhookSecret, webhook.ConstructEventOptions{
-		IgnoreAPIVersionMismatch: true})
+	event, err = webhook.ConstructEvent(payload, signatureHeader, webhookSecret)
 	if err != nil {
 		log.Errorf("⚠️  Webhook signature verification failed. %v\n", err)
 		w.WriteHeader(http.StatusBadRequest) // Return a 400 error on a bad signature
