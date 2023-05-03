@@ -125,6 +125,7 @@ const (
 	Donation      = "Donation Amount"
 	PaymentID     = "PaymentIntentID"
 	PaymentStatus = "Payment Status"
+	CardPacks     = "Card Packs"
 
 	// payments
 	StripeID = "StripeID"

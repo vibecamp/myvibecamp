@@ -16,9 +16,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v72"
-	"github.com/stripe/stripe-go/v72/paymentintent"
-	"github.com/stripe/stripe-go/v72/webhook"
+	"github.com/stripe/stripe-go/v74"
+	"github.com/stripe/stripe-go/v74/paymentintent"
+	"github.com/stripe/stripe-go/v74/webhook"
 )
 
 // this could be put in the DB but should it be? hmm
@@ -338,6 +338,40 @@ func AddToKlaviyo(email string, admissionLevel string, donation string) error {
 	return nil
 }
 
+func CreateCardOrder(c *gin.Context, handle string, quantity int, session *stripe.CheckoutSession) error {
+	// fill order in with 0s except for amount, username, & card packs
+	order := &db.Order{
+		TotalTickets:  0,
+		AdultCabin:    0,
+		AdultTent:     0,
+		ChildCabin:    0,
+		ChildTent:     0,
+		Total:         db.CurrencyFromFloat(float64(25.44) * float64(quantity)),
+		CardPacks:     quantity,
+		UserName:      handle,
+		ChildSat:      0,
+		AdultSat:      0,
+		ToddlerCabin:  0,
+		ToddlerTent:   0,
+		ToddlerSat:    0,
+		Donation:      0,
+		Date:          time.Now().UTC().Format("2006-01-02 15:04"),
+		OrderID:       uuid.NewString(),
+		ProcessingFee: db.CurrencyFromFloat(0),
+		StripeID:      session.PaymentIntent.ID,
+		PaymentStatus: "success",
+	}
+
+	err := order.CreateOrder()
+
+	if err != nil {
+		log.Errorf("Error creating order %v", err)
+		return err
+	}
+
+	return nil
+}
+
 func HandleStripeWebhook(c *gin.Context) {
 	var w http.ResponseWriter = c.Writer
 	var req *http.Request = c.Request
@@ -502,6 +536,33 @@ func HandleStripeWebhook(c *gin.Context) {
 			return
 		}
 		log.Printf("Payment intent created %v", paymentIntent.ID)
+		w.WriteHeader(http.StatusOK)
+		return
+	case "checkout.session.completed":
+		var session stripe.CheckoutSession
+		err := json.Unmarshal(event.Data.Raw, &session)
+		if err != nil {
+			log.Errorf("Error parsing webhook JSON: %v\n", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		log.Printf("Checkout session completed %v", session.ID)
+
+		// check the custom fields to see if Twitter handle is in it
+		// if so, create a card order for them
+
+		if session.CustomFields != nil && len(session.CustomFields) > 0 && session.CustomFields[0].Label.Custom == "Twitter handle" {
+			twitterHandle := session.CustomFields[0].Text.Value
+			quantity := int(session.AmountSubtotal / 2544)
+			err = CreateCardOrder(c, twitterHandle, quantity, &session)
+
+			if err != nil {
+				log.Errorf("Error creating card order %v", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
 		w.WriteHeader(http.StatusOK)
 		return
 	default:
