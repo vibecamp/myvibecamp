@@ -894,7 +894,7 @@ func toStr(i interface{}) string {
 	if i == nil {
 		return ""
 	}
-	return i.(string)
+	return strings.TrimSpace(i.(string))
 }
 
 // CacheWarmup fetches every user to warm up the cache
