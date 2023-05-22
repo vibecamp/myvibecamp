@@ -17,7 +17,7 @@ type BusSlot struct {
 func GetSlot(slot string) (*BusSlot, error) {
 	var bs *BusSlot
 
-	response, err := query(attendeesTable, fields.BusSlot, slot)
+	response, err := query(bus2023Table, fields.BusSlot, slot)
 
 	if err != nil {
 		return nil, err

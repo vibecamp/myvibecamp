@@ -185,6 +185,125 @@ func ContactUsHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "contact.html.tmpl", user)
 }
 
+func Transport2023Handler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	_, err := db.GetUser(session.UserName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if c.Request.Method == "POST" {
+		busQuantity, _ := strconv.Atoi(c.PostForm("busQuantity"))
+		busToVibecamp := c.PostForm("busArriveTime")
+		busFromVibecamp := c.PostForm("busDepartTime")
+		sleepingBags, _ := strconv.Atoi(c.PostForm("sleepingBagQuantity"))
+		pillows, _ := strconv.Atoi(c.PostForm("pillowQuantity"))
+		sheetSets, _ := strconv.Atoi(c.PostForm("sheetSetQuantity"))
+
+		if busQuantity > 0 {
+			if busToVibecamp == "" && busFromVibecamp == "" {
+				c.AbortWithError(http.StatusBadRequest, errors.New("must select a bus slot"))
+				return
+			}
+
+			if busToVibecamp != "" {
+				bs, err := db.GetSlot(busToVibecamp)
+				if err != nil {
+					c.AbortWithError(http.StatusBadRequest, err)
+					return
+				}
+
+				if bs.Purchased+busQuantity > bs.Cap {
+					c.AbortWithError(http.StatusBadRequest, errors.New("bus slot is full"))
+					return
+				}
+			}
+
+			if busFromVibecamp != "" {
+				bs, err := db.GetSlot(busFromVibecamp)
+				if err != nil {
+					c.AbortWithError(http.StatusBadRequest, err)
+					return
+				}
+
+				if bs.Purchased+busQuantity > bs.Cap {
+					c.AbortWithError(http.StatusBadRequest, errors.New("bus slot is full"))
+					return
+				}
+			}
+		}
+
+		params := url.Values{}
+		params.Set("busQuantity", strconv.Itoa(busQuantity))
+		params.Set("sleepingBags", strconv.Itoa(sleepingBags))
+		params.Set("pillows", strconv.Itoa(pillows))
+		params.Set("sheetSets", strconv.Itoa(sheetSets))
+		params.Set("busToVibecamp", busToVibecamp)
+		params.Set("busFromVibecamp", busFromVibecamp)
+
+		c.Redirect(http.StatusFound, "/transport-checkout"+"?"+params.Encode())
+		return
+	}
+
+	c.HTML(http.StatusOK, "transport2023.html.tmpl", gin.H{})
+}
+
+func TransportCheckoutHandler(c *gin.Context) {
+	session := GetSession(c)
+	if !session.SignedIn() {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	user, err := db.GetUser(session.UserName)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	busSpots, _ := strconv.Atoi(c.Query("busQuantity"))
+	busToVibecamp := c.Query("busToVibecamp")
+	busFromVibecamp := c.Query("busFromVibecamp")
+	sleepingBags, _ := strconv.Atoi(c.Query("sleepingBags"))
+	pillows, _ := strconv.Atoi(c.Query("pillows"))
+	sheetSets, _ := strconv.Atoi(c.Query("sheetSets"))
+	items := struct {
+		BusSpots        int    `json:"busSpots"`
+		BusToVibecamp   string `json:"busToVibecamp"`
+		BusFromVibecamp string `json:"busFromVibecamp"`
+		SleepingBags    int    `json:"sleepingBags"`
+		SheetSets       int    `json:"sheetSets"`
+		Pillows         int    `json:"pillows"`
+	}{
+		BusSpots:        busSpots,
+		BusToVibecamp:   busToVibecamp,
+		BusFromVibecamp: busFromVibecamp,
+		SleepingBags:    sleepingBags,
+		SheetSets:       sheetSets,
+		Pillows:         pillows,
+	}
+
+	// log.Debugf("%v", itemMap)
+	itemJson, err := json.Marshal(items)
+	if err != nil {
+		log.Errorf("%v", err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	// log.Debugf(string(itemJson))
+
+	c.HTML(http.StatusOK, "transportCheckout.html.tmpl", gin.H{
+		"User":  user,
+		"Items": string(itemJson),
+	})
+}
+
 func TicketCartHandler(c *gin.Context) {
 	session := GetSession(c)
 	if !session.SignedIn() {

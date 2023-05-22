@@ -1,4 +1,4 @@
-
+{{ template "header" }}
 <!-- simple form to let user input their bus & bedding order -->
 <!-- form will be submitted to the same page -->
 <!-- form will be submitted using POST -->
@@ -41,8 +41,11 @@
 
 <!-- form to let user input their bus & bedding order -->
 
+{{ template "nav" "vc2" }}
+
 <div class="container">
-<form method="POST" action="">
+  {{ template "flashes" .flashes }}
+<form method="post" action="">
 
     <fieldset>
         <p>
@@ -54,7 +57,7 @@
         <label class="col-sm-5 col-form-label" for="busQuantity" id="busQuantityLabel">Bus Spots</label>
         <div class="col-sm-3"></div>
         <div class="col-sm-3">
-        <input type="number" name="busQuantity" id="busQuantity" min="0" max="10" value="0" />
+        <input type="number" name="busQuantity" class="form-control" id="busQuantity" min="0" max="10" value="0" onChange="onCartInputChange()" />
         </div>
         </div>
     
@@ -63,8 +66,8 @@
         <label for="busArriveTime" class="col-sm-5 col-form-label">Bus to Vibecamp</label>
         <div class="col-sm-3"></div>
         <div class="col-sm-3">
-        <select name="busArriveTime" id="busArriveTime">
-            <option value="none">Select Departure Time</option>
+        <select name="busArriveTime" id="busArriveTime" class="form-select" onChange="onCartInputChange()" >
+            <option value="">Select Departure Time</option>
             <option value="{{$arriveSlotOne}}">{{$arriveSlotOne}}</option>
             <option value="{{$arriveSlotTwo}}">{{$arriveSlotTwo}}</option>
             <option value="{{$arriveSlotThree}}">{{$arriveSlotThree}}</option>
@@ -77,8 +80,8 @@
         <label for="busDepartTime" class="col-sm-5 col-form-label">Bus from Vibecamp</label>
         <div class="col-sm-3"></div>
         <div class="col-sm-3">
-        <select name="busDepartTime" id="busDepartTime">
-            <option value="none">Select Departure Time</option>
+        <select name="busDepartTime" id="busDepartTime" class="form-select" onChange="onCartInputChange()" >
+            <option value="">Select Departure Time</option>
             <option value="{{$departSlotOne}}">{{$departSlotOne}}</option>
             <option value="{{$departSlotTwo}}">{{$departSlotTwo}}</option>
             <option value="{{$departSlotThree}}">{{$departSlotThree}}</option>
@@ -97,7 +100,7 @@
         <label for="sleepingBagQuantity" class="col-sm-5 col-form-label">Sleeping Bags</label>
         <div class="col-sm-3"></div>
         <div class="col-sm-3">
-        <input type="number" name="sleepingBagQuantity" id="sleepingBagQuantity" min="0" max="10" value="0" />
+        <input type="number" name="sleepingBagQuantity" class="form-control" id="sleepingBagQuantity" min="0" max="10" value="0" onChange="onCartInputChange()" />
         </div>
         </div>
 
@@ -106,7 +109,7 @@
         <label for="sheetSetQuantity" class="col-sm-5 col-form-label">Sheet Sets</label>
         <div class="col-sm-3"></div>
         <div class="col-sm-3">
-        <input type="number" name="sheetSetQuantity" id="sheetSetQuantity" min="0" max="10" value="0" />
+        <input type="number" name="sheetSetQuantity" class="form-control" id="sheetSetQuantity" min="0" max="10" value="0" onChange="onCartInputChange()" />
         </div>
         </div>
 
@@ -115,7 +118,7 @@
         <label for="pillowQuantity" class="col-sm-5 col-form-label">Pillows</label>
         <div class="col-sm-3"></div>
         <div class="col-sm-3">
-        <input type="number" name="pillowQuantity" id="pillowQuantity" min="0" max="10" value="0" />
+        <input type="number" name="pillowQuantity" class="form-control" id="pillowQuantity" min="0" max="10" value="0" onChange="onCartInputChange()"  />
         </div>
         </div>
 
@@ -133,6 +136,8 @@
 
     </fieldset>
 
-      <button type="submit" class="btn btn-primary hidden" id="checkout-button">Checkout</button>
+      <button type="submit" class="btn btn-primary" id="checkout-button">Checkout</button>
 </form>
 </div>
+
+{{ template "footer" }}
