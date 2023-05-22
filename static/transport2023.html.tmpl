@@ -1,0 +1,143 @@
+{{ template "header" }}
+<!-- simple form to let user input their bus & bedding order -->
+<!-- form will be submitted to the same page -->
+<!-- form will be submitted using POST -->
+<!-- form will have 2 drop downs for user to select their bus time slot, arrive and depart -->
+<!-- form will have a number input for user to select their bus quantity -->
+<!-- form will have 3 number inputs for each bedding type - sleeping bag, sheet set, pillow -->
+<!-- form will have a submit button -->
+<!-- form will auto update the total cost -->
+
+{{$arriveSlotOne := "11:00 AM"}}
+{{$arriveSlotTwo := "2:30 PM"}}
+{{$arriveSlotThree := "6:00 PM"}}
+{{$departSlotOne := "8:00 AM"}}
+{{$departSlotTwo := "11:30 AM"}}
+{{$departSlotThree := "3:00 PM"}}
+
+{{$sleepingBagPrice := 35}}
+{{$sheetSetPrice := 60}}
+{{$pillowPrice := 20}}
+
+{{$busPrice := 5}}
+
+{{$totalCost := 0}}
+
+<script type="text/javascript">
+    function onCartInputChange(event) {
+        // calculate and update the total cost & processing fee
+        const busQuantity = document.getElementById("busQuantity").value;
+        const sleepingBagQuantity = document.getElementById("sleepingBagQuantity").value;
+        const sheetSetQuantity = document.getElementById("sheetSetQuantity").value;
+        const pillowQuantity = document.getElementById("pillowQuantity").value;
+
+        const totalCost = (busQuantity * {{$busPrice}}) + (sleepingBagQuantity * {{$sleepingBagPrice}}) + (sheetSetQuantity * {{$sheetSetPrice}}) + (pillowQuantity * {{$pillowPrice}});
+        const processingFee = Math.round(totalCost * 0.03 * 100) / 100;
+
+        document.getElementById("total-cost").value = "$" + totalCost;
+        document.getElementById("processing-fee").value = "$" + processingFee;
+    }
+</script>
+
+<!-- form to let user input their bus & bedding order -->
+
+{{ template "nav" "vc2" }}
+
+<div class="container">
+  {{ template "flashes" .flashes }}
+<form method="post" action="">
+
+    <fieldset>
+        <p>
+            Bus slots are ${{$busPrice}} each. Buses will depart from Philly at the "Bus to Vibecamp" times, & will depart from Vibecamp to Philly at the "Bus from Vibecamp" times.
+        </p>
+
+        <!-- how many bus spots input, $5 each -->
+        <div class="form-group row">
+        <label class="col-sm-5 col-form-label" for="busQuantity" id="busQuantityLabel">Bus Spots</label>
+        <div class="col-sm-3"></div>
+        <div class="col-sm-3">
+        <input type="number" name="busQuantity" class="form-control" id="busQuantity" min="0" max="10" value="0" onChange="onCartInputChange()" />
+        </div>
+        </div>
+    
+        <!-- bus arrive time input -->
+        <div class="form-group row">
+        <label for="busArriveTime" class="col-sm-5 col-form-label">Bus to Vibecamp</label>
+        <div class="col-sm-3"></div>
+        <div class="col-sm-3">
+        <select name="busArriveTime" id="busArriveTime" class="form-select" onChange="onCartInputChange()" >
+            <option value="">Select Departure Time</option>
+            <option value="{{$arriveSlotOne}}">{{$arriveSlotOne}}</option>
+            <option value="{{$arriveSlotTwo}}">{{$arriveSlotTwo}}</option>
+            <option value="{{$arriveSlotThree}}">{{$arriveSlotThree}}</option>
+        </select>
+        </div>
+        </div>
+
+        <!-- bus depart time input -->
+        <div class="form-group row">
+        <label for="busDepartTime" class="col-sm-5 col-form-label">Bus from Vibecamp</label>
+        <div class="col-sm-3"></div>
+        <div class="col-sm-3">
+        <select name="busDepartTime" id="busDepartTime" class="form-select" onChange="onCartInputChange()" >
+            <option value="">Select Departure Time</option>
+            <option value="{{$departSlotOne}}">{{$departSlotOne}}</option>
+            <option value="{{$departSlotTwo}}">{{$departSlotTwo}}</option>
+            <option value="{{$departSlotThree}}">{{$departSlotThree}}</option>
+        </select>
+        </div>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <p>
+            Bedding is ${{$sleepingBagPrice}} for a sleeping bag, ${{$sheetSetPrice}} for a sheet set, and ${{$pillowPrice}} for a pillow (including pillow case). All will be rented and available at check-in time.
+        </p>
+
+        <!-- how many sleeping bags input, $35 each -->
+        <div class="form-group row">
+        <label for="sleepingBagQuantity" class="col-sm-5 col-form-label">Sleeping Bags</label>
+        <div class="col-sm-3"></div>
+        <div class="col-sm-3">
+        <input type="number" name="sleepingBagQuantity" class="form-control" id="sleepingBagQuantity" min="0" max="10" value="0" onChange="onCartInputChange()" />
+        </div>
+        </div>
+
+        <!-- how many sheet sets input, $60 each -->
+        <div class="form-group row">
+        <label for="sheetSetQuantity" class="col-sm-5 col-form-label">Sheet Sets</label>
+        <div class="col-sm-3"></div>
+        <div class="col-sm-3">
+        <input type="number" name="sheetSetQuantity" class="form-control" id="sheetSetQuantity" min="0" max="10" value="0" onChange="onCartInputChange()" />
+        </div>
+        </div>
+
+        <!-- how many pillows input, $20 each -->
+        <div class="form-group row">
+        <label for="pillowQuantity" class="col-sm-5 col-form-label">Pillows</label>
+        <div class="col-sm-3"></div>
+        <div class="col-sm-3">
+        <input type="number" name="pillowQuantity" class="form-control" id="pillowQuantity" min="0" max="10" value="0" onChange="onCartInputChange()"  />
+        </div>
+        </div>
+
+        <div class="row">
+        <span class="col-sm-9 col-form-label">Processing Fee</span>
+        <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="$0"/>
+      </div>
+      <br/>
+
+      <div class="row">
+        <span class="col-sm-9 col-form-label">Your Total</span>
+        <input readonly type="text" class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;" value="$0"/>
+      </div>
+      <br/>
+
+    </fieldset>
+
+      <button type="submit" class="btn btn-primary" id="checkout-button">Checkout</button>
+</form>
+</div>
+
+{{ template "footer" }}

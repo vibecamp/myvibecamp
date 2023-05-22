@@ -61,6 +61,19 @@ const (
 	SheetRentals       = "Sheet Rentals"
 	PillowRentals      = "Pillow Rentals"
 
+	// Orders for Bus & Bedding
+	BusSpots        = "Bus Spots"
+	BusToVibecamp   = "Bus to Vibecamp"
+	BusFromVibecamp = "Bus from Vibecamp"
+	SleepingBags    = "Sleeping Bags"
+	SheetSets       = "Sheet Sets"
+	Pillows         = "Pillows"
+
+	// Bus Options
+	BusSlot   = "Bus Slot"
+	Purchased = "Purchased"
+	Cap       = "Cap"
+
 	// ticket paths
 	Sponsorship  = "Sponsorship"
 	Attendee2022 = "2022 Attendee"

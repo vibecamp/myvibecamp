@@ -20,25 +20,31 @@ type Item struct {
 }
 
 type Order struct {
-	OrderID       string
-	UserName      string
-	Total         *Currency
-	ProcessingFee *Currency
-	TotalTickets  int
-	AdultCabin    int
-	AdultTent     int
-	AdultSat      int
-	ChildCabin    int
-	ChildTent     int
-	ChildSat      int
-	ToddlerCabin  int
-	ToddlerTent   int
-	ToddlerSat    int
-	Donation      int
-	CardPacks     int
-	StripeID      string
-	PaymentStatus string
-	Date          string
+	OrderID         string
+	UserName        string
+	Total           *Currency
+	ProcessingFee   *Currency
+	TotalTickets    int
+	AdultCabin      int
+	AdultTent       int
+	AdultSat        int
+	ChildCabin      int
+	ChildTent       int
+	ChildSat        int
+	ToddlerCabin    int
+	ToddlerTent     int
+	ToddlerSat      int
+	Donation        int
+	CardPacks       int
+	BusSpots        int
+	BusToVibecamp   string
+	BusFromVibecamp string
+	SleepingBags    int
+	SheetSets       int
+	Pillows         int
+	StripeID        string
+	PaymentStatus   string
+	Date            string
 
 	AirtableID string
 }
@@ -66,25 +72,31 @@ func (o *Order) CreateOrder() error {
 		Records: []*airtable.Record{
 			{
 				Fields: map[string]interface{}{
-					fields.UserName:      o.UserName,
-					fields.OrderID:       o.OrderID,
-					fields.Total:         o.Total.ToFloat(),
-					fields.ProcessingFee: o.ProcessingFee.ToFloat(),
-					fields.TotalTickets:  o.TotalTickets,
-					fields.AdultCabin:    o.AdultCabin,
-					fields.AdultTent:     o.AdultTent,
-					fields.AdultSat:      o.AdultSat,
-					fields.ChildCabin:    o.ChildCabin,
-					fields.ChildTent:     o.ChildTent,
-					fields.ChildSat:      o.ChildSat,
-					fields.ToddlerCabin:  o.ToddlerCabin,
-					fields.ToddlerTent:   o.ToddlerTent,
-					fields.ToddlerSat:    o.ToddlerSat,
-					fields.CardPacks:     o.CardPacks,
-					fields.Donation:      o.Donation,
-					fields.PaymentID:     o.StripeID,
-					fields.PaymentStatus: o.PaymentStatus,
-					fields.Date:          o.Date,
+					fields.UserName:        o.UserName,
+					fields.OrderID:         o.OrderID,
+					fields.Total:           o.Total.ToFloat(),
+					fields.ProcessingFee:   o.ProcessingFee.ToFloat(),
+					fields.TotalTickets:    o.TotalTickets,
+					fields.AdultCabin:      o.AdultCabin,
+					fields.AdultTent:       o.AdultTent,
+					fields.AdultSat:        o.AdultSat,
+					fields.ChildCabin:      o.ChildCabin,
+					fields.ChildTent:       o.ChildTent,
+					fields.ChildSat:        o.ChildSat,
+					fields.ToddlerCabin:    o.ToddlerCabin,
+					fields.ToddlerTent:     o.ToddlerTent,
+					fields.ToddlerSat:      o.ToddlerSat,
+					fields.CardPacks:       o.CardPacks,
+					fields.BusSpots:        o.BusSpots,
+					fields.BusToVibecamp:   o.BusToVibecamp,
+					fields.BusFromVibecamp: o.BusFromVibecamp,
+					fields.SleepingBags:    o.SleepingBags,
+					fields.SheetSets:       o.SheetSets,
+					fields.Pillows:         o.Pillows,
+					fields.Donation:        o.Donation,
+					fields.PaymentID:       o.StripeID,
+					fields.PaymentStatus:   o.PaymentStatus,
+					fields.Date:            o.Date,
 				},
 			},
 		},
@@ -164,25 +176,31 @@ func getOrderByField(field, value string) (*Order, error) {
 	rec := response.Records[0]
 
 	o := &Order{
-		AirtableID:    rec.ID,
-		UserName:      toStr(rec.Fields[fields.UserName]),
-		OrderID:       toStr(rec.Fields[fields.OrderID]),
-		Total:         CurrencyFromAirtableString(toStr(rec.Fields[fields.Total])),
-		ProcessingFee: CurrencyFromAirtableString(toStr(rec.Fields[fields.ProcessingFee])),
-		Donation:      CurrencyFromAirtableString(toStr(rec.Fields[fields.Donation])).Dollars,
-		TotalTickets:  toInt(rec.Fields[fields.TotalTickets]),
-		AdultCabin:    toInt(rec.Fields[fields.AdultCabin]),
-		AdultTent:     toInt(rec.Fields[fields.AdultTent]),
-		AdultSat:      toInt(rec.Fields[fields.AdultSat]),
-		ChildCabin:    toInt(rec.Fields[fields.ChildCabin]),
-		ChildTent:     toInt(rec.Fields[fields.ChildTent]),
-		ChildSat:      toInt(rec.Fields[fields.ChildSat]),
-		ToddlerCabin:  toInt(rec.Fields[fields.ToddlerCabin]),
-		ToddlerTent:   toInt(rec.Fields[fields.ToddlerTent]),
-		ToddlerSat:    toInt(rec.Fields[fields.ToddlerSat]),
-		StripeID:      toStr(rec.Fields[fields.PaymentID]),
-		PaymentStatus: toStr(rec.Fields[fields.PaymentStatus]),
-		Date:          toStr(rec.Fields[fields.Date]),
+		AirtableID:      rec.ID,
+		UserName:        toStr(rec.Fields[fields.UserName]),
+		OrderID:         toStr(rec.Fields[fields.OrderID]),
+		Total:           CurrencyFromAirtableString(toStr(rec.Fields[fields.Total])),
+		ProcessingFee:   CurrencyFromAirtableString(toStr(rec.Fields[fields.ProcessingFee])),
+		Donation:        CurrencyFromAirtableString(toStr(rec.Fields[fields.Donation])).Dollars,
+		TotalTickets:    toInt(rec.Fields[fields.TotalTickets]),
+		AdultCabin:      toInt(rec.Fields[fields.AdultCabin]),
+		AdultTent:       toInt(rec.Fields[fields.AdultTent]),
+		AdultSat:        toInt(rec.Fields[fields.AdultSat]),
+		ChildCabin:      toInt(rec.Fields[fields.ChildCabin]),
+		ChildTent:       toInt(rec.Fields[fields.ChildTent]),
+		ChildSat:        toInt(rec.Fields[fields.ChildSat]),
+		ToddlerCabin:    toInt(rec.Fields[fields.ToddlerCabin]),
+		ToddlerTent:     toInt(rec.Fields[fields.ToddlerTent]),
+		ToddlerSat:      toInt(rec.Fields[fields.ToddlerSat]),
+		BusSpots:        toInt(rec.Fields[fields.BusSpots]),
+		BusToVibecamp:   toStr(rec.Fields[fields.BusToVibecamp]),
+		BusFromVibecamp: toStr(rec.Fields[fields.BusFromVibecamp]),
+		SleepingBags:    toInt(rec.Fields[fields.SleepingBags]),
+		SheetSets:       toInt(rec.Fields[fields.SheetSets]),
+		Pillows:         toInt(rec.Fields[fields.Pillows]),
+		StripeID:        toStr(rec.Fields[fields.PaymentID]),
+		PaymentStatus:   toStr(rec.Fields[fields.PaymentStatus]),
+		Date:            toStr(rec.Fields[fields.Date]),
 	}
 
 	if defaultCache != nil {

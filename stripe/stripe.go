@@ -91,6 +91,137 @@ func calculateCartInfo(items []db.Item, ticketLimit int) (*db.Order, error) {
 	return order, nil
 }
 
+func HandleTransportCreatePaymentIntent(c *gin.Context) {
+	var w http.ResponseWriter = c.Writer
+	var r *http.Request = c.Request
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		BusSpots        int    `json:"busSpots"`
+		BusToVibecamp   string `json:"busToVibecamp"`
+		BusFromVibecamp string `json:"busFromVibecamp"`
+		SleepingBags    int    `json:"sleepingBags"`
+		SheetSets       int    `json:"sheetSets"`
+		Pillows         int    `json:"pillows"`
+		UserName        string `json:"username"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Errorf("json.NewDecoder.Decode: %v", err)
+		return
+	}
+
+	user, err := db.GetUser(req.UserName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Errorf("db.GetUser: %v", err)
+		return
+	}
+
+	total := req.BusSpots*5 + req.SleepingBags*35 + req.SheetSets*60 + req.Pillows*20
+	processingFee := float64(total) * stripeFeePercent
+
+	order := &db.Order{
+		UserName:        req.UserName,
+		OrderID:         uuid.NewString(),
+		StripeID:        "",
+		PaymentStatus:   "",
+		AirtableID:      "",
+		TotalTickets:    0,
+		AdultCabin:      0,
+		AdultTent:       0,
+		AdultSat:        0,
+		ChildCabin:      0,
+		ChildTent:       0,
+		ChildSat:        0,
+		ToddlerCabin:    0,
+		ToddlerTent:     0,
+		ToddlerSat:      0,
+		ProcessingFee:   db.CurrencyFromFloat(processingFee),
+		Total:           db.CurrencyFromFloat(float64(total) + processingFee),
+		CardPacks:       0,
+		Donation:        0,
+		Date:            time.Now().UTC().Format("2006-01-02 15:04"),
+		BusSpots:        req.BusSpots,
+		BusToVibecamp:   req.BusToVibecamp,
+		BusFromVibecamp: req.BusFromVibecamp,
+		SleepingBags:    req.SleepingBags,
+		SheetSets:       req.SheetSets,
+		Pillows:         req.Pillows,
+	}
+
+	if order.BusToVibecamp != "" {
+		err = db.UpdateSlot(order.BusToVibecamp, order.BusSpots)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Errorf("db.UpdateSlot: %v", err)
+			return
+		}
+	}
+
+	if order.BusFromVibecamp != "" {
+		err = db.UpdateSlot(order.BusFromVibecamp, order.BusSpots)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Errorf("db.UpdateSlot: %v", err)
+			return
+		}
+	}
+
+	err = user.AddTransportAndBeddingOrder(order.BusSpots, order.SleepingBags, order.SheetSets, order.Pillows, order.BusToVibecamp, order.BusFromVibecamp)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Errorf("user.AddTransportAndBeddingOrder: %v", err)
+		return
+	}
+
+	// create a payment intent
+	// Create a PaymentIntent with amount and currency
+	params := &stripe.PaymentIntentParams{
+		Amount:   stripe.Int64(order.Total.ToCurrencyInt()),
+		Currency: stripe.String(string(stripe.CurrencyUSD)),
+		AutomaticPaymentMethods: &stripe.PaymentIntentAutomaticPaymentMethodsParams{
+			Enabled: stripe.Bool(true),
+		},
+		// change when we do hard launch or if we want to add vibecamp2/other name
+		StatementDescriptor: stripe.String("vc transport & bedding"),
+		Description:         stripe.String("vc transport & bedding"),
+	}
+
+	pi, err := paymentintent.New(params)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Errorf("paymentintent.New: %v", err)
+		return
+	}
+
+	order.StripeID = pi.ID
+
+	// create an airtable record
+	err = order.CreateOrder()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Errorf("order.CreateOrder: %v", err)
+		return
+	}
+
+	writeJSON(w, struct {
+		ClientSecret string  `json:"clientSecret"`
+		Total        float64 `json:"total"`
+		IntentId     string  `json:"intentId"`
+	}{
+		ClientSecret: pi.ClientSecret,
+		Total:        order.Total.ToFloat(),
+		IntentId:     pi.ID,
+	})
+}
+
 func HandleCreatePaymentIntent(c *gin.Context) {
 	var w http.ResponseWriter = c.Writer
 	var r *http.Request = c.Request
@@ -431,35 +562,38 @@ func HandleStripeWebhook(c *gin.Context) {
 				return
 			}
 
-			user, err := db.GetUser(order.UserName)
-			if err != nil {
-				log.Errorf("error getting user %v\n", err)
-				w.WriteHeader((http.StatusInternalServerError))
-				return
-			}
+			if order.TotalTickets > 0 {
 
-			// update aggregations
-			err = db.UpdateAggregations(order, user.TicketPath)
-			if err != nil {
-				log.Errorf("error updating aggregations %v\n", err)
-				w.WriteHeader((http.StatusInternalServerError))
-				return
-			}
-
-			err = user.UpdateTicketId(uuid.NewString())
-			if err != nil {
-				log.Errorf("error updating user ticket id %v\n", err)
-				w.WriteHeader((http.StatusInternalServerError))
-				return
-			}
-
-			if user.Email != "" {
-				err = AddToKlaviyo(user.Email, user.AdmissionLevel, "$"+strconv.Itoa(order.Donation))
+				user, err := db.GetUser(order.UserName)
 				if err != nil {
-					log.Errorf("Error adding user to klaviyo %v\n", err)
+					log.Errorf("error getting user %v\n", err)
+					w.WriteHeader((http.StatusInternalServerError))
+					return
 				}
-			} else {
-				log.Debugf("User does not have an associated email")
+
+				// update aggregations
+				err = db.UpdateAggregations(order, user.TicketPath)
+				if err != nil {
+					log.Errorf("error updating aggregations %v\n", err)
+					w.WriteHeader((http.StatusInternalServerError))
+					return
+				}
+
+				err = user.UpdateTicketId(uuid.NewString())
+				if err != nil {
+					log.Errorf("error updating user ticket id %v\n", err)
+					w.WriteHeader((http.StatusInternalServerError))
+					return
+				}
+
+				if user.Email != "" {
+					err = AddToKlaviyo(user.Email, user.AdmissionLevel, "$"+strconv.Itoa(order.Donation))
+					if err != nil {
+						log.Errorf("Error adding user to klaviyo %v\n", err)
+					}
+				} else {
+					log.Debugf("User does not have an associated email")
+				}
 			}
 		} else {
 			log.Debugf("Order %v already marked successful", order.OrderID)

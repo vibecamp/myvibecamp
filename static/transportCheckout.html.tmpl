@@ -1,0 +1,35 @@
+{{ template "header" }}
+
+<link rel="stylesheet" href="css/checkout.css" />
+<script src="https://js.stripe.com/v3/"></script>
+<script src="js/transportCheckout.js" defer></script>
+
+{{ template "nav" }}
+
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/signin-redirect">Welcome</a></li>
+            <li class="breadcrumb-item"><a href="/2023-transport">Transport</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+        </ol>
+    </nav>
+    <form id="payment-form">
+        <div class="row hidden" id="total-div">
+          <span class="col-sm-9 col-form-label">Your Total is:</span>
+          <input readonly type="text" class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: center;" value=""/>
+        </div>
+        <br/>
+        <div id="payment-element">
+            <!-- stripe injection here -->
+        </div>
+        <button id="submit">
+            <div class="spinner hidden" id="spinner"></div>
+            <span id="button-text">Pay now</span>
+        </button>
+        <div id="payment-message" class="hidden"></div>
+        <div id="ticket-cart" class="hidden" cartData={{ .Items }} username={{ .User.UserName }}></div>
+    </form>
+</div>
+
+{{ template "footer" }}
