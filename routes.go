@@ -1084,22 +1084,24 @@ func Logistics2023Handler(c *gin.Context) {
 	foodComments := c.PostForm("comments")
 	discordName := c.PostForm("discord-name")
 
-	assistanceToCamp := c.PostForm("travel-from-airport")
-	assistanceFromCamp := c.PostForm("assistance-from-camp") == "on"
-	wrongCityRedirect := c.PostForm("wrong-city-redirect") == "Yes"
-	rvCamper := c.PostForm("rv-camper")
-	travelMethod := c.PostForm("travel-method")
-	flyingInto := c.PostForm("flying-into")
-	flightArrivalTime := c.PostForm("flight-arrival-time")
-	vehicleArrivalTime := c.PostForm("vehicle-arrival-time")
-	leavingFrom := c.PostForm("leaving-from")
-	cityArrivalTime := c.PostForm("city-arrival-time")
-	sleepingBagRentals, _ := strconv.Atoi(c.PostForm("sleeping-bag-rentals"))
-	sheetRentals, _ := strconv.Atoi(c.PostForm("sheet-rentals"))
-	pillowRentals, _ := strconv.Atoi(c.PostForm("pillow-rentals"))
-	earlyArrival := c.PostForm("early-arrival")
+	/*
+		assistanceToCamp := c.PostForm("travel-from-airport")
+		assistanceFromCamp := c.PostForm("assistance-from-camp") == "on"
+		wrongCityRedirect := c.PostForm("wrong-city-redirect") == "Yes"
+		rvCamper := c.PostForm("rv-camper")
+		travelMethod := c.PostForm("travel-method")
+		flyingInto := c.PostForm("flying-into")
+		flightArrivalTime := c.PostForm("flight-arrival-time")
+		vehicleArrivalTime := c.PostForm("vehicle-arrival-time")
+		leavingFrom := c.PostForm("leaving-from")
+		cityArrivalTime := c.PostForm("city-arrival-time")
+		sleepingBagRentals, _ := strconv.Atoi(c.PostForm("sleeping-bag-rentals"))
+		sheetRentals, _ := strconv.Atoi(c.PostForm("sheet-rentals"))
+		pillowRentals, _ := strconv.Atoi(c.PostForm("pillow-rentals"))
+		earlyArrival := c.PostForm("early-arrival")
+	*/
 
-	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments, discordName, assistanceToCamp, assistanceFromCamp, wrongCityRedirect, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, leavingFrom, cityArrivalTime, earlyArrival, sleepingBagRentals, sheetRentals, pillowRentals)
+	err = user.Set2023Logistics(badge, vegetarian, glutenFree, lactoseIntolerant, foodComments, discordName)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return

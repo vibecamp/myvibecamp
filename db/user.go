@@ -732,7 +732,8 @@ func (u *User) SetFood(veg, gf, lact bool, comments string) error {
 	return nil
 }
 
-func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName string, assistanceToCamp string, assistanceFromCamp, wrongCityRedirect bool, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, leavingFrom, cityArrivalTime, earlyArrival string, sleepingBagRentals, sheetRentals, pillowRentals int) error {
+func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName string) error {
+	// assistanceToCamp string, assistanceFromCamp, wrongCityRedirect bool, rvCamper, travelMethod, flyingInto, flightArrivalTime, vehicleArrivalTime, leavingFrom, cityArrivalTime, earlyArrival string, sleepingBagRentals, sheetRentals, pillowRentals int)
 	u.Badge = badge
 	u.Vegetarian = veg
 	u.GlutenFree = gf
@@ -740,19 +741,21 @@ func (u *User) Set2023Logistics(badge, veg, gf, lact bool, comments, discordName
 	u.FoodComments = comments
 	u.DiscordName = discordName
 
-	u.TravelFromAirport = assistanceToCamp
-	u.WrongCityRedirect = wrongCityRedirect
-	u.RVCamper = rvCamper
-	u.TravelMethod = travelMethod
-	u.FlyingInto = flyingInto
-	u.FlightArrivalTime = flightArrivalTime
-	u.VehicleArrival = vehicleArrivalTime
-	u.LeavingFrom = leavingFrom
-	u.CityArrivalTime = cityArrivalTime
-	u.SleepingBagRentals = sleepingBagRentals
-	u.SheetRentals = sheetRentals
-	u.PillowRentals = pillowRentals
-	u.EarlyArrival = earlyArrival
+	/*
+		u.TravelFromAirport = assistanceToCamp
+		u.WrongCityRedirect = wrongCityRedirect
+		u.RVCamper = rvCamper
+		u.TravelMethod = travelMethod
+		u.FlyingInto = flyingInto
+		u.FlightArrivalTime = flightArrivalTime
+		u.VehicleArrival = vehicleArrivalTime
+		u.LeavingFrom = leavingFrom
+		u.CityArrivalTime = cityArrivalTime
+		u.SleepingBagRentals = sleepingBagRentals
+		u.SheetRentals = sheetRentals
+		u.PillowRentals = pillowRentals
+		u.EarlyArrival = earlyArrival
+	*/
 
 	r := &airtable.Records{
 		Records: []*airtable.Record{{
