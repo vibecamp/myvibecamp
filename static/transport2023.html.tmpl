@@ -25,6 +25,7 @@
 
 <script type="text/javascript">
     function onCartInputChange(event) {
+        console.log("Hhhe")
         // calculate and update the total cost & processing fee
         const busQuantity = document.getElementById("busQuantity").value;
         const sleepingBagQuantity = document.getElementById("sleepingBagQuantity").value;
@@ -34,8 +35,8 @@
         const totalCost = (busQuantity * {{$busPrice}}) + (sleepingBagQuantity * {{$sleepingBagPrice}}) + (sheetSetQuantity * {{$sheetSetPrice}}) + (pillowQuantity * {{$pillowPrice}});
         const processingFee = Math.round(totalCost * 0.03 * 100) / 100;
 
-        document.getElementById("total-cost").value = "$" + totalCost;
-        document.getElementById("processing-fee").value = "$" + processingFee;
+        document.getElementById("order-total").value = "$" + (totalCost + processingFee).toFixed(2);
+        document.getElementById("processing-fee").value = "$" + processingFee.toFixed(2);
     }
 </script>
 
