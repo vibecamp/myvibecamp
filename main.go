@@ -155,6 +155,8 @@ func main() {
 	r.POST("/checkout-failed", PurchaseFailedHandler)
 	r.GET("/2023-logistics", Logistics2023Handler)
 	r.POST("/2023-logistics", Logistics2023Handler)
+	r.GET('/2023-transport', Transport2023Handler)
+	r.POST('/2023-transport', Transport2023Handler)
 	r.GET("/chaos-mode", ChaosModeSignIn)
 	r.POST("/chaos-mode", ChaosModeSignIn)
 	r.GET("/chaos-cart", ChaosModeCartHandler)

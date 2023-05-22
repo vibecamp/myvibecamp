@@ -29,6 +29,7 @@ var constantsTable *airtable.Table
 var aggregationsTable *airtable.Table
 var chaosModeTable *airtable.Table
 var sponsorshipTable *airtable.Table
+var bus2023Table *airtable.Table
 
 // var cabinTable *airtable.Table
 // var ticketTable *airtable.Table
@@ -51,6 +52,7 @@ func Init(apiKey, baseID string, cache *cache.Cache) {
 	aggregationsTable = client.GetTable(baseTwo, aggTable)
 	chaosModeTable = client.GetTable(baseTwo, "ChaosMode")
 	sponsorshipTable = client.GetTable(baseTwo, "Sponsorships")
+	bus2023Table = client.GetTable(baseTwo, "Bus 2023")
 	// cabinTable = client.GetTable(baseTwo, "Cabins")
 	// ticketTable = client.GetTable(baseTwo, "Tickets")
 	defaultCache = cache
@@ -119,6 +121,15 @@ type User struct {
 	SleepingBagRentals int
 	SheetRentals       int
 	PillowRentals      int
+
+	// transport & bedding order
+	Orders          []string
+	BusSpots        int
+	BusToVibecamp   string
+	BusFromVibecamp string
+	SleepingBags    int
+	SheetSets       int
+	Pillows         int
 
 	AirtableID string
 }
@@ -350,6 +361,13 @@ func GetUserByField(field, value string) (*User, error) {
 		SleepingBagRentals: toInt(rec.Fields[fields.SleepingBagRentals]),
 		SheetRentals:       toInt(rec.Fields[fields.SheetRentals]),
 		PillowRentals:      toInt(rec.Fields[fields.PillowRentals]),
+
+		BusSpots:        toInt(rec.Fields[fields.BusSpots]),
+		BusToVibecamp:   toStr(rec.Fields[fields.BusToVibecamp]),
+		BusFromVibecamp: toStr(rec.Fields[fields.BusFromVibecamp]),
+		SleepingBags:    toInt(rec.Fields[fields.SleepingBags]),
+		SheetSets:       toInt(rec.Fields[fields.SheetSets]),
+		Pillows:         toInt(rec.Fields[fields.Pillows]),
 	}
 
 	if defaultCache != nil {
@@ -362,6 +380,46 @@ func GetUserByField(field, value string) (*User, error) {
 	}
 
 	return u, nil
+}
+
+func (u *User) AddTransportAndBeddingOrder(busSpots, sleepingBags, sheetSets, pillows int, busToVibecamp, busFromVibecamp string) error {
+	u.BusSpots = busSpots
+	u.BusToVibecamp = busToVibecamp
+	u.BusFromVibecamp = busFromVibecamp
+	u.SleepingBags = sleepingBags
+	u.SheetSets = sheetSets
+	u.Pillows = pillows
+
+	r := &airtable.Records{
+		Records: []*airtable.Record{{
+			ID: u.AirtableID,
+			Fields: map[string]interface{}{
+				fields.SleepingBags:    sleepingBags,
+				fields.SheetSets:       sheetSets,
+				fields.Pillows:         pillows,
+				fields.BusSpots:        busSpots,
+				fields.BusToVibecamp:   busToVibecamp,
+				fields.BusFromVibecamp: busFromVibecamp,
+			},
+		}},
+	}
+
+	recvRecords, err := attendeesTable.UpdateRecordsPartial(r)
+	if err != nil {
+		return errors.Wrap(err, "updating attendee record")
+	}
+
+	if defaultCache != nil {
+		defaultCache.Delete(u.cacheKey())
+	}
+
+	if recvRecords == nil || len(recvRecords.Records) == 0 {
+		return errors.Wrap(ErrNoRecords, "")
+	} else if len(recvRecords.Records) != 1 {
+		return errors.Wrap(ErrManyRecords, "")
+	}
+
+	return nil
 }
 
 // function GetAttendees returns all attendees in the attendees table, just Usernames
