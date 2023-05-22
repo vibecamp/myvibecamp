@@ -13,11 +13,21 @@
 
   <h2>Your Purchase is Pending!</h2>
 
+  {{ if gt .Order.TotalTickets 0 }}
   <p>
     Thank you for purchasing {{ if gt .Order.TotalTickets 1 }}{{ .Order.TotalTickets }} tickets{{else}}a ticket{{end}} to the 
     second vibecamp! You'll receive an email when your purchase has processed, but can return to this site to check the status. 
     We can't wait to see you in 2023, and stay posted for updates from the team!
   </p>
+  {{ else }}
+  <p>
+    Thank you for purchasing your transport and/or bedding! Here's what you got:
+  </p>
+      {{ if gt .Order.BusSpots 0 }}<p style="margin-left: 5em">{{ .Order.BusSpots }} Bus Spots</p>{{ end }}
+      {{ if gt .Order.SleepingBags 0 }}<p style="margin-left: 5em">{{.Order.SleepingBags}} Sleeping Bags</p>{{ end }}
+      {{ if gt .Order.SheetSets 0 }}<p style="margin-left: 5em">{{.Order.SheetSets}} Sheet Sets</p>{{ end }}
+      {{ if gt .Order.Pillows 0 }}<p style="margin-left: 5em">{{.Order.Pillows}} Pillows</p>{{ end }}
+  {{ end }}
 
   <p>
     If you'd like to edit any of the information you submitted with your purchase, you can do that <a href="/2023-logistics">here</a>.
