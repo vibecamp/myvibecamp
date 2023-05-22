@@ -986,7 +986,7 @@ func PurchaseCompleteHandler(c *gin.Context) {
 		return
 	}
 
-	order, err := db.GetOrder(user.OrderID)
+	order, err := db.GetOrderByPaymentID(c.Query("payment_id"))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
