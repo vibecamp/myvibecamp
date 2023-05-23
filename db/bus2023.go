@@ -48,7 +48,7 @@ func UpdateSlot(slot string, purchased int) error {
 		return err
 	}
 
-	bs.Purchased = purchased
+	bs.Purchased = bs.Purchased + purchased
 
 	if bs.Purchased > bs.Cap {
 		return errors.New("purchased exceeds cap - please contact @orb_net")
