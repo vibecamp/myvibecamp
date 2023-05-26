@@ -55,42 +55,43 @@
 
         <!-- how many bus spots input, $5 each -->
         <div class="form-group row">
-        <label class="col-sm-5 col-form-label" for="busQuantity" id="busQuantityLabel">Bus Spots</label>
-        <div class="col-sm-3"></div>
-        <div class="col-sm-3">
-        <input type="number" name="busQuantity" class="form-control" id="busQuantity" min="0" max="10" value="0" onChange="onCartInputChange()" />
+            <label class="col-sm-9 col-form-label" for="busQuantity" id="busQuantityLabel">Bus Spots</label>
+            <div class="col-sm-3">
+                <input type="number" name="busQuantity" class="form-control" id="busQuantity" min="0" max="10" value="0" onChange="onCartInputChange()" />
+            </div>
         </div>
-        </div>
+        <br />
     
         <!-- bus arrive time input -->
         <div class="form-group row">
-        <label for="busArriveTime" class="col-sm-5 col-form-label">Bus to Vibecamp</label>
-        <div class="col-sm-3"></div>
-        <div class="col-sm-3">
-        <select name="busArriveTime" id="busArriveTime" class="form-select" onChange="onCartInputChange()" >
-            <option value="">Select Departure Time</option>
-            <option value="{{$arriveSlotOne}}">{{$arriveSlotOne}}</option>
-            <option value="{{$arriveSlotTwo}}">{{$arriveSlotTwo}}</option>
-            <option value="{{$arriveSlotThree}}">{{$arriveSlotThree}}</option>
-        </select>
+            <label for="busArriveTime" class="col-sm-7 col-form-label">Bus to Vibecamp</label>
+            <div class="col-sm-5">
+            <select name="busArriveTime" id="busArriveTime" class="form-select" onChange="onCartInputChange()" >
+                <option value="">Select Departure Time</option>
+                <option value="{{$arriveSlotOne}}">{{$arriveSlotOne}}</option>
+                <option value="{{$arriveSlotTwo}}">{{$arriveSlotTwo}}</option>
+                <option value="{{$arriveSlotThree}}">{{$arriveSlotThree}}</option>
+            </select>
+            </div>
         </div>
-        </div>
+        <br />
 
         <!-- bus depart time input -->
         <div class="form-group row">
-        <label for="busDepartTime" class="col-sm-5 col-form-label">Bus from Vibecamp</label>
-        <div class="col-sm-3"></div>
-        <div class="col-sm-3">
-        <select name="busDepartTime" id="busDepartTime" class="form-select" onChange="onCartInputChange()" >
-            <option value="">Select Departure Time</option>
-            <option value="{{$departSlotOne}}">{{$departSlotOne}}</option>
-            <option value="{{$departSlotTwo}}">{{$departSlotTwo}}</option>
-            <option value="{{$departSlotThree}}">{{$departSlotThree}}</option>
-        </select>
-        </div>
+            <label for="busDepartTime" class="col-sm-7 col-form-label">Bus from Vibecamp</label>
+            <div class="col-sm-5">
+            <select name="busDepartTime" id="busDepartTime" class="form-select" onChange="onCartInputChange()" >
+                <option value="">Select Departure Time</option>
+                <option value="{{$departSlotOne}}">{{$departSlotOne}}</option>
+                <option value="{{$departSlotTwo}}">{{$departSlotTwo}}</option>
+                <option value="{{$departSlotThree}}">{{$departSlotThree}}</option>
+            </select>
+            </div>
         </div>
     </fieldset>
+    <br />
 
+    {{/** 
     <fieldset>
         <p>
             Bedding is ${{$sleepingBagPrice}} for a sleeping bag, ${{$sheetSetPrice}} for a sheet set, and ${{$pillowPrice}} for a pillow (including pillow case). All will be rented and available at check-in time.
@@ -98,11 +99,8 @@
 
         <!-- how many sleeping bags input, $35 each -->
         <div class="form-group row">
-        <label for="sleepingBagQuantity" class="col-sm-5 col-form-label">Sleeping Bags</label>
-        <div class="col-sm-3"></div>
-        <div class="col-sm-3">
-        <input type="number" name="sleepingBagQuantity" class="form-control" id="sleepingBagQuantity" min="0" max="10" value="0" onChange="onCartInputChange()" />
-        </div>
+            <label for="sleepingBagQuantity" class="col-sm-3 col-form-label">Sleeping Bags</label>
+            <input type="number" name="sleepingBagQuantity" class="col-sm-9 text-right form-control" id="sleepingBagQuantity" min="0" max="10" value="0" onChange="onCartInputChange()" />
         </div>
 
         <!-- how many sheet sets input, $60 each -->
@@ -122,20 +120,25 @@
         <input type="number" name="pillowQuantity" class="form-control" id="pillowQuantity" min="0" max="10" value="0" onChange="onCartInputChange()"  />
         </div>
         </div>
+    
+    </fieldset>
+    **/}}
+
+
+    <fieldset>
+        <div class="row">
+            <span class="col-sm-9 col-form-label">Processing Fee</span>
+            <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="$0"/>
+        </div>
+        <br/>
 
         <div class="row">
-        <span class="col-sm-9 col-form-label">Processing Fee</span>
-        <input readonly type="text" class="col-sm-3 text-right col-form-label" id="processing-fee" style="text-align: right; padding-right: 2em;" value="$0"/>
-      </div>
-      <br/>
-
-      <div class="row">
-        <span class="col-sm-9 col-form-label">Your Total</span>
-        <input readonly type="text" class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;" value="$0"/>
-      </div>
-      <br/>
-
+            <span class="col-sm-9 col-form-label">Your Total</span>
+            <input readonly type="text" class="col-sm-3 text-right col-form-label" id="order-total" style="text-align: right; padding-right: 2em;" value="$0"/>
+        </div>
+        <br/>
     </fieldset>
+
 
       <button type="submit" class="btn btn-primary" id="checkout-button">Checkout</button>
 </form>
