@@ -202,9 +202,9 @@ func Transport2023Handler(c *gin.Context) {
 		busQuantity, _ := strconv.Atoi(c.PostForm("busQuantity"))
 		busToVibecamp := c.PostForm("busArriveTime")
 		busFromVibecamp := c.PostForm("busDepartTime")
-		sleepingBags, _ := strconv.Atoi(c.PostForm("sleepingBagQuantity"))
-		pillows, _ := strconv.Atoi(c.PostForm("pillowQuantity"))
-		sheetSets, _ := strconv.Atoi(c.PostForm("sheetSetQuantity"))
+		sleepingBags := 0
+		pillows := 0
+		sheetSets := 0
 
 		if busQuantity > 0 {
 			if busToVibecamp == "" && busFromVibecamp == "" {
@@ -237,6 +237,9 @@ func Transport2023Handler(c *gin.Context) {
 					return
 				}
 			}
+		} else {
+			busToVibecamp = ""
+			busFromVibecamp = ""
 		}
 
 		params := url.Values{}
