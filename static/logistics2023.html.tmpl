@@ -39,6 +39,48 @@
 
   {{ end }}
 
+  <h3>Bussing & Bedding</h3>
+
+  <p>
+    Here is the information for your bussing & bedding (if you have purchased any):
+  </p>
+
+  {{ if gt .User.BusSpots 0 }}
+  <p>
+    You have purchased {{.User.BusSpots}} bus spot{{if gt .User.BusSpots 1}}s{{end}}.
+  </p>
+
+  {{ if gt (len .User.BusToVibecamp) 0 }}
+  <p>
+    You are taking the bus to vibecamp at {{.User.BusToVibecamp}}.
+  </p>
+  {{ end }}
+
+  {{ if gt (len .User.BusFromVibecamp) 0 }}
+  <p>
+    You are taking the bus from vibecamp at {{.User.BusFromVibecamp}}.
+  </p>
+  {{ end }}
+  {{ end }}
+
+  {{ if gt .User.SheetSets 0 }}
+  <p>
+    You have rented {{.User.SheetSets}} sheet set{{if gt .User.SheetSets 1}}s{{end}}.
+  </p>
+  {{ end }}
+
+  {{ if gt .User.SleepingBags 0 }}
+  <p>
+    You have rented {{.User.SleepingBags}} sleeping bag{{if gt .User.SleepingBags 1}}s{{end}}.
+  </p>
+  {{ end }}
+
+  {{ if gt .User.Pillows 0 }}
+  <p>
+    You have rented {{.User.Pillows}} pillow{{if gt .User.Pillows 1}}s{{end}}.
+  </p>
+  {{ end }}
+
     <form method="post" action="">
       <fieldset>
 

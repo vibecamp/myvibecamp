@@ -169,10 +169,10 @@ func CalendarHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "calendar.html.tmpl", user)
 }
 
-func ContactUsHandler(c *gin.Context) {
+func VC2TicketHandler(c *gin.Context) {
 	session := GetSession(c)
 	if !session.SignedIn() {
-		c.HTML(http.StatusOK, "contact.html.tmpl", nil)
+		c.Redirect(http.StatusFound, "/")
 		return
 	}
 
@@ -182,7 +182,7 @@ func ContactUsHandler(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "contact.html.tmpl", user)
+	c.HTML(http.StatusOK, "vibecamp2.html.tmpl", user)
 }
 
 func Transport2023Handler(c *gin.Context) {
