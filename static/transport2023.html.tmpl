@@ -25,7 +25,6 @@
 
 <script type="text/javascript">
     function onCartInputChange(event) {
-        console.log("Hhhe")
         // calculate and update the total cost & processing fee
         const busQuantity = document.getElementById("busQuantity").value;
         const sleepingBagQuantity = document.getElementById("sleepingBagQuantity").value;
@@ -51,6 +50,28 @@
     <fieldset>
         <p>
             Bus spots are ${{$busPrice}} each. Buses will depart from Philly at the "Bus to Vibecamp" times, & will depart from Vibecamp to Philly at the "Bus from Vibecamp" times. 1 bus spot gets you on the bus both to and from vibecamp, so one person will only need one bus spot.
+        </p>
+
+        <p>
+            The bus will be picking people up and dropping off at a bus stop:
+        <br />
+        <br />
+        <span style="margin-left: 40px">
+            3105 John F Kennedy Blvd
+        </span>
+        <br />
+        <span style="margin-left: 40px">
+            Philadelphia, PA 19104
+        </span>
+        <br />
+        <br />
+            This is a 5 minute walk away from the major AMTRAK station (William H Gray 30th street station). We intend to have at least one person at the Amtrak station to collect the group, lead them over, coordinate with the bus driver etc.
+        </p>
+
+        <p>
+            The bus is roughly 90 minutes of highway...with 15ish minutes of load and unload time.
+        <br />
+            SEPTA has a line that runs to PHL airport every hour at X:30  and their website says it's a 20 minute train ride
         </p>
 
         <!-- how many bus spots input, $5 each -->

@@ -132,7 +132,6 @@ func main() {
 	r.GET("/callback", CallbackHandler)
 	r.GET("/signin-redirect", SignInRedirect)
 	r.GET("/calendar", CalendarHandler)
-	r.GET("/contact-us", ContactUsHandler)
 
 	r.GET("/ticket", TicketHandler)
 	r.GET("/logistics", LogisticsHandler)
@@ -171,6 +170,7 @@ func main() {
 	r.POST("/sponsorship-cart", SponsorshipCartHandler)
 	r.GET("/vc2", VC2Welcome)
 	r.POST("/vc2", VC2Welcome)
+	r.GET("/vc2-ticket", VC2TicketHandler)
 
 	r.GET("/", IndexHandler)
 	r.StaticFS("/css", http.FS(mustSub(static, "static/css")))
