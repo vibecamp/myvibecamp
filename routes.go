@@ -77,7 +77,7 @@ func findUser(c *gin.Context, username string, isEmailSignIn bool) {
 					c.Redirect(http.StatusFound, "/checkout-failed")
 					return
 				case "success":
-					c.Redirect(http.StatusFound, "/2023-transport")
+					c.Redirect(http.StatusFound, "/vc2-ticket")
 					return
 				case "processing":
 					c.Redirect(http.StatusFound, "/checkout-complete")
@@ -100,12 +100,12 @@ func findUser(c *gin.Context, username string, isEmailSignIn bool) {
 			// if they dont have an order ID, check if they're in sponsorship table. if not, they're a full sponsor
 			sponsoredUser, err := db.GetSponsorshipUser(username)
 			if sponsoredUser == nil && err != nil {
-				c.Redirect(http.StatusFound, "/2023-transport")
+				c.Redirect(http.StatusFound, "/vc2-ticket")
 				return
 			}
 		} else if user.AdmissionLevel == fields.Staff || user.TicketPath == fields.Volunteer || user.TicketPath == fields.TicketSwap || user.TicketPath == fields.Comped {
 			// if they don't have an order id check if they're staff
-			c.Redirect(http.StatusFound, "/2023-transport")
+			c.Redirect(http.StatusFound, "/vc2-ticket")
 			return
 		}
 	}

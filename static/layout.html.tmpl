@@ -36,8 +36,8 @@
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <div class="navbar-nav me-auto mb-2 mb-lg-0">
-          <a class="nav-link {{if eq . "home" }}active{{end}}" href="/">Home</a>
-          <a class="nav-link {{if eq . "vc2-ticket" }}active{{end}}" href="/vc2-ticket">vibecamp 2</a>
+          {{/* <a class="nav-link {{if eq . "home" }}active{{end}}" href="/">Home</a> */}}
+          <a class="nav-link {{if eq . "vc2-ticket" }}active{{end}}" href="/vc2-ticket">Home</a>
           <a class="nav-link {{if eq . "logistics" }}active{{end}}" href="/2023-logistics">Logistics</a>
           <a class="nav-link {{if eq . "transport" }}active{{end}}" href="/2023-transport">Transport</a>
           <!--  <a class="nav-link {{if eq . "ticket" }}active{{end}}" href="/ticket">Ticket</a> -->
@@ -345,7 +345,7 @@
       of early spots and you must receive approval from the organizers. Priority
       will be given to official volunteers & project hosts. If you are interested,
       please select your preferred arrival time below.
-    </p> 
+    </p>
     <div class="form-group row justify-content-center">
       <div class="col-sm-5">
         <select name="early-arrival" id="early-arrival" class="form-select" style="text-align: left;">
@@ -429,11 +429,11 @@
     </div>
 
     <!-- if they cannot redirect their flight, show an important info box telling them to contact DreadCanary with details -->
-    <div class="alert alert-danger hidden form-top-margin" role="alert" id="wrong-city-redirect-info"> 
+    <div class="alert alert-danger hidden form-top-margin" role="alert" id="wrong-city-redirect-info">
       <strong>Important!</strong> If you cannot redirect your flight, please contact DreadCanary with your flight details and situation.
     </div>
 
-    <!-- 
+    <!--
     if flying into Baltimore, ask with a select for flight-arrival-time for their flight time in blocks of
     Before 10:30 AM
     Between 10:30 AM and 2:30 PM
@@ -561,7 +561,7 @@
     <div id="leaving-from-warning" class="alert alert-warning hidden form-top-margin" role="alert">
       We are unable to provide transportation to airports outside of Baltimore and Philadelphia. Please make your own arrangements or contact us for more information.
     </div>
-  
+
     <!-- select for city-arrival-time with 30 minute blocks from 10 AM to 430 PM, i.e. 10:00-10:30AM, 10:30-11:00AM, etc. mark both AM & PM if necessary -->
     <div class="form-group row hidden form-top-margin" id="city-arrival-time-div">
       <label class="col-sm-9 col-form-label" for="city-arrival-time">
@@ -593,7 +593,7 @@
     <legend>Bedding</legend>
     <p>
       We also have some questions about bedding, for both cabin & camping tickets. For those with Cabin tickets,
-      Ramblewood provides only bare twin XL mattresses, so we're each responsible for bringing our own bedding. 
+      Ramblewood provides only bare twin XL mattresses, so we're each responsible for bringing our own bedding.
       Of course this is also true if you're camping. Would you like to arrange to rent bedding for the weekend?
       We'll be offering sleeping bags, pillows, light cotton blankets, and fitted/flat sheets.
     </p>
