@@ -131,6 +131,14 @@ type User struct {
 	SheetSets       int
 	Pillows         int
 
+	// ticketing info
+	AdultCabin int
+	AdultTent  int
+	AdultSat   int
+	ChildCabin int
+	ChildTent  int
+	Toddler    int
+
 	AirtableID string
 }
 
@@ -265,8 +273,8 @@ func (u *User) CreateUser() error {
 	return nil
 }
 
-func GetUserFromBarcode(barcode string) (*User, error) {
-	return GetUserByField(fields.Barcode, barcode)
+func GetUserFromTicketId(ticketId string) (*User, error) {
+	return GetUserByField(fields.TicketID, ticketId)
 }
 
 func GetUser(userName string) (*User, error) {
@@ -912,7 +920,7 @@ func (u *User) GetTicketGroup() ([]*User, error) {
 		return []*User{u}, nil
 	}
 
-	response, err := query(attendeesTable, fields.OrderID, u.OrderID, fields.UserName)
+	response, err := query(attendeesTable, "Username (from Ticket Group)", u.UserName)
 	if err != nil {
 		return nil, err
 	}

@@ -3,7 +3,7 @@
 {{ template "nav" "vc2-ticket" }}
 
 <div class="container">
-    <h2>Hey @{{ .UserName }} 🥰 IT'S TIME</h2>
+    <h2>Hey @{{ .user.UserName }} 🥰 IT'S TIME</h2>
     <div class="container mb-3">
       <p>
         Congrats on getting a ticket to vibecamp this year! Here's all the info you'll need to get there.
@@ -11,9 +11,18 @@
     </div>
 
     <div class="container mb-3">
+        {{ if .QR }}
         <h4>
-            Your QR code for check-in will be here in a couple days!
+            Here's your QR code for checking in!
         </h4>
+        <div class="text-center">
+            <img id="qrcode" src="data:image/png;base64,{{.QR}}" class="mx-auto d-block" />
+        </div>
+        {{ else }}
+        <h4>
+            We're still generating your QR code. Check back soon!
+        </h4>
+        {{ end }}
         <br />
 
         <h3>

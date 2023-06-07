@@ -182,7 +182,22 @@ func VC2TicketHandler(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "vibecamp2.html.tmpl", user)
+	if user.TicketID != "" && !strings.Contains(user.TicketID, "manual") {
+		qr, err := qrcode.Encode(fmt.Sprintf(`%s/checkin/%s`, externalURL, user.TicketID), qrcode.Medium, 256)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		c.HTML(http.StatusOK, "vibecamp2.html.tmpl", gin.H{
+			"QR":   base64.StdEncoding.EncodeToString(qr),
+			"user": user,
+		})
+	} else {
+		c.HTML(http.StatusOK, "vibecamp2.html.tmpl", gin.H{
+			"user": user,
+		})
+	}
 }
 
 func Transport2023Handler(c *gin.Context) {
@@ -1196,14 +1211,14 @@ func CheckinHandler(c *gin.Context) {
 		return
 	}
 
-	barcode := c.Param("barcode")
-	barcodeUser, err := db.GetUserFromBarcode(barcode)
+	ticketId := c.Param("ticketId")
+	ticketUser, err := db.GetUserFromTicketId(ticketId)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	ticketGroup, err := barcodeUser.GetTicketGroup()
+	ticketGroup, err := ticketUser.GetTicketGroup()
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -1241,13 +1256,16 @@ func CheckinHandler(c *gin.Context) {
 
 	if checkinCount == 0 {
 		WarningFlash(c, "Select at least one person to check in")
-	} else if checkinCount == 1 {
-		SuccessFlash(c, "Checked in 1 person")
 	} else {
-		SuccessFlash(c, fmt.Sprintf("Checked in %d people", checkinCount))
+		// update aggregations?
+		if checkinCount == 1 {
+			SuccessFlash(c, "Checked in 1 person")
+		} else {
+			SuccessFlash(c, fmt.Sprintf("Checked in %d people", checkinCount))
+		}
 	}
 
-	c.Redirect(http.StatusFound, "/checkin/"+barcode)
+	c.Redirect(http.StatusFound, "/checkin/"+ticketId)
 }
 
 func BadgeHandler(c *gin.Context) {

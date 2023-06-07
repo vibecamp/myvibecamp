@@ -74,6 +74,14 @@ const (
 	Purchased = "Purchased"
 	Cap       = "Cap"
 
+	// ticketing info from users table
+	AdultCabinAttendees = "Adult Cabin Attendees on Ticket"
+	AdultTentAttendees  = "Adult Tent Attendees on Ticket"
+	ChildCabinAttendees = "Child Cabin Attendees on Ticket"
+	ChildTentAttendees  = "Child Tent Attendees on Ticket"
+	ToddlerAttendees    = "Toddler Attendees on Ticket"
+	AdultSatAttendees   = "Adult Saturday Night Attendees on Ticket"
+
 	// ticket paths
 	Sponsorship  = "Sponsorship"
 	Attendee2022 = "2022 Attendee"
@@ -176,4 +184,6 @@ const (
 	ToddlerSold      = "Toddler Tickets Sold"
 	DonationsRecv    = "Donations Received"
 	Sponsorships     = "Sponsorships"
+
+	CheckinCount = "Checkin Count"
 )
