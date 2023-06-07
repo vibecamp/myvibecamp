@@ -39,6 +39,12 @@
 
   {{ end }}
 
+  {{ if .User.CabinNickname2023 }}
+  <p>
+    Your cabin nickname is {{.User.CabinNickname2023}}. On the map, this is {{ .User.Cabin2023 }}.
+  </p>
+  {{ end }}
+
   <h3>Bussing & Bedding</h3>
 
   <p>
