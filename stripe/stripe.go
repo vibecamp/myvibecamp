@@ -115,13 +115,6 @@ func HandleTransportCreatePaymentIntent(c *gin.Context) {
 		return
 	}
 
-	user, err := db.GetUser(req.UserName)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Errorf("db.GetUser: %v", err)
-		return
-	}
-
 	total := req.BusSpots*5 + req.SleepingBags*35 + req.SheetSets*60 + req.Pillows*20
 	processingFee := float64(total) * stripeFeePercent
 
@@ -155,7 +148,7 @@ func HandleTransportCreatePaymentIntent(c *gin.Context) {
 	}
 
 	if order.BusToVibecamp != "" {
-		err = db.UpdateSlot(order.BusToVibecamp, order.BusSpots)
+		err := db.UpdateSlot(order.BusToVibecamp, order.BusSpots)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			log.Errorf("db.UpdateSlot: %v", err)
@@ -164,19 +157,12 @@ func HandleTransportCreatePaymentIntent(c *gin.Context) {
 	}
 
 	if order.BusFromVibecamp != "" {
-		err = db.UpdateSlot(order.BusFromVibecamp, order.BusSpots)
+		err := db.UpdateSlot(order.BusFromVibecamp, order.BusSpots)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			log.Errorf("db.UpdateSlot: %v", err)
 			return
 		}
-	}
-
-	err = user.AddTransportAndBeddingOrder(order.BusSpots, order.SleepingBags, order.SheetSets, order.Pillows, order.BusToVibecamp, order.BusFromVibecamp)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Errorf("user.AddTransportAndBeddingOrder: %v", err)
-		return
 	}
 
 	// create a payment intent
@@ -593,6 +579,22 @@ func HandleStripeWebhook(c *gin.Context) {
 					}
 				} else {
 					log.Debugf("User does not have an associated email")
+				}
+			} else {
+				if order.BusSpots > 0 || order.SheetSets > 0 || order.Pillows > 0 || order.SleepingBags > 0 {
+					user, err := db.GetUser(order.UserName)
+					if err != nil {
+						log.Errorf("error getting user %v\n", err)
+						w.WriteHeader((http.StatusInternalServerError))
+						return
+					}
+
+					err = user.AddTransportAndBeddingOrder(order.BusSpots, order.SleepingBags, order.SheetSets, order.Pillows, order.BusToVibecamp, order.BusFromVibecamp)
+					if err != nil {
+						w.WriteHeader((http.StatusInternalServerError))
+						log.Errorf("user.AddTransportAndBeddingOrder: %v", err)
+						return
+					}
 				}
 			}
 		} else {
