@@ -82,6 +82,8 @@ const (
 	ToddlerAttendees    = "Toddler Attendees on Ticket"
 	AdultSatAttendees   = "Adult Saturday Night Attendees on Ticket"
 
+	MealGroup = "Meal Group"
+
 	// ticket paths
 	Sponsorship  = "Sponsorship"
 	Attendee2022 = "2022 Attendee"

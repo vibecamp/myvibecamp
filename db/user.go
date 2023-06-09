@@ -139,6 +139,8 @@ type User struct {
 	ChildTent  int
 	Toddler    int
 
+	MealGroup string
+
 	AirtableID string
 }
 
@@ -376,6 +378,15 @@ func GetUserByField(field, value string) (*User, error) {
 		SleepingBags:    toInt(rec.Fields[fields.SleepingBags]),
 		SheetSets:       toInt(rec.Fields[fields.SheetSets]),
 		Pillows:         toInt(rec.Fields[fields.Pillows]),
+
+		AdultCabin: toInt(rec.Fields[fields.AdultCabinAttendees]),
+		AdultTent:  toInt(rec.Fields[fields.AdultTentAttendees]),
+		AdultSat:   toInt(rec.Fields[fields.AdultSatAttendees]),
+		ChildCabin: toInt(rec.Fields[fields.ChildCabinAttendees]),
+		ChildTent:  toInt(rec.Fields[fields.ChildTentAttendees]),
+		Toddler:    toInt(rec.Fields[fields.ToddlerAttendees]),
+
+		MealGroup: toStr(rec.Fields[fields.MealGroup]),
 	}
 
 	if defaultCache != nil {
