@@ -44,12 +44,12 @@
     <p>Dinner on Friday and Saturday nights is at 6-7PM.</p>
     <p>Brunch on Friday and Saturday is at 10-11AM.</p>
     <p>Brunch on Sunday is at 10:30-11:30AM.</p>
-  {{ elsif eq .User.MealGroup "Yellow" }}
+  {{ else if eq .User.MealGroup "Yellow" }}
     <p>Dinner on Thursday night is from 6-7PM.</p>
     <p>Dinner on Friday and Saturday nights is at 7-8PM.</p>
     <p>Brunch on Friday and Saturday is at 11AM-12PM.</p>
     <p>Brunch on Sunday is at 11:30AM-12:30PM.</p>
-  {{ elsif eq .User.MealGroup "Magenta" }}
+  {{ else if eq .User.MealGroup "Magenta" }}
     <p>Dinner on Thursday night is from 7-8PM.</p>
     <p>Dinner on Friday and Saturday nights is at 8-9PM.</p>
     <p>Brunch on Friday and Saturday is at 12-1PM.</p>
