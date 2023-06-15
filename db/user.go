@@ -938,6 +938,10 @@ func (u *User) GetTicketGroup() ([]*User, error) {
 
 	fmt.Printf("ticket group: %v\n", response.Records)
 
+	if len(response.Records) == 0 {
+		return []*User{u}, nil
+	}
+
 	group := make([]*User, len(response.Records))
 	for i := 0; i < len(group); i++ {
 		group[i], err = GetUser(toStr(response.Records[i].Fields[fields.UserName]))
