@@ -25,12 +25,8 @@
                   {{ else }}
                     @{{ .TwitterName }}
                   {{ end }}
-                  <br><small class="text-muted">{{ .Cabin }}</small>
+                  {{ /* <br><small class="text-muted">{{ .Cabin }}</small> */ }}
 
-                  {{ if .BeddingPaid }}
-                    <br><small class="text-muted">bought a sleeping bag</small>
-                  {{ end }}
-                  <br><small class="text-muted">{{ .OrderNotes }}</small>
                 </td>
                 <td style="vertical-align: middle">
                   {{ if .CheckedIn }}
