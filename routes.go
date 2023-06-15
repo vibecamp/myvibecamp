@@ -1212,7 +1212,7 @@ func CheckinHandler(c *gin.Context) {
 	}
 
 	ticketId := c.Param("ticketId")
-	fmt.Printf("ticketId: %s\n", ticketId)
+	// fmt.Printf("ticketId: %s\n", ticketId)
 	ticketUser, err := db.GetUserFromTicketId(ticketId)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
